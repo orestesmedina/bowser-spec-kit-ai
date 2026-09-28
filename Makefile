@@ -3,13 +3,17 @@
 
 .PHONY: help doctor modelos sincronizar verificar-agentes instalar-hooks instalar-kit actualizar-kit verificar-kit up down db-migrate test test-backend test-frontend lint security ci
 
-KIT ?= .kit
+# Carpeta del submódulo del kit: la del `make -f <carpeta>/Makefile` usado, o la guardada al instalar,
+# o el nombre por defecto. Se puede forzar con `make ... KIT=<carpeta>`.
+KIT_INVOCADO := $(patsubst %/,%,$(filter-out ./,$(dir $(firstword $(MAKEFILE_LIST)))))
+KIT_GUARDADO := $(shell bash scripts/ruta-kit.sh 2>/dev/null)
+KIT ?= $(or $(KIT_INVOCADO),$(KIT_GUARDADO),.bowser-spec-kit-ai)
 FORZAR ?=
 
 help: ## Muestra los comandos disponibles
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-18s %s\n", $$1, $$2}'
 
-instalar-kit: ## Copia el kit (.kit/) a la raíz, regenera agentes y activa hooks
+instalar-kit: ## Copia el kit (submódulo) a la raíz, regenera agentes y activa hooks
 	@test -f $(KIT)/scripts/instalar_kit.py || { echo "No existe $(KIT)/. Agrega el submódulo (git submodule add <url> $(KIT)) o ejecuta: git submodule update --init"; exit 1; }
 	python3 $(KIT)/scripts/instalar_kit.py $(if $(FORZAR),--forzar,)
 	python3 scripts/sincronizar.py
@@ -20,7 +24,7 @@ actualizar-kit: ## Trae la última versión del kit y la instala
 	git submodule update --init --remote $(KIT)
 	@$(MAKE) --no-print-directory instalar-kit
 
-verificar-kit: ## Comprueba que la raíz coincida con la versión del kit en .kit/
+verificar-kit: ## Comprueba que la raíz coincida con la versión del submódulo del kit
 	python3 $(KIT)/scripts/instalar_kit.py --verificar
 
 doctor: ## Verifica que el entorno tenga todo lo necesario

@@ -41,7 +41,7 @@
   "esfuerzo_codex": { "alto": "high", "medio": "medium", "bajo": "low" },
 
   "kit": {
-    "_comentario": "Solo aplica si el kit está como submódulo en .kit/. Rutas del kit que este proyecto quiere mantener con su propia versión (make instalar-kit no las tocará). Una carpeta termina en '/'.",
+    "_comentario": "Solo aplica si el kit está como submódulo en .bowser-spec-kit-ai/. Rutas del kit que este proyecto quiere mantener con su propia versión (make instalar-kit no las tocará). Una carpeta termina en '/'.",
     "excluir": []
   }
 }

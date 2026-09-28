@@ -25,9 +25,10 @@ case "$FILE" in
 esac
 
 # 3. El submódulo del kit y los archivos que vienen de él no se editan en el proyecto
+RUTA_KIT=$(cd "$RAIZ" && bash scripts/ruta-kit.sh 2>/dev/null || echo .bowser-spec-kit-ai)
 case "$REL" in
-  .kit/*)
-    echo "Bloqueado: '.kit/' es el submódulo del kit compartido. Los cambios se hacen en el repositorio del kit." >&2
+  "$RUTA_KIT"/*)
+    echo "Bloqueado: '$RUTA_KIT/' es el submódulo del kit compartido. Los cambios se hacen en el repositorio del kit." >&2
     exit 2
     ;;
 esac

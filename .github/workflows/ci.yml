@@ -22,9 +22,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Archivos del kit coinciden con el submódulo .kit/
+      - name: Archivos del kit coinciden con su submódulo
         if: hashFiles('.kit-manifest.json') != ''
-        run: python3 .kit/scripts/instalar_kit.py --verificar
+        run: python3 "$(bash scripts/ruta-kit.sh)/scripts/instalar_kit.py" --verificar
       - name: Configuración de agentes generada al día
         run: python3 scripts/sincronizar.py --verificar
 

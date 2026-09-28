@@ -22,15 +22,16 @@ if command -v gitleaks >/dev/null 2>&1; then
   gitleaks protect --staged --redact --no-banner >/dev/null 2>&1 || fallar "gitleaks detectó posibles secretos. Revisa con: gitleaks protect --staged -v"
 fi
 
-# 2. Kit compartido: los archivos que vienen de .kit/ deben coincidir con la versión del submódulo
+# 2. Kit compartido: los archivos que vienen del submódulo del kit deben coincidir con él
 KIT_OK=0
 if [ -f .kit-manifest.json ]; then
-  if [ ! -f .kit/scripts/instalar_kit.py ]; then
-    fallar "El submódulo .kit/ no está inicializado. Ejecuta: git submodule update --init"
-  elif python3 .kit/scripts/instalar_kit.py --verificar >/dev/null 2>&1; then
+  RUTA_KIT=$(bash scripts/ruta-kit.sh)
+  if [ ! -f "$RUTA_KIT/scripts/instalar_kit.py" ]; then
+    fallar "El submódulo $RUTA_KIT/ no está inicializado. Ejecuta: git submodule update --init"
+  elif python3 "$RUTA_KIT/scripts/instalar_kit.py" --verificar >/dev/null 2>&1; then
     KIT_OK=1
   else
-    fallar "Los archivos del kit no coinciden con .kit/ (editados a mano o sin instalar). Detalle: make verificar-kit"
+    fallar "Los archivos del kit no coinciden con $RUTA_KIT/ (editados a mano o sin instalar). Detalle: make verificar-kit"
   fi
 fi
 

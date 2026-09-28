@@ -71,7 +71,7 @@ Roles incluidos: `analista-producto`, `arquitecto`, `disenador-ux`, `dev-backend
 
 Requisitos: Git, Docker, Go 1.23+, Node 22+, Python 3.11+ y [uv](https://docs.astral.sh/uv/), `jq`, y al menos uno de: Claude Code, Codex u OpenCode.
 
-El kit vive en su propio repositorio de GitHub y cada proyecto lo incluye como **submódulo de git** en `.kit/`. Así, cuando el kit mejora, cada proyecto se actualiza con un comando.
+El kit vive en su propio repositorio de GitHub y cada proyecto lo incluye como **submódulo de git** en `.bowser-spec-kit-ai/`. Así, cuando el kit mejora, cada proyecto se actualiza con un comando.
 
 ```bash
 # 1. Instalar Spec Kit (una vez por máquina)
@@ -85,8 +85,8 @@ specify init --here --force --integration opencode   # opcional
 git add . && git commit -m "chore: inicializa spec kit"
 
 # 3. Agregar el kit como submódulo e instalarlo
-git submodule add git@github.com:<tu-org>/kit-ia-dev.git .kit
-make -f .kit/Makefile instalar-kit
+git submodule add git@github.com:<tu-org>/bowser-spec-kit-ai.git .bowser-spec-kit-ai
+make -f .bowser-spec-kit-ai/Makefile instalar-kit
 
 # 4. Entorno local
 cp .env.example .env      # completar valores
@@ -101,7 +101,7 @@ git add . && git commit -m "chore: instala kit de desarrollo"
 
 ### Qué hace `make instalar-kit`
 
-Las herramientas leen sus archivos en la raíz del proyecto, no dentro de `.kit/`. Por eso el comando:
+Las herramientas leen sus archivos en la raíz del proyecto, no dentro de `.bowser-spec-kit-ai/`. Por eso el comando:
 
 1. **Copia a la raíz los archivos del kit** (`AGENTS.md`, roles, skills, hooks, CI, constitución, scripts, `Makefile`) y los registra con su hash en `.kit-manifest.json`.
 2. **Copia las semillas** solo si no existen: `equipo/config.json`, `.github/CODEOWNERS`, `.env.example`, `docker-compose.yml`. Desde ese momento son del proyecto.
@@ -111,13 +111,13 @@ Las herramientas leen sus archivos en la raíz del proyecto, no dentro de `.kit/
 ### Actualizar el kit en un proyecto
 
 ```bash
-make actualizar-kit       # trae la última versión de .kit/ e instala
+make actualizar-kit       # trae la última versión de .bowser-spec-kit-ai/ e instala
 git add . && git commit -m "chore: actualiza kit de desarrollo"
 ```
 
 - Reemplaza los archivos que cambiaron, agrega los nuevos y **borra los que el kit eliminó**.
 - **Si alguien modificó localmente un archivo del kit, se detiene** y lo muestra, sin pisar nada. Opciones: llevar ese cambio al repositorio del kit, marcar el archivo como propio del proyecto, o descartarlo con `make instalar-kit FORZAR=1` (guarda respaldo).
-- `make verificar-kit` comprueba que la raíz coincida con `.kit/`. El hook de git y el CI hacen la misma comprobación, así que un archivo del kit editado a mano no llega a `main`.
+- `make verificar-kit` comprueba que la raíz coincida con `.bowser-spec-kit-ai/`. El hook de git y el CI hacen la misma comprobación, así que un archivo del kit editado a mano no llega a `main`.
 
 ### Archivos propios de un proyecto
 
@@ -137,7 +137,7 @@ Si el repositorio del kit es privado, el CI necesita un secreto `KIT_TOKEN` con 
 
 ### Alternativa sin submódulo
 
-Si un proyecto no puede usar submódulos, se puede copiar el kit a mano (`cp -r kit-ia-dev/. .`, luego `make sincronizar` y `make instalar-hooks`). En ese caso no hay actualizaciones automáticas.
+Si un proyecto no puede usar submódulos, se puede copiar el kit a mano (`cp -r bowser-spec-kit-ai/. .`, luego `make sincronizar` y `make instalar-hooks`). En ese caso no hay actualizaciones automáticas.
 
 ## Uso diario
 

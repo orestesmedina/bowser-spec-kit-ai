@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Instala o actualiza el kit (submódulo en .kit/) en la raíz del proyecto.
+"""Instala o actualiza el kit (submódulo, por defecto en .bowser-spec-kit-ai/) en la raíz del proyecto.
 
 Las herramientas (Claude Code, Codex, OpenCode, Spec Kit, GitHub Actions) leen sus archivos
 en la raíz del proyecto, no dentro del submódulo. Este script:
@@ -12,9 +12,9 @@ en la raíz del proyecto, no dentro del submódulo. Este script:
        - detectar si alguien modificó localmente un archivo del kit (y no pisarlo).
 
 Uso (desde la raíz del proyecto):
-  python3 .kit/scripts/instalar_kit.py              instala o actualiza
-  python3 .kit/scripts/instalar_kit.py --forzar     pisa cambios locales (guarda respaldo)
-  python3 .kit/scripts/instalar_kit.py --verificar  falla si la raíz no coincide con el kit (CI, hooks)
+  python3 .bowser-spec-kit-ai/scripts/instalar_kit.py              instala o actualiza
+  python3 .bowser-spec-kit-ai/scripts/instalar_kit.py --forzar     pisa cambios locales (guarda respaldo)
+  python3 .bowser-spec-kit-ai/scripts/instalar_kit.py --verificar  falla si la raíz no coincide con el kit (CI, hooks)
 
 Un proyecto puede quedarse con su propia versión de un archivo del kit agregándolo a
 "kit.excluir" en equipo/config.json. Solo usa la biblioteca estándar de Python 3.9+.
@@ -32,6 +32,11 @@ from pathlib import Path
 KIT = Path(__file__).resolve().parent.parent
 DESTINO = Path.cwd().resolve()
 MANIFIESTO = DESTINO / ".kit-manifest.json"
+# Ruta del submódulo relativa al proyecto (se guarda en el manifiesto para hooks, CI y doctor).
+try:
+    RUTA_KIT = KIT.relative_to(DESTINO).as_posix()
+except ValueError:
+    RUTA_KIT = str(KIT)
 
 # Archivos y carpetas del kit que se copian y se mantienen actualizados en el proyecto.
 GESTIONADOS = [
@@ -52,8 +57,8 @@ NUNCA = {"scripts/instalar_kit.py"}
 # Se copian una sola vez; después pertenecen al proyecto.
 SEMILLAS = ["equipo/config.json", ".github/CODEOWNERS", ".env.example", "docker-compose.yml"]
 
-INICIO_GITIGNORE = "# >>> kit-ia-dev (gestionado por make instalar-kit; no editar este bloque)"
-FIN_GITIGNORE = "# <<< kit-ia-dev"
+INICIO_GITIGNORE = "# >>> bowser-spec-kit-ai (gestionado por make instalar-kit; no editar este bloque)"
+FIN_GITIGNORE = "# <<< bowser-spec-kit-ai"
 
 
 # ---------------------------------------------------------------- utilidades
@@ -223,8 +228,9 @@ def instalar(forzar: bool) -> int:
         gi.write_text(nuevo, encoding="utf-8")
 
     manifiesto = {
-        "_comentario": "Generado por make instalar-kit. Lista los archivos que vienen del kit (.kit/) y su hash.",
+        "_comentario": f"Generado por make instalar-kit. Lista los archivos que vienen del kit ({RUTA_KIT}/) y su hash.",
         "version": version_kit(),
+        "ruta_kit": RUTA_KIT,
         "archivos": {rel: sha256(DESTINO / rel) for rel in sorted(a["kit"])},
     }
     MANIFIESTO.write_text(json.dumps(manifiesto, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -252,7 +258,7 @@ def instalar(forzar: bool) -> int:
 
 def verificar() -> int:
     if not MANIFIESTO.exists():
-        print("✗ El kit no está instalado en este proyecto (falta .kit-manifest.json). Ejecuta: make -f .kit/Makefile instalar-kit", file=sys.stderr)
+        print(f"✗ El kit no está instalado en este proyecto (falta .kit-manifest.json). Ejecuta: make -f {RUTA_KIT}/Makefile instalar-kit", file=sys.stderr)
         return 1
     excluir = leer_excluir()
     a = analizar(excluir)
@@ -266,7 +272,7 @@ def verificar() -> int:
     pendientes = a["nuevos"] + a["actualizar"] + a["eliminar"]
     if pendientes:
         problemas += 1
-        print(f"✗ El submódulo .kit/ está en {version_kit()} pero se instaló {anterior.get('version')}. Ejecuta: make instalar-kit", file=sys.stderr)
+        print(f"✗ El submódulo {RUTA_KIT}/ está en {version_kit()} pero se instaló {anterior.get('version')}. Ejecuta: make instalar-kit", file=sys.stderr)
         for rel in pendientes:
             print(f"    {rel}", file=sys.stderr)
     if problemas:
