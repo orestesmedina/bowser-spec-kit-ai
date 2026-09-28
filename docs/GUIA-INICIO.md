@@ -86,6 +86,8 @@ Si la spec y el plan están bien, la implementación casi siempre sale bien. **L
 | `.agents/skills/` | Convenciones del stack y flujos | Solo con aprobación de dirección técnica |
 | `specs/<número>-<feature>/` | Spec, plan y tareas de cada funcionalidad | Sí, es tu día a día |
 | `CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json` | Archivos generados | **Nunca** a mano |
+| `.kit/` y `.kit-manifest.json` | El kit compartido (submódulo) y la lista de archivos que vienen de él | **Nunca** a mano; se actualizan con `make actualizar-kit` |
+| `proyecto.mk` | Comandos de `make` propios del proyecto | Sí |
 | `equipo/config.json` | Qué modelo usa cada agente (ver `equipo/MODELOS.md`) | Solo con aprobación de dirección técnica |
 
 ---
@@ -171,7 +173,7 @@ git config --global user.email "tu@empresa.com"
 ### Caso A: unirte a un proyecto existente (lo más común)
 
 ```bash
-git clone git@github.com:<organizacion>/<proyecto>.git
+git clone --recursive git@github.com:<organizacion>/<proyecto>.git   # --recursive trae el kit (.kit/)
 cd <proyecto>
 
 make instalar-hooks          # activa los controles de git (obligatorio)
@@ -188,9 +190,22 @@ Luego lee, en este orden:
 3. `AGENTS.md`.
 4. La carpeta `specs/`, empezando por la funcionalidad más reciente, para ver cómo se ha trabajado.
 
+**Sobre la carpeta `.kit/`:** es el kit compartido de la empresa, incluido como submódulo de git. Sus archivos se copian a la raíz del proyecto con `make instalar-kit`. **No edites `.kit/` ni los archivos que vienen de él** (están listados en `.kit-manifest.json`): el hook de git y el CI lo detectan. Si algo del kit debería cambiar, propónlo a dirección técnica.
+
 ### Caso B: crear un proyecto nuevo
 
-Solo lo hace quien tenga autorización. Sigue la sección **Instalación** del `README.md` del kit (instalar Spec Kit, `specify init`, copiar el kit, `make sincronizar`, `make instalar-hooks`).
+Solo lo hace quien tenga autorización. Sigue la sección **Instalación** del `README.md` del kit: instalar Spec Kit, `specify init`, `git submodule add … .kit` y `make -f .kit/Makefile instalar-kit`.
+
+### Actualizar el kit en un proyecto
+
+Cuando dirección técnica publique una mejora del kit:
+
+```bash
+make actualizar-kit
+git add . && git commit -m "chore: actualiza kit de desarrollo"
+```
+
+Si el comando se detiene porque un archivo del kit fue modificado en el proyecto, no uses `FORZAR=1` sin consultar: ese cambio local podría ser importante.
 
 ---
 
@@ -349,6 +364,11 @@ Primero se actualiza `spec.md` y se aprueba; después se actualiza el plan y las
 | Síntoma | Causa probable | Solución |
 |---|---|---|
 | `make doctor` dice "Hooks de git inactivos" | No se ejecutó la instalación | `make instalar-hooks` |
+| "Submódulo .kit/ sin inicializar" o la carpeta `.kit/` está vacía | Se clonó sin `--recursive` | `git submodule update --init` |
+| "Los archivos del kit no coinciden con .kit/" al hacer commit | Se editó a mano un archivo del kit, o se actualizó `.kit/` sin instalar | `make verificar-kit` para ver cuál; luego revierte el cambio o ejecuta `make instalar-kit` |
+| `make actualizar-kit` se detiene por archivos modificados | Alguien cambió localmente un archivo del kit | Consulta a dirección técnica: llevarlo al kit, excluirlo en `equipo/config.json` o descartarlo con `FORZAR=1` |
+| El CI falla al descargar el submódulo | El repositorio del kit es privado | Configura el secreto `KIT_TOKEN` en el repositorio del proyecto |
+| `make: command not found` | Falta `make` (común en Ubuntu/WSL) | `sudo apt install -y make build-essential` |
 | "Configuración de agentes desactualizada" | Alguien cambió `equipo/` o `.agents/` sin regenerar | `make sincronizar` y commit |
 | El commit se rechaza por "Mensaje de commit inválido" | No sigue Conventional Commits | Usa `feat: …`, `fix: …`, `docs: …`, etc. |
 | El commit se rechaza por la constitución | Se modificó `constitution.md` | Revierte el cambio; solo dirección técnica puede aprobarlo |

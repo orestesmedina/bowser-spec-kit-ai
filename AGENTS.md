@@ -47,3 +47,4 @@ La skill `equipo-feature` describe este flujo completo paso a paso.
 7. **Commits pequeños**, uno por tarea, con Conventional Commits (`feat:`, `fix:`, `test:`…). Los hooks de git (`make instalar-hooks`) validan cada commit.
 8. **No edites archivos generados** (`CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json`). Cambia la fuente en `equipo/` o `.agents/` y ejecuta `make sincronizar`.
 9. Si la spec es ambigua, pregunta antes de inventar.
+10. **No edites el kit compartido.** Ni la carpeta `.kit/` (submódulo) ni los archivos listados en `.kit-manifest.json`: se reemplazan al actualizar el kit. Si algo del kit debe cambiar, propónlo al humano para llevarlo al repositorio del kit.

@@ -55,6 +55,13 @@ if docker info >/dev/null 2>&1; then verde "Docker está corriendo"; else rojo "
 if [ "$(git config core.hooksPath 2>/dev/null)" = ".githooks" ]; then verde "Hooks de git activos"; else rojo "Hooks de git inactivos (ejecuta: make instalar-hooks)"; fi
 [ -f .env ] && verde "Archivo .env existe" || rojo "Falta .env (ejecuta: cp .env.example .env y completa valores)"
 if python3 scripts/sincronizar.py --verificar >/dev/null 2>&1; then verde "Configuración de agentes al día"; else rojo "Configuración de agentes desactualizada (ejecuta: make sincronizar)"; fi
+if [ -f .kit-manifest.json ]; then
+  if [ ! -f .kit/scripts/instalar_kit.py ]; then rojo "Submódulo .kit/ sin inicializar (ejecuta: git submodule update --init)"
+  elif python3 .kit/scripts/instalar_kit.py --verificar >/dev/null 2>&1; then verde "Kit instalado y al día ($(jq -r .version .kit-manifest.json 2>/dev/null))"
+  else rojo "Kit desactualizado o modificado (detalle: make verificar-kit)"; fi
+elif [ -f .gitmodules ] && grep -q "path = .kit" .gitmodules; then
+  rojo "Submódulo .kit/ agregado pero el kit no está instalado (ejecuta: make -f .kit/Makefile instalar-kit)"
+fi
 [ -d .specify/templates ] && verde "Spec Kit inicializado" || rojo "Spec Kit no inicializado (ejecuta: specify init --here --integration <herramienta>)"
 command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1 && verde "GitHub CLI autenticado" || ambar "GitHub CLI no autenticado (necesario para que los agentes abran PRs: gh auth login)"
 

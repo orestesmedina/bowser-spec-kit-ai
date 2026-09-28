@@ -4,9 +4,12 @@
 
 FILE=$(jq -r '.tool_input.file_path // empty')
 [ -z "$FILE" ] && exit 0
+RAIZ="${CLAUDE_PROJECT_DIR:-$PWD}"
+REL="${FILE#"$RAIZ"/}"
 
-# 1. Secretos
+# 1. Secretos (.env.example sí se puede editar: documenta variables sin valores reales)
 case "$FILE" in
+  *.env.example) ;;
   *.env|*/.env.*|*/secrets/*|*.pem|*.key)
     echo "Bloqueado: '$FILE' puede contener secretos. Usa .env.example para documentar variables." >&2
     exit 2
@@ -21,9 +24,21 @@ case "$FILE" in
     ;;
 esac
 
-# 3. Migraciones ya versionadas en git no se editan (se crea una nueva)
+# 3. El submódulo del kit y los archivos que vienen de él no se editan en el proyecto
+case "$REL" in
+  .kit/*)
+    echo "Bloqueado: '.kit/' es el submódulo del kit compartido. Los cambios se hacen en el repositorio del kit." >&2
+    exit 2
+    ;;
+esac
+if [ -f "$RAIZ/.kit-manifest.json" ] && jq -e --arg p "$REL" '.archivos | has($p)' "$RAIZ/.kit-manifest.json" >/dev/null 2>&1; then
+  echo "Bloqueado: '$REL' viene del kit compartido y se reemplaza al actualizarlo. Propón el cambio en el repositorio del kit, o si es propio de este proyecto, un humano puede agregarlo a \"kit.excluir\" en equipo/config.json." >&2
+  exit 2
+fi
+
+# 4. Migraciones ya versionadas en git no se editan (se crea una nueva)
 if [[ "$FILE" == */backend/migrations/*.sql ]] && [ -f "$FILE" ]; then
-  if git -C "$CLAUDE_PROJECT_DIR" ls-files --error-unmatch "$FILE" >/dev/null 2>&1; then
+  if git -C "$RAIZ" ls-files --error-unmatch "$FILE" >/dev/null 2>&1; then
     echo "Bloqueado: '$FILE' ya está versionada. Crea una migración nueva en lugar de editarla." >&2
     exit 2
   fi

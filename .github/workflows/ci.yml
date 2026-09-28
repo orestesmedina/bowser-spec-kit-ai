@@ -11,14 +11,22 @@ concurrency:
 
 jobs:
   agentes:
-    name: Configuración de agentes al día
+    name: Kit y configuración de agentes al día
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          # Si el repositorio del kit es privado, crea el secreto KIT_TOKEN (token con lectura del kit).
+          token: ${{ secrets.KIT_TOKEN || github.token }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python3 scripts/sincronizar.py --verificar
+      - name: Archivos del kit coinciden con el submódulo .kit/
+        if: hashFiles('.kit-manifest.json') != ''
+        run: python3 .kit/scripts/instalar_kit.py --verificar
+      - name: Configuración de agentes generada al día
+        run: python3 scripts/sincronizar.py --verificar
 
   controles:
     name: Migraciones y constitución

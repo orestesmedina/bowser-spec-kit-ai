@@ -1,7 +1,27 @@
-.PHONY: help doctor modelos sincronizar verificar-agentes instalar-hooks up down db-migrate test test-backend test-frontend lint security ci
+# Makefile del kit. En los proyectos lo gestiona `make instalar-kit`: no lo edites ahí.
+# Para agregar comandos propios de un proyecto, créalos en proyecto.mk (se incluye al final).
+
+.PHONY: help doctor modelos sincronizar verificar-agentes instalar-hooks instalar-kit actualizar-kit verificar-kit up down db-migrate test test-backend test-frontend lint security ci
+
+KIT ?= .kit
+FORZAR ?=
 
 help: ## Muestra los comandos disponibles
-	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-18s %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-18s %s\n", $$1, $$2}'
+
+instalar-kit: ## Copia el kit (.kit/) a la raíz, regenera agentes y activa hooks
+	@test -f $(KIT)/scripts/instalar_kit.py || { echo "No existe $(KIT)/. Agrega el submódulo (git submodule add <url> $(KIT)) o ejecuta: git submodule update --init"; exit 1; }
+	python3 $(KIT)/scripts/instalar_kit.py $(if $(FORZAR),--forzar,)
+	python3 scripts/sincronizar.py
+	git config core.hooksPath .githooks
+	@echo "Listo. Revisa los cambios con 'git status' y haz commit (incluye .kit-manifest.json)."
+
+actualizar-kit: ## Trae la última versión del kit y la instala
+	git submodule update --init --remote $(KIT)
+	@$(MAKE) --no-print-directory instalar-kit
+
+verificar-kit: ## Comprueba que la raíz coincida con la versión del kit en .kit/
+	python3 $(KIT)/scripts/instalar_kit.py --verificar
 
 doctor: ## Verifica que el entorno tenga todo lo necesario
 	@bash scripts/doctor.sh
@@ -46,3 +66,6 @@ security: ## Auditoría de dependencias
 	cd frontend && npm audit --audit-level=high
 
 ci: lint test security ## Lo mismo que corre en CI
+
+# Comandos propios del proyecto (opcional; no lo gestiona el kit).
+-include proyecto.mk

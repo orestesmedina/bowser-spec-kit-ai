@@ -71,6 +71,8 @@ Roles incluidos: `analista-producto`, `arquitecto`, `disenador-ux`, `dev-backend
 
 Requisitos: Git, Docker, Go 1.23+, Node 22+, Python 3.11+ y [uv](https://docs.astral.sh/uv/), `jq`, y al menos uno de: Claude Code, Codex u OpenCode.
 
+El kit vive en su propio repositorio de GitHub y cada proyecto lo incluye como **submódulo de git** en `.kit/`. Así, cuando el kit mejora, cada proyecto se actualiza con un comando.
+
 ```bash
 # 1. Instalar Spec Kit (una vez por máquina)
 uv tool install specify-cli
@@ -80,23 +82,62 @@ mkdir mi-proyecto && cd mi-proyecto && git init
 specify init --here --integration claude
 specify init --here --force --integration codex      # opcional
 specify init --here --force --integration opencode   # opcional
+git add . && git commit -m "chore: inicializa spec kit"
 
-# 3. Copiar el kit ENCIMA (nuestra constitución reemplaza la plantilla de Spec Kit)
-cp -r /ruta/a/kit-ia-dev/. .
+# 3. Agregar el kit como submódulo e instalarlo
+git submodule add git@github.com:<tu-org>/kit-ia-dev.git .kit
+make -f .kit/Makefile instalar-kit
 
-# 4. Generar adaptadores y activar hooks de git
-make sincronizar
-make instalar-hooks
-
-# 5. Entorno local
+# 4. Entorno local
 cp .env.example .env      # completar valores
 make up
+make doctor
 
-# 6. Primer commit
-git add . && git commit -m "chore: estructura inicial del proyecto"
+# 5. Commit
+git add . && git commit -m "chore: instala kit de desarrollo"
 ```
 
-> Ejecuta `specify init` **antes** de copiar el kit. Verifica los nombres exactos de integración con `specify integration list`.
+> Ejecuta `specify init` **antes** de instalar el kit: nuestra constitución reemplaza la plantilla de Spec Kit (queda un respaldo en `.kit-respaldo/`). Verifica los nombres de integración con `specify integration list`.
+
+### Qué hace `make instalar-kit`
+
+Las herramientas leen sus archivos en la raíz del proyecto, no dentro de `.kit/`. Por eso el comando:
+
+1. **Copia a la raíz los archivos del kit** (`AGENTS.md`, roles, skills, hooks, CI, constitución, scripts, `Makefile`) y los registra con su hash en `.kit-manifest.json`.
+2. **Copia las semillas** solo si no existen: `equipo/config.json`, `.github/CODEOWNERS`, `.env.example`, `docker-compose.yml`. Desde ese momento son del proyecto.
+3. Agrega un bloque del kit a `.gitignore` sin tocar el resto.
+4. Regenera la configuración de agentes (`make sincronizar`) y activa los hooks de git.
+
+### Actualizar el kit en un proyecto
+
+```bash
+make actualizar-kit       # trae la última versión de .kit/ e instala
+git add . && git commit -m "chore: actualiza kit de desarrollo"
+```
+
+- Reemplaza los archivos que cambiaron, agrega los nuevos y **borra los que el kit eliminó**.
+- **Si alguien modificó localmente un archivo del kit, se detiene** y lo muestra, sin pisar nada. Opciones: llevar ese cambio al repositorio del kit, marcar el archivo como propio del proyecto, o descartarlo con `make instalar-kit FORZAR=1` (guarda respaldo).
+- `make verificar-kit` comprueba que la raíz coincida con `.kit/`. El hook de git y el CI hacen la misma comprobación, así que un archivo del kit editado a mano no llega a `main`.
+
+### Archivos propios de un proyecto
+
+- **Una versión propia de un archivo del kit:** agrégalo a `"kit.excluir"` en `equipo/config.json` (una carpeta termina en `/`). El kit deja de tocarlo.
+- **Skills o roles adicionales:** crea carpetas nuevas en `.agents/skills/` o archivos nuevos en `equipo/agentes/`. Lo que no viene del kit nunca se toca.
+- **Comandos de `make` propios:** créalos en `proyecto.mk`, que el `Makefile` incluye automáticamente.
+
+### Clonar un proyecto existente
+
+```bash
+git clone --recursive git@github.com:<tu-org>/<proyecto>.git
+# si ya clonaste sin --recursive:
+git submodule update --init
+```
+
+Si el repositorio del kit es privado, el CI necesita un secreto `KIT_TOKEN` con permiso de lectura sobre el kit.
+
+### Alternativa sin submódulo
+
+Si un proyecto no puede usar submódulos, se puede copiar el kit a mano (`cp -r kit-ia-dev/. .`, luego `make sincronizar` y `make instalar-hooks`). En ese caso no hay actualizaciones automáticas.
 
 ## Uso diario
 
