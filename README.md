@@ -129,6 +129,10 @@ git add . && git commit -m "chore: actualiza kit de desarrollo"
 - **Skills o roles adicionales:** crea carpetas nuevas en `.agents/skills/` o archivos nuevos en `equipo/agentes/`. Lo que no viene del kit nunca se toca.
 - **Comandos de `make` propios:** créalos en `proyecto.mk`, que el `Makefile` incluye automáticamente.
 
+### Empezar un proyecto desde una idea
+
+Usa la plantilla `docs/plantillas/idea.md` y sigue la sección "De la idea a la primera funcionalidad" de la [Guía de inicio](docs/GUIA-INICIO.md).
+
 ### Clonar un proyecto existente
 
 ```bash

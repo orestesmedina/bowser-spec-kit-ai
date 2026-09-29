@@ -51,6 +51,7 @@ GESTIONADOS = [
     "equipo/MODELOS.md",
     "scripts/",
     "docs/GUIA-INICIO.md",
+    "docs/plantillas/",
 ]
 # Nunca se copian (solo tienen sentido dentro del kit).
 NUNCA = {"scripts/instalar_kit.py"}
