@@ -49,6 +49,7 @@ GESTIONADOS = [
     "equipo/agentes/",
     "equipo/adaptadores/",
     "equipo/MODELOS.md",
+    "equipo/orquestador.md",
     "scripts/",
     "docs/GUIA-INICIO.md",
     "docs/plantillas/",
