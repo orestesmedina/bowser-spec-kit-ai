@@ -69,7 +69,11 @@ Roles incluidos: `analista-producto`, `arquitecto`, `disenador-ux`, `dev-backend
 
 ## Instalación (por cada proyecto nuevo)
 
-Requisitos: Git, Docker, Go 1.23+, Node 22+, Python 3.11+ y [uv](https://docs.astral.sh/uv/), `jq`, y al menos uno de: Claude Code, Codex u OpenCode.
+> **Antes de empezar, prepara tu máquina con la sección 3 de la [Guía de inicio](docs/GUIA-INICIO.md#3-instalación-del-entorno).** Ahí está cómo instalar cada herramienta y cómo verificarlo con `make doctor`.
+>
+> **¿Usas Windows?** Lee primero la sección [3.1.1 — Windows: cómo funciona WSL](docs/GUIA-INICIO.md#311-windows-cómo-funciona-wsl-importante). Todo el desarrollo (herramientas, proyectos, agente de código y git) va **dentro de Ubuntu (WSL)**. Mezclarlo con Windows es la causa de la mayoría de los errores.
+
+Requisitos: Git, `make`, `jq`, Docker, Go 1.23+, Node 22+, Python 3.11+ y [uv](https://docs.astral.sh/uv/), y al menos uno de: Claude Code, Codex u OpenCode.
 
 El kit vive en su propio repositorio de GitHub y cada proyecto lo incluye como **submódulo de git** en `.bowser-spec-kit-ai/`. Así, cuando el kit mejora, cada proyecto se actualiza con un comando.
 

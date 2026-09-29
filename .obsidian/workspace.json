@@ -185,8 +185,10 @@
   },
   "active": "b694847474d809ad",
   "lastOpenFiles": [
+    "CLAUDE.md",
+    "docs/GUIA-INICIO.md",
+    "README.md",
     "scripts/ruta-kit.sh",
-    "scripts/instalar_kit.py",
-    "docs/GUIA-INICIO.md"
+    "scripts/instalar_kit.py"
   ]
 }
