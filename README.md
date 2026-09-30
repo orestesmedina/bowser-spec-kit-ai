@@ -166,9 +166,9 @@ En `equipo/config.json` se elige el modelo por herramienta con tres niveles de d
 
 ```json
 "opencode": {
-  "orquestador": "opencode-go/glm-5.3",
-  "niveles": { "alto": "opencode-go/kimi-k3", "medio": "opencode-go/glm-5.3", "bajo": "opencode-go/glm-5.3-flash" },
-  "agentes": { "dev-backend": "opencode-go/kimi-k2.7-code", "revisor-codigo": "opencode-go/deepseek-v4-pro" }
+  "orquestador": "opencode-go/deepseek-v4.1-flash",
+  "niveles": { "alto": "opencode-go/mimo-v2.6-pro", "medio": "opencode-go/glm-5.3-flash", "bajo": "opencode-go/mimo-v2.6-flash" },
+  "agentes": { "dev-backend": "opencode-go/deepseek-v4.1-flash", "revisor-codigo": "opencode-go/mimo-v2.6-pro" }
 }
 ```
 
@@ -177,7 +177,7 @@ make sincronizar   # aplica los cambios
 make modelos       # tabla de qué modelo usa cada agente
 ```
 
-Criterios, límites de uso de OpenCode Go y advertencias de privacidad: [`equipo/MODELOS.md`](equipo/MODELOS.md).
+Criterios, cómo funciona el presupuesto de OpenCode Go, rendimiento de cada modelo, horario pico de DeepSeek y privacidad: [`equipo/MODELOS.md`](equipo/MODELOS.md).
 
 ## Cambiar de herramienta
 
