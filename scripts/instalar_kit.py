@@ -24,6 +24,8 @@ from __future__ import annotations
 import datetime
 import hashlib
 import json
+import os
+import re
 import shutil
 import subprocess
 import sys
@@ -113,13 +115,91 @@ def leer_manifiesto() -> dict:
     return {"version": None, "archivos": {}}
 
 
-def version_kit() -> str:
+def commit_kit() -> str:
     try:
         r = subprocess.run(["git", "-C", str(KIT), "rev-parse", "--short", "HEAD"],
                            capture_output=True, text=True, timeout=10)
-        return r.stdout.strip() or "desconocida"
+        return r.stdout.strip() or "desconocido"
     except OSError:
-        return "desconocida"
+        return "desconocido"
+
+
+def version_kit() -> str:
+    """Versión semántica del archivo VERSION del kit (ej. 1.6.0)."""
+    archivo = KIT / "VERSION"
+    return archivo.read_text(encoding="utf-8").strip() if archivo.exists() else ""
+
+
+def nombre_version(version: str | None, commit: str | None) -> str:
+    if version and commit:
+        return f"{version} ({commit})"
+    return version or commit or "desconocida"
+
+
+# ---------------------------------------------------------------- novedades (CHANGELOG.md del kit)
+
+SEMVER = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
+
+
+def clave_version(v: str) -> tuple[int, int, int] | None:
+    m = SEMVER.match(v or "")
+    return tuple(int(x) for x in m.groups()) if m else None  # type: ignore[return-value]
+
+
+def entradas_changelog() -> list[tuple[str, str, str]]:
+    """[(version, fecha, cuerpo)] en el orden del archivo (la más nueva primero)."""
+    archivo = KIT / "CHANGELOG.md"
+    if not archivo.exists():
+        return []
+    texto = archivo.read_text(encoding="utf-8")
+    partes = re.split(r"^## \[([^\]]+)\](?:\s*-\s*(\S+))?\s*$", texto, flags=re.M)
+    entradas = []
+    for i in range(1, len(partes) - 2, 3):
+        version, fecha, cuerpo = partes[i], partes[i + 1] or "", partes[i + 2].strip()
+        if clave_version(version):
+            entradas.append((version, fecha, cuerpo))
+    return entradas
+
+
+def mostrar_novedades(desde: str | None, hasta: str | None, limite_sin_desde: int = 1) -> None:
+    """Imprime las entradas con desde < versión <= hasta. Sin 'desde' conocido, muestra las últimas."""
+    entradas = entradas_changelog()
+    if not entradas:
+        return
+    k_desde, k_hasta = clave_version(desde or ""), clave_version(hasta or "")
+    if k_desde and k_hasta and k_desde >= k_hasta:
+        return
+    if k_desde:
+        elegidas = [e for e in entradas if k_desde < clave_version(e[0]) and (not k_hasta or clave_version(e[0]) <= k_hasta)]
+        titulo = f"Novedades del kit de {desde} a {hasta or entradas[0][0]}"
+    else:
+        elegidas = [e for e in entradas if not k_hasta or clave_version(e[0]) <= k_hasta][:limite_sin_desde]
+        titulo = "Novedades de la versión instalada del kit" if limite_sin_desde == 1 else "Historial de cambios del kit"
+    if not elegidas:
+        return
+    print()
+    print(f"=== {titulo} ===")
+    pasos = []
+    for version, fecha, cuerpo in elegidas:
+        print(f"\n[{version}] {fecha}")
+        seccion = ""
+        for linea in cuerpo.splitlines():
+            if linea.startswith("### "):
+                seccion = linea[4:].strip()
+                if seccion.lower() != "al actualizar":
+                    print(f"  {seccion}:")
+                continue
+            if not linea.strip():
+                continue
+            if seccion.lower() == "al actualizar":
+                pasos.append((clave_version(version), len(pasos), f"{linea.strip().lstrip('-').strip()}  ({version})"))
+            else:
+                print(f"    {linea.strip()}")
+    if pasos:
+        print("\n⚠ PASOS MANUALES AL ACTUALIZAR:")
+        for _, _, p in sorted(pasos):  # de la versión más antigua a la más nueva, en el orden escrito
+            print(f"  - {p}")
+    print(f"\nDetalle completo: {RUTA_KIT}/CHANGELOG.md")
 
 
 def bloque_gitignore() -> str:
@@ -187,6 +267,8 @@ def respaldar(rels: list[str]) -> Path | None:
 
 
 def instalar(forzar: bool) -> int:
+    previo = leer_manifiesto()
+    version_previa = previo.get("version") if clave_version(previo.get("version") or "") else None
     excluir = leer_excluir()
     a = analizar(excluir)
 
@@ -231,14 +313,15 @@ def instalar(forzar: bool) -> int:
 
     manifiesto = {
         "_comentario": f"Generado por make instalar-kit. Lista los archivos que vienen del kit ({RUTA_KIT}/) y su hash.",
-        "version": version_kit(),
+        "version": version_kit() or commit_kit(),
+        "commit": commit_kit(),
         "ruta_kit": RUTA_KIT,
         "archivos": {rel: sha256(DESTINO / rel) for rel in sorted(a["kit"])},
     }
     MANIFIESTO.write_text(json.dumps(manifiesto, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     # Resumen
-    print(f"Kit {manifiesto['version']} instalado en {DESTINO.name}/")
+    print(f"Kit {nombre_version(manifiesto['version'], manifiesto['commit'])} instalado en {DESTINO.name}/")
     for titulo, lista in (("nuevos", a["nuevos"]), ("actualizados", a["actualizar"] + (a["conflictos"] if forzar else [])),
                           ("reemplazados (existían antes)", a["previos"]), ("eliminados", eliminados),
                           ("semillas (ahora son del proyecto)", semillas)):
@@ -255,7 +338,31 @@ def instalar(forzar: bool) -> int:
         print(f"  Respaldo de lo reemplazado: {respaldo.relative_to(DESTINO)}/")
     if not (a["nuevos"] or a["actualizar"] or a["previos"] or eliminados or semillas or (forzar and a["conflictos"])):
         print("  Sin cambios: el proyecto ya estaba al día.")
+    # El Makefile del kit muestra las novedades al final (--resumen-novedades). Un Makefile anterior no lo hace:
+    # en ese caso se muestran aquí.
+    if not os.environ.get("NOVEDADES_AL_FINAL"):
+        resumen_novedades(version_previa if previo.get("archivos") else "NUEVO", previo.get("version"))
     return 0
+
+
+def version_instalada() -> str:
+    """Para el Makefile: versión instalada antes de actualizar ('NUEVO' si el kit no estaba instalado)."""
+    m = leer_manifiesto()
+    return (m.get("version") or "desconocida") if m.get("archivos") else "NUEVO"
+
+
+def resumen_novedades(previa: str | None, previa_cruda: str | None = None) -> None:
+    nueva = version_kit()
+    if not nueva or previa == "NUEVO" or previa == nueva:
+        return
+    if clave_version(previa or ""):
+        mostrar_novedades(previa, nueva)
+    else:
+        # Instalado antes de que el kit tuviera VERSION: no se sabe desde cuál viene, se muestra todo.
+        print("\n(Este proyecto tenía una versión del kit anterior al historial de cambios: se muestran todas las novedades.)")
+        mostrar_novedades(None, nueva, limite_sin_desde=1000)
+    if not any(v == nueva for v, _, _ in entradas_changelog()):
+        print(f"! La versión {nueva} no tiene entrada en {RUTA_KIT}/CHANGELOG.md (avísale a quien mantiene el kit).")
 
 
 def verificar() -> int:
@@ -274,12 +381,13 @@ def verificar() -> int:
     pendientes = a["nuevos"] + a["actualizar"] + a["eliminar"]
     if pendientes:
         problemas += 1
-        print(f"✗ El submódulo {RUTA_KIT}/ está en {version_kit()} pero se instaló {anterior.get('version')}. Ejecuta: make instalar-kit", file=sys.stderr)
+        print(f"✗ El submódulo {RUTA_KIT}/ está en {nombre_version(version_kit(), commit_kit())} pero se instaló "
+              f"{nombre_version(anterior.get('version'), anterior.get('commit'))}. Ejecuta: make instalar-kit", file=sys.stderr)
         for rel in pendientes:
             print(f"    {rel}", file=sys.stderr)
     if problemas:
         return 1
-    print(f"OK: kit {anterior.get('version')} instalado y sin cambios locales.")
+    print(f"OK: kit {nombre_version(anterior.get('version'), anterior.get('commit'))} instalado y sin cambios locales.")
     return 0
 
 
@@ -292,6 +400,24 @@ def main() -> int:
         return 1
     if "--verificar" in sys.argv[1:]:
         return verificar()
+    if "--version-instalada" in sys.argv[1:]:
+        print(version_instalada())
+        return 0
+    if "--resumen-novedades" in sys.argv[1:]:
+        args = sys.argv[1:]
+        i = args.index("--resumen-novedades")
+        resumen_novedades(args[i + 1] if i + 1 < len(args) else None)
+        return 0
+    if "--novedades" in sys.argv[1:]:
+        args = sys.argv[1:]
+        desde = args[args.index("--desde") + 1] if "--desde" in args and args.index("--desde") + 1 < len(args) else None
+        if desde and not clave_version(desde):
+            print(f"Versión no válida: {desde} (formato 1.4.0)", file=sys.stderr)
+            return 1
+        instalada = leer_manifiesto().get("version")
+        print(f"Kit instalado: {nombre_version(instalada, leer_manifiesto().get('commit'))} · en el submódulo: {nombre_version(version_kit(), commit_kit())}")
+        mostrar_novedades(desde, version_kit() or None, limite_sin_desde=1000)
+        return 0
     return instalar(forzar="--forzar" in sys.argv[1:])
 
 

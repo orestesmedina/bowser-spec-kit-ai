@@ -115,7 +115,7 @@ Las herramientas leen sus archivos en la raíz del proyecto, no dentro de `.bows
 ### Actualizar el kit en un proyecto
 
 ```bash
-make actualizar-kit       # trae la última versión de .bowser-spec-kit-ai/ e instala
+make actualizar-kit       # trae la última versión de .bowser-spec-kit-ai/, instala y muestra las novedades
 make actualizar-modelos   # (si lo avisa) aplica los modelos recomendados por el kit
 git add . && git commit -m "chore: actualiza kit de desarrollo"
 ```
@@ -159,6 +159,7 @@ Abre la herramienta en la carpeta del proyecto y pide lo que necesitas. Las skil
 | Construir una funcionalidad | "Usa la skill equipo-feature: los clientes pueden registrarse con email…" |
 | Revisar cambios | "Usa la skill equipo-revision" |
 | Corregir un bug | "Usa la skill equipo-bug: al editar un pedido se pierde la dirección" |
+| Saber cuánto costó en IA | `make costos` (tarea actual) o `make costos TODO=1` (proyecto) |
 | Saber por dónde íbamos | `make estado` en la terminal, o "¿por dónde quedamos?" al orquestador (skill equipo-retomar) |
 | Una fase suelta de Spec Kit | `/speckit.specify`, `/speckit.plan`… (o `$speckit-…` en Codex) |
 
@@ -171,7 +172,17 @@ Nada depende de la memoria de una sesión. El orquestador mantiene dos archivos 
 - `docs/producto/roadmap.md` — cada funcionalidad con su estado: pendiente, en curso, en revisión, terminada o pausada (plantilla `docs/plantillas/roadmap.md`).
 - `specs/<rama>/estado.md` — fase, aprobaciones (quién y cuándo), ciclo de corrección, hallazgos abiertos, decisiones del chat y próximo paso (plantilla `docs/plantillas/estado.md`).
 
-Al abrir una sesión, el orquestador revisa ambos y te dice dónde quedaron. `make estado` muestra lo mismo en la terminal y avisa si el estado no cuadra con los archivos o con git. El pre-commit avisa (sin bloquear) cuando cambian spec, plan o tareas sin actualizar `estado.md`.
+Al abrir una sesión, el orquestador revisa ambos y te dice dónde quedaron.
+
+### Costo de IA por funcionalidad
+
+`make costos` registra cuántos tokens gastó cada agente con cada modelo y su costo **equivalente** en dólares, en `specs/<rama>/costos.json` (versionado: suma el trabajo de todo el equipo). Lo ejecuta el orquestador al iniciar y al cerrar cada sesión.
+
+- **Precios:** salen de [models.dev](https://models.dev), el catálogo que usa OpenCode. Cada tarea guarda su propio historial de precios: si un precio cambia, se **agrega** una versión nueva con su fecha, y cada respuesta se valoriza con el precio vigente cuando ocurrió (incluida la tarifa de hora pico de DeepSeek).
+- **Cierre:** cuando apruebas el PR, `make costos CERRAR=1` congela el costo. El pre-commit bloquea cualquier cambio posterior a un `costos.json` cerrado.
+- **Reportes:** `make costos` (tarea actual), `make costos TODO=1` (proyecto completo, por funcionalidad, agente y modelo), `make costos PRECIOS=hoy` (cuánto costaría hoy, para cotizar; no guarda nada).
+
+Con una suscripción (OpenCode Go) no pagas por token: el dólar es lo que costaría ese consumo a precio de API, y tu gasto real es el % de la consola. Hoy registra sesiones de OpenCode. `make estado` muestra lo mismo en la terminal y avisa si el estado no cuadra con los archivos o con git. El pre-commit avisa (sin bloquear) cuando cambian spec, plan o tareas sin actualizar `estado.md`.
 
 ## Un modelo distinto para cada agente
 
@@ -223,6 +234,14 @@ Las specs, planes, tareas, skills y reglas no cambian. Al migrar, prueben una fu
 La protección real está en git y en CI. Los hooks del agente son una ayuda adicional.
 
 ## Cómo evolucionar el kit
+
+**Todo cambio al kit se registra en [`CHANGELOG.md`](CHANGELOG.md)** y sube la versión en `VERSION`:
+
+1. Agrega la entrada en `CHANGELOG.md` (Agregado / Cambiado / Corregido y, si un proyecto debe hacer algo a mano, **Al actualizar**).
+2. Sube `VERSION`: parche (1.6.1) para correcciones, menor (1.7.0) para funciones nuevas, mayor (2.0.0) si los proyectos deben hacer algo a mano para seguir funcionando.
+3. Commit y etiqueta: `git commit -m "feat: …" && git tag v1.7.0 && git push --follow-tags`.
+
+En los proyectos, `make actualizar-kit` muestra al terminar las novedades entre la versión que tenían y la nueva (con los pasos manuales al final), y `make novedades` muestra el historial cuando quieras.
 
 - ¿Un error se repite? Agrégalo a la skill correspondiente o a la constitución.
 - ¿Un rol nuevo? Crea `equipo/agentes/<rol>.md` y ejecuta `make sincronizar`.
