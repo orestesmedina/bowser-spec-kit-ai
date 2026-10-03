@@ -116,8 +116,11 @@ Las herramientas leen sus archivos en la raíz del proyecto, no dentro de `.bows
 
 ```bash
 make actualizar-kit       # trae la última versión de .bowser-spec-kit-ai/ e instala
+make actualizar-modelos   # (si lo avisa) aplica los modelos recomendados por el kit
 git add . && git commit -m "chore: actualiza kit de desarrollo"
 ```
+
+`equipo/config.json` es del proyecto, así que `make actualizar-kit` no cambia los modelos: solo avisa si el kit recomienda otros. `make actualizar-modelos` muestra las diferencias y, si confirmas, copia únicamente la asignación de modelos (`orquestador`, `ligero`, `niveles`, `agentes`) y regenera `.opencode/`, `.claude/` y `.codex/`. El resto de tu configuración se conserva. Con `SI=1` aplica sin preguntar.
 
 - Reemplaza los archivos que cambiaron, agrega los nuevos y **borra los que el kit eliminó**.
 - **Si alguien modificó localmente un archivo del kit, se detiene** y lo muestra, sin pisar nada. Opciones: llevar ese cambio al repositorio del kit, marcar el archivo como propio del proyecto, o descartarlo con `make instalar-kit FORZAR=1` (guarda respaldo).
@@ -156,9 +159,19 @@ Abre la herramienta en la carpeta del proyecto y pide lo que necesitas. Las skil
 | Construir una funcionalidad | "Usa la skill equipo-feature: los clientes pueden registrarse con email…" |
 | Revisar cambios | "Usa la skill equipo-revision" |
 | Corregir un bug | "Usa la skill equipo-bug: al editar un pedido se pierde la dirección" |
+| Saber por dónde íbamos | `make estado` en la terminal, o "¿por dónde quedamos?" al orquestador (skill equipo-retomar) |
 | Una fase suelta de Spec Kit | `/speckit.specify`, `/speckit.plan`… (o `$speckit-…` en Codex) |
 
 En Claude Code las skills también se pueden invocar como `/equipo-feature`.
+
+### Estado del trabajo
+
+Nada depende de la memoria de una sesión. El orquestador mantiene dos archivos versionados en git:
+
+- `docs/producto/roadmap.md` — cada funcionalidad con su estado: pendiente, en curso, en revisión, terminada o pausada (plantilla `docs/plantillas/roadmap.md`).
+- `specs/<rama>/estado.md` — fase, aprobaciones (quién y cuándo), ciclo de corrección, hallazgos abiertos, decisiones del chat y próximo paso (plantilla `docs/plantillas/estado.md`).
+
+Al abrir una sesión, el orquestador revisa ambos y te dice dónde quedaron. `make estado` muestra lo mismo en la terminal y avisa si el estado no cuadra con los archivos o con git. El pre-commit avisa (sin bloquear) cuando cambian spec, plan o tareas sin actualizar `estado.md`.
 
 ## Un modelo distinto para cada agente
 
@@ -175,6 +188,7 @@ En `equipo/config.json` se elige el modelo por herramienta con tres niveles de d
 ```bash
 make sincronizar   # aplica los cambios
 make modelos       # tabla de qué modelo usa cada agente
+make actualizar-modelos   # adopta los modelos que recomienda la versión actual del kit
 ```
 
 Criterios, cómo funciona el presupuesto de OpenCode Go, rendimiento de cada modelo, horario pico de DeepSeek y privacidad: [`equipo/MODELOS.md`](equipo/MODELOS.md).
