@@ -14,6 +14,7 @@ Este archivo no se copia a los proyectos. `CLAUDE.md` lo carga solo cuando detec
   - Para decisiones de diseño o temas nuevos: **investiga primero, explica y propón**; espera su "sí" antes de cambios grandes. Para correcciones claras, hazlas directamente.
   - Quiere entender el porqué. Si algo tiene una limitación o un riesgo, dilo de frente.
   - Respeta el proceso que definimos; si propone algo que lo rompe, explica el costo y ofrece la alternativa.
+- La empresa se llamará **Infinity Solutions AI** (titular del `LICENSE`, MIT, decidido el 2026-10-04). El repositorio es **público**: lo lee también gente de fuera del equipo.
 - El kit vive en su GitHub como `bowser-spec-kit-ai` y se usa en sus proyectos como submódulo en `.bowser-spec-kit-ai/`.
 
 ## 2. Qué es el kit
@@ -23,7 +24,7 @@ Un "mini framework" de **Spec-Driven Development** sobre **GitHub Spec Kit** par
 - **Fuentes neutrales** (se editan): `AGENTS.md`, `equipo/orquestador.md`, `equipo/agentes/*.md` (10 roles con `nivel`, `acceso`, `temperatura`, `web`, `skills`), `equipo/config.json` (modelos por herramienta, niveles, temperaturas, agente principal, `kit.excluir`, `costos`), `.agents/skills/` (estándar SKILL.md), `.specify/memory/constitution.md`.
 - **Generados** por `scripts/sincronizar.py` (nunca a mano): `CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json`. `make sincronizar` los genera; `--verificar` falla si están desactualizados.
 - **Instalación en proyectos:** `scripts/instalar_kit.py` copia a la raíz del proyecto los archivos **GESTIONADOS** (se reemplazan en cada actualización y quedan en `.kit-manifest.json` con su sha256), copia las **SEMILLAS** una sola vez (`equipo/config.json`, `.github/CODEOWNERS`, `.env.example`, `docker-compose.yml`: después son del proyecto) y nunca copia `scripts/instalar_kit.py`. También mantiene un bloque del kit en `.gitignore`.
-- **No se copian a los proyectos:** `README.md`, `CHANGELOG.md`, `VERSION`, este archivo. El `CHANGELOG.md` de un proyecto es el del producto (lo escribe el documentador).
+- **No se copian a los proyectos:** `README.md`, `CHANGELOG.md`, `VERSION`, `LICENSE`, este archivo. El `CHANGELOG.md` de un proyecto es el del producto (lo escribe el documentador).
 
 ## 3. Mapa de scripts
 

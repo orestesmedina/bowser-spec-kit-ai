@@ -13,6 +13,11 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.7.1] - 2026-10-04
+
+### Agregado
+- `LICENSE`: el kit se publica bajo licencia MIT (Infinity Solutions AI), la misma de Spec Kit. Cualquiera puede usarlo, modificarlo y distribuirlo conservando el aviso de autoría. No se copia a los proyectos: la licencia del kit no cambia la del código de cada proyecto.
+
 ## [1.7.0] - 2026-10-04
 
 Dos reglas que el kit ya exigía, pero que nadie verificaba automáticamente, ahora las revisa el CI.

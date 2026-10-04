@@ -251,3 +251,7 @@ En los proyectos, `make actualizar-kit` muestra al terminar las novedades entre 
 - ¿Un rol nuevo? Crea `equipo/agentes/<rol>.md` y ejecuta `make sincronizar`.
 - ¿Una nueva herramienta? Agrega una función `generar_<herramienta>` en `scripts/sincronizar.py`.
 - ¿Algo nunca debe pasar? Agrégalo a `.githooks/pre-commit` y al CI.
+
+## Licencia
+
+[MIT](LICENSE) © Infinity Solutions AI. Puedes usar, modificar y distribuir el kit conservando el aviso de autoría. La licencia cubre el kit, no el código de los proyectos que lo usan.
