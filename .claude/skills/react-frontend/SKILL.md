@@ -30,7 +30,7 @@ frontend/e2e/       # pruebas Playwright
 ## Reglas
 - Componentes funcionales, pequeños y con props tipadas. Un componente por archivo.
 - **Nunca** llames a `fetch` desde un componente: usa un hook de `features/<feature>/hooks/` que use el cliente de `api/`.
-- Tipos de la API generados desde `backend/api/openapi.yaml` con `openapi-typescript`. Prohibido `any`.
+- Tipos de la API generados desde `backend/api/openapi.yaml` con `openapi-typescript`, mediante el script `api:gen` de `package.json` (salida en `src/api/`, se sube a git). Tras cambiar el contrato: `make generar`. El CI falla si los tipos no están al día. Prohibido `any`.
 - Valida formularios con esquemas Zod; muestra errores junto al campo.
 - Cada vista con datos implementa los estados: cargando, vacío, error y éxito.
 - La URL base de la API viene de `import.meta.env.VITE_API_URL`.

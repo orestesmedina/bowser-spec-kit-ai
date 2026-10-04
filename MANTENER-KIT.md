@@ -34,6 +34,8 @@ Un "mini framework" de **Spec-Driven Development** sobre **GitHub Spec Kit** par
 | `scripts/actualizar_modelos.py` | Copia solo `orquestador`, `ligero`, `niveles` y `agentes` del `config.json` del kit al del proyecto (las semillas no se actualizan solas). `--comprobar` solo avisa. |
 | `scripts/estado.py` | `make estado`: roadmap, fase, aprobaciones, tareas, costo, avisos, trabajo en otras ramas. |
 | `scripts/costos.py` | `make costos`: registra consumo de OpenCode por agente y modelo en `specs/<rama>/costos.json` con historial de precios (models.dev) y tarifa pico; `--cerrar`, `--todo`, `--hoy`. Registro local en `~/.local/share/bowser-kit/`. |
+| `scripts/cobertura.py` | `make cobertura`: cobertura de `service*.go` en `backend/internal/` desde un perfil de Go; falla bajo 80 % (fijo, por la constitución). |
+| `scripts/generar.sh` | `make generar` / `make verificar-generados`: sqlc y tipos de OpenAPI (`api:gen`); `--verificar` falla si queda algo sin commit; `backend`/`frontend` para una sola parte (así lo llama el CI). |
 | `scripts/doctor.sh` | `make doctor`: herramientas, WSL, binarios de Windows en `/mnt`, Docker, kit, hooks, Spec Kit. |
 | `scripts/ruta-kit.sh` | Ruta del submódulo (manifiesto → `.gitmodules` → `.bowser-spec-kit-ai`). |
 | `.githooks/pre-commit` | python3, secretos, kit sin editar, constitución, migraciones, gofmt, prettier, generados al día, `costos.json` cerrado, aviso de `estado.md`. |
@@ -92,10 +94,13 @@ Para `make costos` sin OpenCode real: un `opencode` falso en el `PATH` que respo
 - **OpenCode Go:** presupuesto global en % con ventanas Rolling 5 h (20%), Weekly (50%), Monthly (100%); cada modelo consume según su precio y límite. DeepSeek cobra el doble en pico: 01:00–04:00 y 06:00–10:00 UTC, lunes a viernes (7–10 p.m. y 12–4 a.m. en Costa Rica). Privacidad: no usar con código de clientes los modelos que entrenan o guardan registros (ver `equipo/MODELOS.md`).
 - **CI** (2026-10-03): majors con Node 24: `checkout@v7`, `setup-go@v7`, `setup-node@v7`, `setup-python@v7`, `gitleaks-action@v3`, `golangci-lint-action@v9` (la v6 solo acepta golangci-lint v1; desde la v7, solo v2). golangci-lint `v2.14.0` (2026-09-24), migrate `v4.20.1`, govulncheck `v1.8.0`. Con soporte: Go 1.26 y 1.27; Node 24 LTS hasta 2028-04-30 (Node 22 hasta 2027-04-30); PostgreSQL 16 hasta 2028-11-09. **Cada Go nuevo (febrero y agosto) exige subir golangci-lint en `ci.yml`.**
 - **Permisos de ejecución:** el clon de Windows tiene `core.fileMode=false`, así que un script nuevo se guarda como `100644` y git lo ignora como hook. Al agregar un hook o `.sh`: `git update-index --chmod=+x <archivo>` y comprobar con `git ls-files -s`.
+- **sqlc** `v1.31.1` (2026-04-22, vigente al 2026-10-03): `go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1`; `sqlc generate` **falla si no hay ninguna consulta** en la carpeta de queries. Perfil de cobertura de Go: líneas `archivo:ini.col,fin.col sentencias veces`, con la ruta del módulo (no del disco).
 - **Claude Code** en WSL: `curl -fsSL https://claude.ai/install.sh | bash` dentro de Ubuntu.
 
 ## 8. Pendientes e ideas
 
+- **Pruebas e2e en el CI** (punto 7 del informe de `simiente-santa-webside`): job con Playwright solo si existe `frontend/e2e/`. Se dejó fuera de la 1.7.0 por lento y frágil; retomarlo cuando haya flujos críticos de cliente. El proyecto ya tiene su `make e2e` en `proyecto.mk`.
+- La constitución dice "80% en `service/`", pero la estructura usa `service.go` por dominio. Redacción propuesta a Orestes: "en la capa de servicio (archivos `service*.go` de cada dominio)".
 - **Pruebas automáticas** del kit (`pruebas/` + `make probar-kit`) que conviertan la receta de la sección 6 en scripts, y un workflow de CI para el repositorio del kit.
 - `make costos` para **Claude Code** (transcripciones en `~/.claude/projects/`, incluyen la rama) y **Codex** (`~/.codex/sessions/`).
 - `make costos`: validado en solo lectura contra el OpenCode 2.0.22 real de Orestes (2026-10-03: 35 sesiones, $6.70 según OpenCode). Falta que compare el total con la consola de OpenCode Go.

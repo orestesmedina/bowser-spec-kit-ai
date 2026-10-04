@@ -1,7 +1,7 @@
 # Makefile del kit. En los proyectos lo gestiona `make instalar-kit`: no lo edites ahí.
 # Para agregar comandos propios de un proyecto, créalos en proyecto.mk (se incluye al final).
 
-.PHONY: help estado costos novedades doctor modelos actualizar-modelos sincronizar verificar-agentes instalar-hooks instalar-kit actualizar-kit verificar-kit up down db-migrate test test-backend test-frontend lint security ci
+.PHONY: help estado costos novedades doctor modelos actualizar-modelos sincronizar verificar-agentes instalar-hooks instalar-kit actualizar-kit verificar-kit up down db-migrate generar verificar-generados test test-backend test-frontend cobertura lint security ci
 
 # Carpeta del submódulo del kit: la del `make -f <carpeta>/Makefile` usado, o la guardada al instalar,
 # o el nombre por defecto. Se puede forzar con `make ... KIT=<carpeta>`.
@@ -68,6 +68,12 @@ down: ## Detiene el entorno local (conserva los datos)
 db-migrate: ## Aplica las migraciones pendientes
 	migrate -path backend/migrations -database "$$DATABASE_URL" up
 
+generar: ## Regenera el código generado (sqlc y tipos de la API)
+	@bash scripts/generar.sh
+
+verificar-generados: ## Regenera y falla si el código generado no estaba al día
+	@bash scripts/generar.sh --verificar
+
 test: test-backend test-frontend ## Ejecuta todas las pruebas
 
 test-backend: ## Pruebas del backend (unitarias + integración)
@@ -75,6 +81,10 @@ test-backend: ## Pruebas del backend (unitarias + integración)
 
 test-frontend: ## Pruebas del frontend
 	cd frontend && npm test -- --run
+
+cobertura: ## Cobertura de la capa de servicio del backend (mínimo 80 %)
+	cd backend && go test -coverprofile=coverage.out ./...
+	@python3 scripts/cobertura.py backend/coverage.out
 
 lint: ## Linters de backend y frontend
 	cd backend && gofmt -l . && go vet ./... && golangci-lint run
@@ -84,7 +94,7 @@ security: ## Auditoría de dependencias
 	cd backend && govulncheck ./...
 	cd frontend && npm audit --audit-level=high
 
-ci: lint test security ## Lo mismo que corre en CI
+ci: lint verificar-generados test cobertura security ## Lo mismo que corre en CI
 
 # Comandos propios del proyecto (opcional; no lo gestiona el kit).
 -include proyecto.mk

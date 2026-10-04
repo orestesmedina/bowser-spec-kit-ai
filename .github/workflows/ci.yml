@@ -12,11 +12,12 @@ concurrency:
 # Versiones de las herramientas: fijadas aquí (nada de `latest`). Este archivo lo gestiona el kit;
 # si tu proyecto necesita otra versión antes de que el kit se actualice (ej. un Go más nuevo),
 # crea una variable del repositorio en GitHub (Settings → Secrets and variables → Actions → Variables)
-# con el mismo nombre: GOLANGCI_LINT_VERSION, MIGRATE_VERSION, GOVULNCHECK_VERSION o NODE_VERSION.
+# con el mismo nombre: GOLANGCI_LINT_VERSION, MIGRATE_VERSION, GOVULNCHECK_VERSION, SQLC_VERSION o NODE_VERSION.
 env:
   GOLANGCI_LINT_VERSION: ${{ vars.GOLANGCI_LINT_VERSION || 'v2.14.0' }}
   MIGRATE_VERSION: ${{ vars.MIGRATE_VERSION || 'v4.20.1' }}
   GOVULNCHECK_VERSION: ${{ vars.GOVULNCHECK_VERSION || 'v1.8.0' }}
+  SQLC_VERSION: ${{ vars.SQLC_VERSION || 'v1.31.1' }}
   NODE_VERSION: ${{ vars.NODE_VERSION || '24' }}
 
 jobs:
@@ -104,12 +105,21 @@ jobs:
         with:
           working-directory: backend
           version: ${{ env.GOLANGCI_LINT_VERSION }}
+      - name: Código generado al día (sqlc)
+        working-directory: .
+        run: |
+          if ls backend/internal/db/queries/*.sql >/dev/null 2>&1; then
+            go install github.com/sqlc-dev/sqlc/cmd/sqlc@"$SQLC_VERSION"
+          fi
+          bash scripts/generar.sh --verificar backend
       - name: Migraciones
         run: |
           go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@"$MIGRATE_VERSION"
           migrate -path migrations -database "$DATABASE_URL_TEST" up
       - name: Pruebas unitarias e integración
         run: go test -race -coverprofile=coverage.out ./... && go test -tags=integration ./...
+      - name: Cobertura de la capa de servicio (mínimo 80 %)
+        run: python3 ../scripts/cobertura.py coverage.out
       - name: Vulnerabilidades
         run: |
           go install golang.org/x/vuln/cmd/govulncheck@"$GOVULNCHECK_VERSION"
@@ -131,6 +141,9 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
+      - name: Tipos de la API al día
+        working-directory: .
+        run: bash scripts/generar.sh --verificar frontend
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test -- --run

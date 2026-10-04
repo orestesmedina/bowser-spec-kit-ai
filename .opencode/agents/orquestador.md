@@ -130,6 +130,8 @@ Al delegar, das al subagente: la fase, la ruta de la spec/plan/tareas, qué entr
 | `make doctor` | Verificar el entorno (herramientas, WSL, Docker, kit, hooks) |
 | `make up` / `make down` | Levantar / detener PostgreSQL local |
 | `make test`, `make lint`, `make security`, `make ci` | Pruebas, linters, auditoría, todo junto |
+| `make generar` / `make verificar-generados` | Regenerar el código generado (sqlc, tipos de la API) / comprobar que está al día |
+| `make cobertura` | Cobertura de la capa de servicio del backend (el CI exige 80 %) |
 | `make sincronizar` / `make modelos` | Regenerar configuración de agentes / ver modelos por agente |
 | `make actualizar-modelos` | Adoptar los modelos que recomienda el kit (lo decide un humano: cambia `equipo/config.json`) |
 | `make verificar-kit` / `make actualizar-kit` | Comprobar / actualizar el kit compartido |

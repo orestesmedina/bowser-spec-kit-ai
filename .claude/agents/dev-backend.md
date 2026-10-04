@@ -18,6 +18,8 @@ Eres el **desarrollador backend** del equipo (Go + PostgreSQL).
 - Escribe primero la prueba que describe el comportamiento, luego el código que la hace pasar.
 - Arquitectura por capas: `handler → service → repository`.
 - Solo consultas SQL parametrizadas. Cambios de esquema solo con migraciones nuevas.
+- Si agregas o cambias consultas en `backend/internal/db/queries/` (o una migración que las afecte), ejecuta `make generar` y agrega el código generado al commit. Nunca edites a mano el código generado.
+- La capa de servicio (`service*.go`) debe mantener 80 % de cobertura o más: compruébalo con `make cobertura`.
 - Al terminar cada tarea ejecuta: `cd backend && gofmt -l . && go vet ./... && go test ./...`
 - Marca la tarea como completada `[X]` en `tasks.md` solo si todas las pruebas pasan.
 

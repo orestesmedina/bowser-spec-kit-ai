@@ -13,6 +13,25 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.7.0] - 2026-10-04
+
+Dos reglas que el kit ya exigía, pero que nadie verificaba automáticamente, ahora las revisa el CI.
+
+### Agregado
+- **Cobertura de la capa de servicio:** `make cobertura` mide la cobertura de los archivos `service*.go` de `backend/internal/` (todos los dominios sumados) y falla por debajo del 80 % que fija la constitución. El CI lo ejecuta después de las pruebas. Script: `scripts/cobertura.py`.
+- **Código generado al día:** `make generar` regenera las consultas de sqlc y los tipos de la API (script `api:gen` del frontend); `make verificar-generados` además falla si quedó algo sin commit. El CI lo comprueba en los jobs de backend y frontend. Cada parte se omite si el proyecto todavía no la tiene (sin `sqlc.yaml`, sin consultas o sin `api:gen`). Script: `scripts/generar.sh`.
+- CI: `sqlc` con versión fija (`v1.31.1`), configurable con la variable `SQLC_VERSION`.
+
+### Cambiado
+- `make ci` incluye `verificar-generados` y `cobertura`.
+- Roles `dev-backend` y `dev-frontend` y skills `go-backend` y `react-frontend`: indican cuándo ejecutar `make generar` y el mínimo de cobertura.
+
+### Al actualizar
+- Antes de subir, ejecuta `make verificar-generados` y `make cobertura` en tu proyecto: si alguno falla en local, también fallará el CI.
+- Para que el CI verifique los tipos de la API, el frontend debe tener el script `api:gen` en `package.json` y dejar su salida en `frontend/src/api/`.
+- Instala sqlc en local: `go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1`.
+- Si tu `proyecto.mk` ya tenía comandos propios para esto (por ejemplo `sqlc-gen`, `sqlc-verify`, `api-gen`), puedes borrarlos y usar los del kit; si los dejas, no chocan.
+
 ## [1.6.4] - 2026-10-03
 
 ### Corregido

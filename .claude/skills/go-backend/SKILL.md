@@ -7,6 +7,7 @@ description: Convenciones de la empresa para escribir backend en Go (estructura,
 ## Versión y herramientas
 - Go 1.26 o superior (una versión con soporte vigente). Router: `net/http` estándar (con patrones `GET /users/{id}`) o `chi` si el plan lo justifica.
 - Base de datos: `pgx/v5` + `sqlc` para generar consultas tipadas. Migraciones: `golang-migrate`.
+- sqlc se configura en `backend/sqlc.yaml`; el código generado va en `internal/db/` y se sube a git. Tras cambiar consultas o migraciones: `make generar`. El CI falla si el código generado no está al día.
 - Logs: `log/slog` en JSON. Configuración: variables de entorno.
 - Lint: `golangci-lint`. Seguridad: `govulncheck`.
 
@@ -45,4 +46,5 @@ backend/
 - `service`: pruebas unitarias con repositorio falso (fake) implementando la interfaz.
 - `handler`: `httptest.NewRecorder` + service falso.
 - `repository`: pruebas de integración contra PostgreSQL real (variable `DATABASE_URL_TEST`), marcadas con `//go:build integration`.
+- Cobertura mínima de 80 % en la capa de servicio (archivos `service*.go`, todos los dominios sumados): `make cobertura`. El CI la exige.
 - Comandos: `go test ./...` (unitarias) y `go test -tags=integration ./...` (integración).

@@ -206,6 +206,7 @@ specify --version
 go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0
 go install golang.org/x/vuln/cmd/govulncheck@v1.8.0
 go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.20.1
+go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1
 ```
 Asegúrate de que `$(go env GOPATH)/bin` esté en tu `PATH`.
 
@@ -511,6 +512,8 @@ Primero se actualiza `spec.md` y se aprueba; después se actualiza el plan y las
 | `make costos` dice "Sin precio para: …" | El modelo no está en models.dev | Agrega su precio en `equipo/config.json` → `costos.precios_manuales` (ver `equipo/MODELOS.md`) |
 | "El costo de … ya está cerrado" al hacer commit | Se modificó el `costos.json` de una funcionalidad terminada | Revierte el cambio (`git checkout -- <archivo>`). Solo dirección técnica puede autorizar una corrección |
 | El CI falla en `golangci-lint` con "the Go language version (…) used to build golangci-lint is lower than the targeted Go version" | El proyecto usa un Go más nuevo que el golangci-lint que fija el kit | `make actualizar-kit`; si el kit aún no lo trae, crea la variable `GOLANGCI_LINT_VERSION` (ej. `v2.14.0`) en GitHub → Settings → Secrets and variables → Actions → Variables |
+| El CI (o `make verificar-generados`) dice "El código generado no está al día" | Se cambió una consulta SQL, una migración o el contrato OpenAPI sin regenerar el código | `make generar` y agrega el resultado al commit |
+| El CI (o `make cobertura`) dice "Cobertura de servicio … por debajo del mínimo" | La capa de servicio (`service*.go`) tiene menos de 80 % cubierto por pruebas | Pide al agente las pruebas que faltan; `make cobertura` muestra el porcentaje por archivo |
 | El CI falla al descargar el submódulo | El repositorio del kit es privado | Configura el secreto `KIT_TOKEN` en el repositorio del proyecto |
 | `make: command not found` | Falta `make` (común en Ubuntu/WSL) | `sudo apt install -y make build-essential` |
 | `make: *** No rule to make target 'up'` | Estás en otra carpeta (por ejemplo, la terminal se abrió en tu carpeta personal) | `cd` a la carpeta del proyecto; `ls Makefile` debe encontrarlo |

@@ -19,7 +19,7 @@ Eres el **desarrollador frontend** del equipo (React + TypeScript + Vite).
 
 ## Cómo trabajas
 - Implementa todos los estados definidos en `ux.md`: cargando, vacío, error y éxito.
-- Tipos de la API generados o escritos a partir del contrato; nunca `any`.
+- Tipos de la API generados desde el contrato con `make generar` (script `api:gen`); nunca escritos a mano ni `any`. Si el contrato cambió, regenera y agrega el resultado al commit.
 - Escribe pruebas con Vitest + Testing Library para cada componente con lógica.
 - Al terminar cada tarea ejecuta: `cd frontend && npm run lint && npm run typecheck && npm test -- --run`
 - Marca la tarea como completada `[X]` en `tasks.md` solo si todo pasa.

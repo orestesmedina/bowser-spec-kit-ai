@@ -159,6 +159,8 @@ Abre la herramienta en la carpeta del proyecto y pide lo que necesitas. Las skil
 | Construir una funcionalidad | "Usa la skill equipo-feature: los clientes pueden registrarse con email…" |
 | Revisar cambios | "Usa la skill equipo-revision" |
 | Corregir un bug | "Usa la skill equipo-bug: al editar un pedido se pierde la dirección" |
+| Regenerar código generado (sqlc, tipos de la API) | `make generar`; `make verificar-generados` comprueba que esté al día |
+| Ver la cobertura de la capa de servicio | `make cobertura` (el CI exige 80 %) |
 | Saber cuánto costó en IA | `make costos` (tarea actual) o `make costos TODO=1` (proyecto) |
 | Saber por dónde íbamos | `make estado` en la terminal, o "¿por dónde quedamos?" al orquestador (skill equipo-retomar) |
 | Una fase suelta de Spec Kit | `/speckit.specify`, `/speckit.plan`… (o `$speckit-…` en Codex) |
