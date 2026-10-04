@@ -140,7 +140,9 @@ def catalogo_models_dev() -> tuple[dict, str]:
     if not fresco:
         try:
             if FUENTE_PRECIOS.startswith(("http://", "https://")):
-                with urllib.request.urlopen(FUENTE_PRECIOS, timeout=15) as r:
+                # Con el User-Agent por defecto de Python, models.dev (Cloudflare) responde 403.
+                pedido = urllib.request.Request(FUENTE_PRECIOS, headers={"User-Agent": "bowser-spec-kit-ai (costos.py)"})
+                with urllib.request.urlopen(pedido, timeout=15) as r:
                     datos = json.loads(r.read().decode("utf-8"))
             else:
                 datos = json.loads(Path(FUENTE_PRECIOS.removeprefix("file://")).read_text(encoding="utf-8"))
@@ -472,6 +474,12 @@ def registrar(costos: dict, ruta: Path, rama: str) -> list[str]:
     modelos = {r["modelo"] for _, r, _ in nuevas_resp} | modelos_configurados()
     cambios, av = actualizar_precios(costos, modelos)
     avisos += cambios + av
+    # Sin ningún precio (models.dev caído y sin copia local) no se registra: el consumo quedaría guardado sin costo
+    # para siempre. Las sesiones siguen pendientes y se registran en la próxima ejecución.
+    if all(precio_en(costos, r["modelo"], r["ms"]) is None for _, r, _ in nuevas_resp):
+        avisos.append("NO se registró el consumo: no hay precio para ningún modelo usado. Vuelve a ejecutar 'make costos' "
+                      "cuando models.dev responda (queda pendiente, no se pierde).")
+        return avisos
 
     # Agrupa por sesión, luego por agente y modelo
     por_sesion: dict[str, dict] = {}
