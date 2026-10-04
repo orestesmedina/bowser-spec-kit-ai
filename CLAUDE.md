@@ -1,6 +1,4 @@
-<!-- GENERADO por scripts/sincronizar.py desde AGENTS.md. No editar: cambia la fuente y ejecuta `make sincronizar`. -->
-Las instrucciones de este proyecto están en AGENTS.md (compartido con otras herramientas), y tu manual de trabajo como orquestador en equipo/orquestador.md:
+<!-- GENERADO por scripts/sincronizar.py desde MANTENER-KIT.md. No editar: cambia la fuente y ejecuta `make sincronizar`. -->
+**Estás en el repositorio del kit, no en un proyecto.** Tu rol es mantener y mejorar el kit. `AGENTS.md`, `equipo/orquestador.md` y las skills son el producto que se instala en los proyectos: no son instrucciones para ti. Sigue este manual:
 
-@AGENTS.md
-
-@equipo/orquestador.md
+@MANTENER-KIT.md

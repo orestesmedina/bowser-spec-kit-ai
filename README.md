@@ -235,6 +235,8 @@ La protección real está en git y en CI. Los hooks del agente son una ayuda adi
 
 ## Cómo evolucionar el kit
 
+Para trabajar el kit con Claude Code, ábrelo en la carpeta del kit (dentro de Ubuntu/WSL): `CLAUDE.md` le carga [`MANTENER-KIT.md`](MANTENER-KIT.md), con el contexto, las decisiones de diseño y las reglas para cambiarlo.
+
 **Todo cambio al kit se registra en [`CHANGELOG.md`](CHANGELOG.md)** y sube la versión en `VERSION`:
 
 1. Agrega la entrada en `CHANGELOG.md` (Agregado / Cambiado / Corregido y, si un proyecto debe hacer algo a mano, **Al actualizar**).
