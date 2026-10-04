@@ -25,9 +25,11 @@ import datetime as dt
 import fnmatch
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import urllib.request
 from pathlib import Path
@@ -204,33 +206,69 @@ def costo(tokens: dict, precio: dict | None, mult: float = 1.0) -> float | None:
 
 # ------------------------------------------------------------------ OpenCode
 
+# Se soportan dos generaciones de OpenCode (verificado con 1.18.x y 2.0.22):
+#   1.x: `opencode export <id>`; mensajes {info: {role, agent, providerID, modelID, ...}, parts: [...]};
+#        subagentes en partes tool "task" (state.metadata.sessionId).
+#   2.x: `opencode session export <id>`; mensajes planos {type, agent, model: {id, providerID}, content: [...]};
+#        subagentes en content tool "subagent" (state.metadata.sessionID) y en mensajes "synthetic" (metadata.childID).
+
 def opencode(*args: str) -> str:
+    # La salida va a un archivo temporal: OpenCode 2.x corta los JSON grandes cuando escribe a una tubería.
     try:
-        r = subprocess.run(["opencode", *args], capture_output=True, text=True, cwd=RAIZ, timeout=120)
+        with tempfile.TemporaryFile("w+", encoding="utf-8") as salida:
+            r = subprocess.run(["opencode", *args], stdout=salida, stderr=subprocess.PIPE, text=True, cwd=RAIZ, timeout=120)
+            salida.seek(0)
+            texto = salida.read()
     except (OSError, subprocess.TimeoutExpired) as e:
         raise Fallo(f"no se pudo ejecutar 'opencode {args[0]}': {e}")
     if r.returncode != 0:
         raise Fallo(f"'opencode {' '.join(args[:2])}' falló: {r.stderr.strip()[:200]}")
-    return r.stdout
+    return texto
+
+
+_VERSION_MAYOR: int | None = None
+
+
+def version_mayor() -> int:
+    """Versión mayor de OpenCode ("1.18.33" → 1, "opencode v2.0.22" → 2). Si no se reconoce, se asume la más nueva."""
+    global _VERSION_MAYOR
+    if _VERSION_MAYOR is None:
+        try:
+            m = re.search(r"(\d+)\.\d+", opencode("--version"))
+        except Fallo:
+            m = None
+        _VERSION_MAYOR = int(m.group(1)) if m else 2
+    return _VERSION_MAYOR
 
 
 def exportar(session_id: str) -> dict:
-    salida = opencode("export", session_id)
+    orden = ("session", "export") if version_mayor() >= 2 else ("export",)
+    salida = opencode(*orden, session_id)
     inicio = salida.find("{")
     if inicio < 0:
-        raise Fallo(f"'opencode export {session_id}' no devolvió JSON")
+        raise Fallo(f"'opencode {' '.join(orden)} {session_id}' no devolvió JSON")
     return json.loads(salida[inicio:])
 
 
 def hijas(export: dict) -> list[str]:
-    """Sesiones de subagentes lanzadas con la herramienta task (state.metadata.sessionId)."""
+    """Sesiones de subagentes lanzadas desde esta sesión."""
     ids = []
+
+    def agregar(sid) -> None:
+        if sid and sid not in ids:
+            ids.append(sid)
+
     for m in export.get("messages", []):
-        for p in m.get("parts", []):
+        for p in m.get("parts", []):                         # 1.x
             if p.get("type") == "tool" and p.get("tool") == "task":
-                sid = ((p.get("state") or {}).get("metadata") or {}).get("sessionId")
-                if sid and sid not in ids:
-                    ids.append(sid)
+                agregar(((p.get("state") or {}).get("metadata") or {}).get("sessionId"))
+        for c in m.get("content") or []:                     # 2.x
+            if isinstance(c, dict) and c.get("type") == "tool" and c.get("name") in ("subagent", "task"):
+                meta = (c.get("state") or {}).get("metadata") or {}
+                agregar(meta.get("sessionID") or meta.get("sessionId"))
+        meta = m.get("metadata") or {}
+        if m.get("type") == "synthetic" and meta.get("source") == "subagent":
+            agregar(meta.get("childID"))
     return ids
 
 
@@ -238,8 +276,8 @@ def respuestas(export: dict) -> list[dict]:
     """Mensajes del asistente con su agente, modelo, hora y tokens."""
     resultado = []
     for m in export.get("messages", []):
-        info = m.get("info") or {}
-        if info.get("role") != "assistant":
+        info = m.get("info") or m                            # 1.x: dentro de "info"; 2.x: mensaje plano
+        if (info.get("role") or info.get("type")) != "assistant":
             continue
         t = info.get("tokens") or {}
         cache = t.get("cache") or {}
@@ -247,10 +285,11 @@ def respuestas(export: dict) -> list[dict]:
                   "cache_read": cache.get("read", 0), "cache_write": cache.get("write", 0)}
         if not any(tokens.values()):
             continue
+        modelo = info.get("model") if isinstance(info.get("model"), dict) else {}
         resultado.append({
             "ms": (info.get("time") or {}).get("created", 0),
             "agente": info.get("agent") or info.get("mode") or "?",
-            "modelo": f"{info.get('providerID', '?')}/{info.get('modelID', '?')}",
+            "modelo": f"{info.get('providerID') or modelo.get('providerID') or '?'}/{info.get('modelID') or modelo.get('id') or '?'}",
             "tokens": tokens,
             "costo_opencode": float(info.get("cost") or 0),
         })
@@ -258,7 +297,11 @@ def respuestas(export: dict) -> list[dict]:
 
 
 def sesiones_del_proyecto() -> list[dict]:
-    datos = json.loads(opencode("session", "list", "--format", "json", "-n", "1000") or "[]")
+    orden = ("session", "list", "--format", "json", "-n", "1000")
+    datos = json.loads(opencode(*orden).strip() or "[]")
+    if not datos and version_mayor() >= 2:
+        # En 2.x el servicio en segundo plano a veces no devuelve las sesiones del proyecto; leyendo directo sí.
+        datos = json.loads(opencode(*orden, "--standalone").strip() or "[]")
     raiz = str(RAIZ.resolve())
     return [s for s in datos if str(Path(s.get("directory", "")).resolve()).startswith(raiz)]
 
@@ -382,6 +425,11 @@ def registrar(costos: dict, ruta: Path, rama: str) -> list[str]:
         raices = sesiones_del_proyecto()
     except (Fallo, ValueError) as e:
         return [f"No se pudo leer las sesiones de OpenCode: {e}"]
+    if not raices:
+        return ["OpenCode no devolvió ninguna sesión de este proyecto (compruébalo con: opencode session list). "
+                "Si trabajaste con otra herramienta o en otra carpeta, ese consumo no se registra aquí."]
+    if not any(s.get("updated", 0) >= inicio for s in raices):
+        avisos.append(f"Hay {len(raices)} sesión(es) de OpenCode, pero todas anteriores al inicio de la tarea ({costos['inicio']}).")
 
     nuevas_resp: list[tuple[dict, dict, str | None]] = []   # (sesion_info, respuesta, padre)
     hasta_por_sesion: dict[str, int] = {}
