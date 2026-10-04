@@ -13,6 +13,11 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.8.1] - 2026-10-04
+
+### Cambiado
+- `.obsidian/` (configuración personal del editor Obsidian) sale del repositorio del kit y se agrega al `.gitignore`. Como el bloque del kit en `.gitignore` se copia a los proyectos, ahí también queda ignorada.
+
 ## [1.8.0] - 2026-10-04
 
 La documentación pasa a ser una wiki por temas, en `docs/`, y es la única fuente: no se copia a los proyectos.

@@ -21,6 +21,7 @@ frontend/test-results/
 # Sistema y editores
 .DS_Store
 .idea/
+.obsidian/
 .vscode/*
 !.vscode/extensions.json
 
