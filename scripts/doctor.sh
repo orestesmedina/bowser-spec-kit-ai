@@ -3,6 +3,7 @@
 set -uo pipefail
 
 OK=0; FALTA=0; AVISO=0
+DOCS="$(bash scripts/ruta-kit.sh 2>/dev/null || echo .bowser-spec-kit-ai)/docs"   # documentación del kit (en el submódulo)
 verde() { printf "  \033[32m✓\033[0m %s\n" "$1"; OK=$((OK+1)); }
 rojo()  { printf "  \033[31m✗\033[0m %s\n" "$1"; FALTA=$((FALTA+1)); }
 ambar() { printf "  \033[33m!\033[0m %s\n" "$1"; AVISO=$((AVISO+1)); }
@@ -29,8 +30,8 @@ opcional() { # nombre comando
 echo "Herramientas base"
 requerido "Git"            git     "2.30" "git --version"
 requerido "Docker"         docker  "24.0" "docker --version"
-requerido "Go"             go      "1.23" "go version"
-requerido "Node.js"        node    "22.0" "node --version"
+requerido "Go"             go      "1.26" "go version"
+requerido "Node.js"        node    "24.0" "node --version"
 requerido "Python"         python3 "3.11" "python3 --version"
 requerido "uv"             uv      ""     "uv --version"
 requerido "jq"             jq      ""     "jq --version"
@@ -41,6 +42,7 @@ echo "Herramientas de calidad y seguridad"
 opcional "golangci-lint"          golangci-lint
 opcional "govulncheck"            govulncheck
 opcional "golang-migrate"         migrate
+opcional "sqlc"                   sqlc
 opcional "gitleaks"               gitleaks
 
 echo "Agente de código (al menos uno)"
@@ -48,7 +50,7 @@ AGENTES=0
 for a in claude codex opencode; do
   ruta=$(command -v "$a" 2>/dev/null) || continue
   if [[ "$ruta" == /mnt/* ]]; then
-    rojo "$a es la versión de Windows ($ruta): instálalo dentro de Ubuntu (ver docs/GUIA-INICIO.md, 3.1.2)"
+    rojo "$a es la versión de Windows ($ruta): instálalo dentro de Ubuntu (ver $DOCS/windows-wsl.md)"
   else
     verde "$a ($ruta)"; AGENTES=$((AGENTES+1))
   fi
@@ -65,7 +67,7 @@ if grep -qi microsoft /proc/version 2>/dev/null; then
     [[ "$ruta" == /mnt/* ]] && DE_WINDOWS="$DE_WINDOWS $c"
   done
   if [ -n "$DE_WINDOWS" ]; then
-    rojo "Se están usando versiones de Windows de:$DE_WINDOWS. Instálalas en Ubuntu (ver docs/GUIA-INICIO.md, 3.1.2)"
+    rojo "Se están usando versiones de Windows de:$DE_WINDOWS. Instálalas en Ubuntu (ver $DOCS/windows-wsl.md)"
   else
     verde "Las herramientas de desarrollo son las de Ubuntu"
   fi
@@ -95,5 +97,5 @@ command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1 && verde "GitHub
 
 echo
 echo "Resultado: $OK correctos, $AVISO avisos, $FALTA problemas."
-[ "$FALTA" -eq 0 ] && echo "Todo listo para trabajar." || echo "Corrige los problemas marcados con ✗ (ver docs/GUIA-INICIO.md, sección 'Problemas comunes')."
+[ "$FALTA" -eq 0 ] && echo "Todo listo para trabajar." || echo "Corrige los problemas marcados con ✗ (ver $DOCS/problemas-comunes.md)."
 exit $([ "$FALTA" -eq 0 ] && echo 0 || echo 1)

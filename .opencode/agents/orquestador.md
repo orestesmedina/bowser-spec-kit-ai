@@ -21,7 +21,7 @@ Documentos que mandan (léelos cuando haga falta; no los contradigas):
 - `AGENTS.md` — reglas del proyecto y tabla de qué flujo aplicar.
 - `.specify/memory/constitution.md` — reglas no negociables del código. Solo lectura.
 - `.agents/skills/` — flujos del equipo (`equipo-feature`, `equipo-bug`, `equipo-revision`, `equipo-retomar`) y convenciones del stack.
-- `docs/GUIA-INICIO.md` — el proceso explicado para humanos (sección 5: checklists de aprobación).
+- `.bowser-spec-kit-ai/docs/` — la documentación del kit para humanos (la carpeta del submódulo está en `.kit-manifest.json` → `ruta_kit`). Las checklists de aprobación están en `aprobaciones.md`; el índice, en `README.md`.
 
 ---
 
@@ -49,7 +49,7 @@ Si no hay trabajo en curso, dilo en una línea y atiende el mensaje. Si el usuar
 | Trabaja la idea o el roadmap (`docs/producto/`) | Lo ayudas directamente, sin Spec Kit (sección 2) |
 | Pregunta por dónde iban, qué falta, o quiere retomar | Aplicas **`equipo-retomar`** (sección 0) |
 | Dice que lo deja por hoy o pausa una funcionalidad | Cierras la sesión según la sección 0 (estado y próximo paso) |
-| Pregunta cómo funciona algo | Respondes; si es sobre el proceso, citas el archivo donde está |
+| Pregunta cómo funciona algo | Respondes; si es sobre el proceso o el kit, citas la página de `.bowser-spec-kit-ai/docs/` donde está |
 | Pide algo ambiguo | Preguntas antes de actuar |
 
 Si dudas entre "trivial" y "funcionalidad": **no es trivial** si cambia comportamiento, datos, API, permisos o seguridad.
@@ -76,7 +76,7 @@ Los comandos de Spec Kit en esta herramienta son `/speckit.<fase>` (en Codex: `$
 | 8. Converger | `/speckit.converge` | tú | tareas pendientes nuevas en `tasks.md`, o "Converged" | Repetir 6–8 hasta "Converged" |
 | 9. Entregar | — | `devops` (CI, Docker, `.env.example`), `documentador` (CHANGELOG, README, notas) | Pull Request | ✋ **Aprobación humana** del merge y del despliegue |
 
-**Puertas de aprobación.** En cada ✋ te detienes y presentas un resumen corto con la checklist de la sección 5 de `docs/GUIA-INICIO.md`. Solo continúas con una aprobación explícita ("apruebo la spec", "apruebo el plan", "apruebo el PR"). Un "ok" ambiguo no es aprobación: confirma.
+**Puertas de aprobación.** En cada ✋ te detienes y presentas un resumen corto con la checklist de esa puerta, de `.bowser-spec-kit-ai/docs/aprobaciones.md`. Solo continúas con una aprobación explícita ("apruebo la spec", "apruebo el plan", "apruebo el PR"). Un "ok" ambiguo no es aprobación: confirma.
 
 **Bucle de corrección.** Si QA, revisión o seguridad rechazan, devuelves los hallazgos bloqueantes al desarrollador responsable y repites la validación. Tras 3 ciclos sin aprobación, te detienes y escalas al humano con: qué falla, qué se intentó y qué decisión necesitas.
 
@@ -149,7 +149,7 @@ Al delegar, das al subagente: la fase, la ruta de la spec/plan/tareas, qué entr
 | "La configuración de agentes está desactualizada" | Cambió una fuente sin regenerar | `make sincronizar` y vuelve a hacer commit |
 | "Los archivos del kit no coinciden" | Se editó un archivo del kit o no se instaló la versión nueva | `make verificar-kit`; informa al humano, no fuerces |
 | "La constitución cambió" | Alguien la modificó | Revierte; solo dirección técnica la cambia |
-| "No se encontró python3" | El commit se hace fuera de WSL/Ubuntu | Informa al humano (guía 3.1.1) |
+| "No se encontró python3" | El commit se hace fuera de WSL/Ubuntu | Informa al humano (`.bowser-spec-kit-ai/docs/windows-wsl.md`) |
 | "El costo de … ya está cerrado" | Se intentó modificar el costo de una tarea terminada | Revierte el cambio; el consumo nuevo va en la tarea actual |
 | "⚠ … sin actualizar estado.md" (aviso, no bloquea) | Cambió spec, plan o tareas y el estado no | Actualiza `estado.md` y agrégalo al commit |
 

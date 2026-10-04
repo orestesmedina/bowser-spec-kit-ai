@@ -1,5 +1,5 @@
 {
-  "_comentario": "Configuración del generador (scripts/sincronizar.py). Ver equipo/MODELOS.md. Prioridad del modelo de cada agente: 'agentes' > 'niveles' > modelo de la sesión (vacío). Después de cambiar este archivo: make sincronizar && make modelos.",
+  "_comentario": "Configuración del generador (scripts/sincronizar.py). Ver docs/modelos.md en el kit. Prioridad del modelo de cada agente: 'agentes' > 'niveles' > modelo de la sesión (vacío). Después de cambiar este archivo: make sincronizar && make modelos.",
   "herramientas": [
     "claude",
     "codex",
@@ -24,7 +24,7 @@
       "agentes": {}
     },
     "opencode": {
-      "_comentario": "Distribución optimizada para OpenCode Go (calidad de código vs. costo; ver equipo/MODELOS.md). Confirma los IDs con: opencode models opencode-go",
+      "_comentario": "Distribución optimizada para OpenCode Go (calidad de código vs. costo; ver docs/modelos.md en el kit). Confirma los IDs con: opencode models opencode-go",
       "orquestador": "opencode-go/deepseek-v4.1-flash",
       "ligero": "opencode-go/mimo-v2.6-flash",
       "agente_principal": {

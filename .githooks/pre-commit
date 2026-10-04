@@ -11,7 +11,7 @@ if ! python3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)" >
   echo "✗ No se encontró python3 (3.9 o superior), que necesitan los controles del proyecto." >&2
   echo "  Si usas Windows: estás haciendo el commit desde Windows y no desde Ubuntu (WSL)." >&2
   echo "  En VS Code, instala la extensión WSL y abre el proyecto con 'code .' desde la terminal de Ubuntu" >&2
-  echo "  (abajo a la izquierda debe decir 'WSL: Ubuntu'). Detalle: docs/GUIA-INICIO.md, sección 3.1.1." >&2
+  echo "  (abajo a la izquierda debe decir 'WSL: Ubuntu'). Detalle: $(bash scripts/ruta-kit.sh 2>/dev/null || echo .bowser-spec-kit-ai)/docs/windows-wsl.md" >&2
   exit 1
 fi
 
@@ -45,10 +45,13 @@ if [ -f .kit-manifest.json ]; then
 fi
 
 # 3. La constitución solo cambia con aprobación explícita (agregarla por primera vez está permitido).
-#    Si llega por una actualización del kit, ya fue aprobada en el repositorio del kit.
-if git diff --cached --name-only --diff-filter=MRD | grep -qx ".specify/memory/constitution.md" \
-   && [ "$KIT_OK" != "1" ] && [ "${APROBADO_CONSTITUCION:-}" != "1" ]; then
-  fallar "La constitución cambió. Requiere aprobación de la dirección técnica: APROBADO_CONSTITUCION=1 git commit ..."
+#    Si llega por una actualización del kit (el kit la gestiona y coincide con él), ya fue aprobada en el
+#    repositorio del kit. Si el proyecto la excluyó del kit (kit.excluir), es suya y requiere la aprobación.
+CONSTITUCION=".specify/memory/constitution.md"
+if git diff --cached --name-only --diff-filter=MRD | grep -qx "$CONSTITUCION" && [ "${APROBADO_CONSTITUCION:-}" != "1" ]; then
+  if [ "$KIT_OK" != "1" ] || ! python3 -c "import json, sys; sys.exit(0 if sys.argv[1] in json.load(open('.kit-manifest.json')).get('archivos', {}) else 1)" "$CONSTITUCION" 2>/dev/null; then
+    fallar "La constitución cambió. Requiere aprobación de la dirección técnica: APROBADO_CONSTITUCION=1 git commit ..."
+  fi
 fi
 
 # 4. Migraciones ya versionadas no se modifican

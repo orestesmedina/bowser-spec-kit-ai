@@ -13,6 +13,30 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.8.0] - 2026-10-04
+
+La documentación pasa a ser una wiki por temas, en `docs/`, y es la única fuente: no se copia a los proyectos.
+
+### Agregado
+- **Documentación por temas** (`docs/README.md` es el índice): 36 páginas en siete secciones (prólogo, primeros pasos, conceptos, el flujo de trabajo, profundizando, controles y referencia). Cada página explica qué es una pieza del kit, para qué sirve, cuándo se usa y qué hacer cuando falla.
+- Páginas nuevas, que no existían en ninguna forma: integrar el kit en un proyecto existente, capas de control, hooks de git, hooks del agente, integración continua, comandos, guía de actualización, cómo contribuir, personalizar un proyecto, roles y skills.
+- `make doctor` revisa que `sqlc` esté instalado (recomendado).
+
+### Cambiado
+- **`docs/GUIA-INICIO.md` y `equipo/MODELOS.md` se retiran:** su contenido está repartido en las páginas de `docs/`. En los proyectos, la documentación se lee en `.bowser-spec-kit-ai/docs/`, siempre en la versión instalada.
+- El orquestador toma las checklists de aprobación de `.bowser-spec-kit-ai/docs/aprobaciones.md`.
+- Los mensajes de `make doctor` y del pre-commit apuntan a las páginas nuevas.
+- `README.md` del kit: queda como portada corta, con la instalación y el índice de la documentación.
+- `make doctor` exige Go 1.26 y Node 24, los mismos mínimos que la documentación y el CI desde la 1.6.2 (antes aceptaba Go 1.23 y Node 22).
+
+### Corregido
+- pre-commit: un proyecto que excluye la constitución del kit (`kit.excluir`) podía modificarla sin `APROBADO_CONSTITUCION=1`. Ahora la aprobación se omite solo cuando la constitución es la del kit y coincide con él.
+
+### Al actualizar
+- `docs/GUIA-INICIO.md` y `equipo/MODELOS.md` desaparecen del proyecto. Si alguien los tenía en favoritos, la documentación está ahora en `.bowser-spec-kit-ai/docs/README.md`.
+- Si `make doctor` marca Go o Node como antiguos, actualízalos (Go 1.26+, `nvm install 24`).
+- Si tu `equipo/config.json` menciona `equipo/MODELOS.md` en sus comentarios, puedes corregirlo a mano: es solo un comentario.
+
 ## [1.7.1] - 2026-10-04
 
 ### Agregado

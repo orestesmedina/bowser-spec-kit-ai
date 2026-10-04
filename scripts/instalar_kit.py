@@ -50,12 +50,11 @@ GESTIONADOS = [
     ".specify/memory/constitution.md",
     "equipo/agentes/",
     "equipo/adaptadores/",
-    "equipo/MODELOS.md",
     "equipo/orquestador.md",
     "scripts/",
-    "docs/GUIA-INICIO.md",
     "docs/plantillas/",
 ]
+# La documentación (docs/*.md) no se copia: en los proyectos se lee desde el submódulo, siempre en la versión instalada.
 # Nunca se copian (solo tienen sentido dentro del kit).
 NUNCA = {"scripts/instalar_kit.py"}
 # Se copian una sola vez; después pertenecen al proyecto.
