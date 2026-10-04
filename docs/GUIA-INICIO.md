@@ -176,15 +176,15 @@ No desactives la integración de rutas de Windows en WSL: de ella depende, entre
 
 **macOS** (con [Homebrew](https://brew.sh)):
 ```bash
-brew install git go node@22 python@3.12 jq make gh gitleaks golang-migrate
+brew install git go node@24 python@3.12 jq make gh gitleaks golang-migrate
 brew install --cask docker        # Docker Desktop; ábrelo una vez para que arranque
 ```
 
 **Ubuntu / WSL2** (en la terminal de Ubuntu):
 ```bash
 sudo apt update && sudo apt install -y git jq make unzip curl build-essential python3 python3-pip
-# Go 1.23+ : https://go.dev/doc/install
-# Node 22  : https://github.com/nvm-sh/nvm  →  nvm install 22
+# Go 1.26+ : https://go.dev/doc/install
+# Node 24  : https://github.com/nvm-sh/nvm  →  nvm install 24
 # Docker   : en Windows, Docker Desktop con integración WSL (ver 3.1.1)
 #            en Linux nativo: https://docs.docker.com/engine/install/ubuntu/
 # GitHub CLI: https://github.com/cli/cli/blob/trunk/docs/install_linux.md
@@ -201,11 +201,11 @@ uv tool install specify-cli
 specify --version
 ```
 
-**Herramientas de Go** (todos los sistemas):
+**Herramientas de Go** (todos los sistemas; las mismas versiones que fija el CI en `.github/workflows/ci.yml`):
 ```bash
-go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
-go install golang.org/x/vuln/cmd/govulncheck@latest
-go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0
+go install golang.org/x/vuln/cmd/govulncheck@v1.8.0
+go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.20.1
 ```
 Asegúrate de que `$(go env GOPATH)/bin` esté en tu `PATH`.
 
@@ -509,6 +509,7 @@ Primero se actualiza `spec.md` y se aprueba; después se actualiza el plan y las
 | `make costos` dice "No se encontró 'opencode'" | La terminal no es la de Ubuntu/WSL, o OpenCode no está instalado ahí | Abre la terminal de Ubuntu (sección 3.1.1) |
 | `make costos` dice "Sin precio para: …" | El modelo no está en models.dev | Agrega su precio en `equipo/config.json` → `costos.precios_manuales` (ver `equipo/MODELOS.md`) |
 | "El costo de … ya está cerrado" al hacer commit | Se modificó el `costos.json` de una funcionalidad terminada | Revierte el cambio (`git checkout -- <archivo>`). Solo dirección técnica puede autorizar una corrección |
+| El CI falla en `golangci-lint` con "the Go language version (…) used to build golangci-lint is lower than the targeted Go version" | El proyecto usa un Go más nuevo que el golangci-lint que fija el kit | `make actualizar-kit`; si el kit aún no lo trae, crea la variable `GOLANGCI_LINT_VERSION` (ej. `v2.14.0`) en GitHub → Settings → Secrets and variables → Actions → Variables |
 | El CI falla al descargar el submódulo | El repositorio del kit es privado | Configura el secreto `KIT_TOKEN` en el repositorio del proyecto |
 | `make: command not found` | Falta `make` (común en Ubuntu/WSL) | `sudo apt install -y make build-essential` |
 | `make: *** No rule to make target 'up'` | Estás en otra carpeta (por ejemplo, la terminal se abrió en tu carpeta personal) | `cd` a la carpeta del proyecto; `ls Makefile` debe encontrarlo |

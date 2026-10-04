@@ -11,7 +11,7 @@ KIT ?= $(or $(KIT_INVOCADO),$(KIT_GUARDADO),.bowser-spec-kit-ai)
 FORZAR ?=
 
 help: ## Muestra los comandos disponibles
-	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-18s %s\n", $$1, $$2}'
+	@grep -hE '^[a-zA-Z0-9_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-18s %s\n", $$1, $$2}'
 
 instalar-kit: ## Copia el kit (submódulo) a la raíz, regenera agentes y activa hooks
 	@test -f $(KIT)/scripts/instalar_kit.py || { echo "No existe $(KIT)/. Agrega el submódulo (git submodule add <url> $(KIT)) o ejecuta: git submodule update --init"; exit 1; }
@@ -56,7 +56,7 @@ verificar-agentes: ## Comprueba que la configuración generada esté al día
 
 instalar-hooks: ## Activa los hooks de git del proyecto (una vez por clon)
 	git config core.hooksPath .githooks
-	chmod +x .githooks/*
+	chmod +x .githooks/* equipo/adaptadores/claude/hooks/*.sh
 	@echo "Hooks de git activados."
 
 up: ## Levanta el entorno local (PostgreSQL y servicios)

@@ -73,7 +73,7 @@ Roles incluidos: `analista-producto`, `arquitecto`, `disenador-ux`, `dev-backend
 >
 > **¿Usas Windows?** Lee primero la sección [3.1.1 — Windows: cómo funciona WSL](docs/GUIA-INICIO.md#311-windows-cómo-funciona-wsl-importante). Todo el desarrollo (herramientas, proyectos, agente de código y git) va **dentro de Ubuntu (WSL)**. Mezclarlo con Windows es la causa de la mayoría de los errores.
 
-Requisitos: Git, `make`, `jq`, Docker, Go 1.23+, Node 22+, Python 3.11+ y [uv](https://docs.astral.sh/uv/), y al menos uno de: Claude Code, Codex u OpenCode.
+Requisitos: Git, `make`, `jq`, Docker, Go 1.26+, Node 24+, Python 3.11+ y [uv](https://docs.astral.sh/uv/), y al menos uno de: Claude Code, Codex u OpenCode.
 
 El kit vive en su propio repositorio de GitHub y cada proyecto lo incluye como **submódulo de git** en `.bowser-spec-kit-ai/`. Así, cuando el kit mejora, cada proyecto se actualiza con un comando.
 

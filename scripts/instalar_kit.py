@@ -289,7 +289,14 @@ def instalar(forzar: bool) -> int:
         destino.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(a["kit"][rel], destino)
 
-    eliminados = a["eliminar"] + (a["eliminar_modificados"] if forzar else [])
+    # Hooks y scripts de shell deben ser ejecutables: si no, git y Claude Code los ignoran sin avisar.
+    # Se revisan todos (no solo los copiados) para reparar instalaciones anteriores.
+    for rel in a["kit"]:
+        if rel.startswith(".githooks/") or rel.endswith(".sh"):
+            ruta = DESTINO / rel
+            ruta.chmod(ruta.stat().st_mode | 0o111)
+
+    eliminados =a["eliminar"] + (a["eliminar_modificados"] if forzar else [])
     for rel in eliminados:
         (DESTINO / rel).unlink()
         padre = (DESTINO / rel).parent
