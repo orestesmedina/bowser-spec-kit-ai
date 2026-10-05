@@ -13,6 +13,9 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+### Cambiado
+- `HOJA-DE-RUTA.md` y `MANTENER-KIT.md`: la etapa 0 queda cerrada; el workflow `kit.yml` se confirmó en verde en GitHub.
+
 ## [1.10.1] - 2026-10-04
 
 ### Corregido

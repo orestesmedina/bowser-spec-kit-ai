@@ -110,7 +110,7 @@ Instala el kit en proyectos temporales, lo actualiza desde el último tag public
 
 - **Pruebas e2e en el CI** (punto 7 del informe de `simiente-santa-webside`): job con Playwright solo si existe `frontend/e2e/`. Se dejó fuera de la 1.7.0 por lento y frágil; retomarlo cuando haya flujos críticos de cliente. El proyecto ya tiene su `make e2e` en `proyecto.mk`.
 - La constitución dice "80% en `service/`", pero la estructura usa `service.go` por dominio. Redacción propuesta a Orestes: "en la capa de servicio (archivos `service*.go` de cada dominio)".
-- **Pruebas automáticas** del kit (etapa 0 de `HOJA-DE-RUTA.md`): hechas las dos entregas (1.9.0 y 1.10.0). Falta ver `kit.yml` en verde en GitHub después del primer push; si falla ahí, se corrige antes de empezar la etapa 1. Sin pruebas todavía: `make doctor`, `make estado`, `make actualizar-modelos`.
+- **Pruebas automáticas** del kit (etapa 0 de `HOJA-DE-RUTA.md`): hechas las dos entregas (1.9.0 y 1.10.0). `kit.yml` quedó en verde en GitHub el 2026-10-04 (1.10.1). Sin pruebas todavía: `make doctor`, `make estado`, `make actualizar-modelos`.
 - `make costos` para **Claude Code** (transcripciones en `~/.claude/projects/`, incluyen la rama) y **Codex** (`~/.codex/sessions/`).
 - `make costos`: validado en solo lectura contra el OpenCode 2.0.22 real de Orestes (2026-10-03: 35 sesiones, $6.70 según OpenCode). Falta que compare el total con la consola de OpenCode Go.
 - El entorno real de Orestes no coincide con la sección 1: el proyecto está en el disco de Windows (`/mnt/d/IA/environment/wsl/code/`) y hay dos OpenCode (2.x en Ubuntu, 1.18 en Windows vía npm).

@@ -2,7 +2,7 @@
 
 Hacia dónde va el kit, por qué, y en qué punto estamos. Este archivo es la memoria del plan: cualquier persona o sesión de IA que retome el trabajo empieza por aquí.
 
-**Estado actual:** versión 1.10.1. **Etapa 0 hecha** (pruebas automáticas del kit); falta ver su workflow en verde en GitHub tras el primer push. **Sigue la etapa 1** (comandos dentro de la herramienta).
+**Estado actual:** versión 1.10.1. **Etapa 0 hecha** (pruebas automáticas del kit; su workflow quedó en verde en GitHub el 2026-10-04). **Sigue la etapa 1** (comandos dentro de la herramienta).
 **Última actualización:** 2026-10-04.
 
 - [El norte](#el-norte)
@@ -94,7 +94,7 @@ Cada etapa es una versión que se puede publicar y usar sola.
 
 | # | Etapa | Estado |
 |---|---|---|
-| 0 | Pruebas automáticas del kit | Hecha (1.10.0). Falta confirmar el workflow en GitHub |
+| 0 | Pruebas automáticas del kit | Hecha (1.10.1) |
 | 1 | Comandos dentro de la herramienta | **Siguiente** |
 | 2 | Núcleo sin tecnología y perfil del proyecto (versión 2.0) | Pendiente |
 | 2b | Catálogo de skills y contribuciones | Pendiente |
@@ -114,7 +114,7 @@ Cada etapa es una versión que se puede publicar y usar sola.
 | Entrega | Contenido | Estado |
 |---|---|---|
 | A | El ejecutor, las pruebas del núcleo (instalación, actualización, controles, costos, enlaces) y `make test-kit` | Hecha (1.9.0) |
-| B | El workflow del repositorio del kit (`kit.yml`) y el grupo de pruebas de Go (`pruebas/go/`: código generado y cobertura) | Hecha (1.10.0). El workflow solo se prueba de verdad en GitHub: confirmar que queda en verde tras el primer push |
+| B | El workflow del repositorio del kit (`kit.yml`) y el grupo de pruebas de Go (`pruebas/go/`: código generado y cobertura) | Hecha (1.10.0). El workflow quedó en verde en GitHub con la 1.10.1, al subir los tags |
 
 Las pruebas de código generado y cobertura son de Go y sqlc, que en la etapa 2 dejan de ser del núcleo. Se prueban igual, porque hoy esos scripts llegan a los proyectos, pero en un grupo aparte que en la etapa 2 se va con la skill de Go (decidido con Orestes el 2026-10-04). `make test-kit` y `pruebas/` son solo del repositorio del kit: no llegan a los proyectos.
 
