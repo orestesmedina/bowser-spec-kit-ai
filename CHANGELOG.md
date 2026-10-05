@@ -13,6 +13,13 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.10.1] - 2026-10-04
+
+### Corregido
+- **Publicar una versión subía el commit pero no el tag.** La documentación indicaba `git push --follow-tags`, que solo sube tags anotados, y `git tag vX.Y.Z` crea uno simple: GitHub no tenía ningún tag del kit. Por eso el workflow `kit.yml` falló en su primera ejecución (la prueba de actualización quedó omitida y el modo estricto no lo permite). `docs/contribuir.md` y `MANTENER-KIT.md` indican ahora `git push origin main --tags` y cómo comprobarlo.
+
+Nada de esto llega a los proyectos.
+
 ## [1.10.0] - 2026-10-04
 
 ### Agregado

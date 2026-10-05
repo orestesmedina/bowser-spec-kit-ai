@@ -2,7 +2,7 @@
 
 Hacia dónde va el kit, por qué, y en qué punto estamos. Este archivo es la memoria del plan: cualquier persona o sesión de IA que retome el trabajo empieza por aquí.
 
-**Estado actual:** versión 1.10.0. **Etapa 0 hecha** (pruebas automáticas del kit); falta ver su workflow en verde en GitHub tras el primer push. **Sigue la etapa 1** (comandos dentro de la herramienta).
+**Estado actual:** versión 1.10.1. **Etapa 0 hecha** (pruebas automáticas del kit); falta ver su workflow en verde en GitHub tras el primer push. **Sigue la etapa 1** (comandos dentro de la herramienta).
 **Última actualización:** 2026-10-04.
 
 - [El norte](#el-norte)

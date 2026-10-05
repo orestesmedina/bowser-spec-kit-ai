@@ -71,7 +71,7 @@ Un "mini framework" de **Spec-Driven Development** sobre **GitHub Spec Kit** par
 
 ## 5. Reglas al cambiar el kit
 
-1. **CHANGELOG + VERSION en cada cambio.** Entrada en `CHANGELOG.md` (Agregado / Cambiado / Corregido y, si un proyecto debe hacer algo a mano, **Al actualizar**) y subir `VERSION` (parche: correcciones; menor: funciones nuevas; mayor: pasos manuales obligatorios). Al publicar: `git tag vX.Y.Z && git push --follow-tags`.
+1. **CHANGELOG + VERSION en cada cambio.** Entrada en `CHANGELOG.md` (Agregado / Cambiado / Corregido y, si un proyecto debe hacer algo a mano, **Al actualizar**) y subir `VERSION` (parche: correcciones; menor: funciones nuevas; mayor: pasos manuales obligatorios). Al publicar: `git tag vX.Y.Z && git push origin main --tags` (no `--follow-tags`: solo sube tags anotados y estos son simples; el 2026-10-04 GitHub no tenía ningún tag y `kit.yml` falló por eso).
 2. **Documentación al día** donde corresponda: la página del tema en `docs/` (índice en `docs/README.md`; `docs/problemas-comunes.md` y `docs/comandos.md` casi siempre), `README.md`, `equipo/orquestador.md` y `AGENTS.md`. Convenciones de las páginas en la sección 4.
 3. **Un archivo nuevo que deba llegar a los proyectos** va en `GESTIONADOS` o `SEMILLAS` de `instalar_kit.py`.
 4. **`make sincronizar`** después de tocar fuentes; `python3 scripts/sincronizar.py --verificar` debe dar OK.

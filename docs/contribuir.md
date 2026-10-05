@@ -110,8 +110,11 @@ En GitHub las mismas pruebas corren solas en cada Pull Request y en cada push a 
 ```bash
 git commit -m "feat: descripción del cambio"
 git tag v1.8.0
-git push --follow-tags
+git push origin main --tags
 ```
+
+> [!WARNING]
+> `git push --follow-tags` no sirve aquí: solo sube los tags anotados (`git tag -a`), y `git tag v1.8.0` crea uno simple. Sin los tags en GitHub, las pruebas del kit fallan ahí, porque la prueba de actualización parte del último tag publicado. Para comprobar que subieron: `git ls-remote --tags origin`.
 
 Los proyectos reciben la versión cuando ejecutan `make actualizar-kit`, y ven en ese momento las novedades y los pasos manuales.
 
