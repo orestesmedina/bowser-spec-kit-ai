@@ -34,7 +34,7 @@ Un "mini framework" de **Spec-Driven Development** sobre **GitHub Spec Kit** par
 - **Fuentes neutrales** (se editan): `AGENTS.md`, `equipo/orquestador.md`, `equipo/agentes/*.md` (10 roles con `nivel`, `acceso`, `temperatura`, `web`, `skills`), `equipo/config.json` (modelos por herramienta, niveles, temperaturas, agente principal, `kit.excluir`, `costos`), `.agents/skills/` (estándar SKILL.md), `.specify/memory/constitution.md`.
 - **Generados** por `scripts/sincronizar.py` (nunca a mano): `CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json`. `make sincronizar` los genera; `--verificar` falla si están desactualizados.
 - **Instalación en proyectos:** `scripts/instalar_kit.py` copia a la raíz del proyecto los archivos **GESTIONADOS** (se reemplazan en cada actualización y quedan en `.kit-manifest.json` con su sha256), copia las **SEMILLAS** una sola vez (`equipo/config.json`, `.github/CODEOWNERS`, `.env.example`, `docker-compose.yml`: después son del proyecto) y nunca copia `scripts/instalar_kit.py`. También mantiene un bloque del kit en `.gitignore`.
-- **No se copian a los proyectos:** `README.md`, `CHANGELOG.md`, `VERSION`, `LICENSE`, este archivo y la documentación (`docs/*.md`), que en los proyectos se lee desde el submódulo (`.bowser-spec-kit-ai/docs/`). De `docs/` solo se copia `docs/plantillas/`. El `CHANGELOG.md` de un proyecto es el del producto (lo escribe el documentador).
+- **No se copian a los proyectos:** `README.md`, `CHANGELOG.md`, `VERSION`, `LICENSE`, `HOJA-DE-RUTA.md`, `kit.mk`, `pruebas/`, este archivo y la documentación (`docs/*.md`), que en los proyectos se lee desde el submódulo (`.bowser-spec-kit-ai/docs/`). De `docs/` solo se copia `docs/plantillas/`. El `CHANGELOG.md` de un proyecto es el del producto (lo escribe el documentador).
 
 ## 3. Mapa de scripts
 
@@ -49,6 +49,7 @@ Un "mini framework" de **Spec-Driven Development** sobre **GitHub Spec Kit** par
 | `scripts/generar.sh` | `make generar` / `make verificar-generados`: sqlc y tipos de OpenAPI (`api:gen`); `--verificar` falla si queda algo sin commit; `backend`/`frontend` para una sola parte (así lo llama el CI). |
 | `scripts/doctor.sh` | `make doctor`: herramientas, WSL, binarios de Windows en `/mnt`, Docker, kit, hooks, Spec Kit. |
 | `scripts/ruta-kit.sh` | Ruta del submódulo (manifiesto → `.gitmodules` → `.bowser-spec-kit-ai`). |
+| `pruebas/ejecutar.py` | `make test-kit` (definido en `kit.mk`): pruebas automáticas del kit en proyectos temporales. Solo del repositorio del kit; no se copia a los proyectos. |
 | `.githooks/pre-commit` | python3, secretos, kit sin editar, constitución, migraciones, gofmt, prettier, generados al día, `costos.json` cerrado, aviso de `estado.md`. |
 | `.githooks/commit-msg` | Conventional Commits. |
 | `equipo/adaptadores/claude/hooks/` | Claude Code: bloquea secretos, constitución, archivos del kit, migraciones versionadas y `costos.json`; formatea. |
@@ -75,26 +76,21 @@ Un "mini framework" de **Spec-Driven Development** sobre **GitHub Spec Kit** par
 4. **`make sincronizar`** después de tocar fuentes; `python3 scripts/sincronizar.py --verificar` debe dar OK.
 5. **No edites generados** (`CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json`): cambia la fuente o el generador.
 6. **La constitución** solo cambia con aprobación explícita de Orestes (el hook de Claude Code bloquea editarla: propón el texto y que él lo aplique).
-7. **Antes de entregar, prueba de punta a punta** (sección 6) y dile qué se probó y qué no.
+7. **Antes de entregar, `make test-kit` debe pasar** (sección 6). Si el cambio agrega o cambia un comportamiento, agrega su prueba. Dile qué se probó y qué no.
 8. **Verifica hechos del mundo real** (precios, modelos, formatos de OpenCode, comandos de Spec Kit) con la web o el código fuente antes de afirmarlos; anota la fecha.
 
 ## 6. Cómo probar
 
-No hay suite automática todavía (ver pendientes). Receta usada hasta ahora, en una carpeta temporal:
-
 ```bash
-export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=protocol.file.allow GIT_CONFIG_VALUE_0=always   # submódulos locales
-T=$(mktemp -d)
-cp -r . $T/kit && (cd $T/kit && rm -rf .git && git init -q && git add -A && git commit -qm kit --no-verify)
-mkdir $T/proy && cd $T/proy && git init -q
-git submodule add -q $T/kit .bowser-spec-kit-ai
-make -f .bowser-spec-kit-ai/Makefile instalar-kit
-git add -A && git commit -m "chore: instala kit"          # debe pasar los hooks
+make test-kit
 ```
 
-Para probar una actualización: cambia algo en `$T/kit`, commit, y en el proyecto `make actualizar-kit` (prueba también partiendo de una versión anterior del kit, por la compatibilidad del Makefile).
+Instala el kit en proyectos temporales, lo actualiza desde el último tag publicado y comprueba hooks, controles, costos (OpenCode simulado 1.x y 2.x), archivos generados y enlaces de la documentación. Prueba la carpeta de trabajo tal como está, sin necesidad de commit. Termina con error si algo falla. Opciones y cómo agregar una prueba: `pruebas/README.md`.
 
-Para `make costos` sin OpenCode real: un `opencode` falso en el `PATH` que responda `--version`, `session list --format json` y `export <id>` (1.x) o `session export <id>` (2.x; ver el formato en la sección 7), con horas fijas entre llamadas. Probar siempre las dos versiones. Formato 1.x (`{info, messages:[{info, parts}]}`; mensajes de asistente con `agent`, `providerID`, `modelID`, `time.created`, `cost`, `tokens{input,output,reasoning,cache{read,write}}`; subagentes en partes `tool` con `tool: "task"` y `state.metadata.sessionId`), más `COSTOS_FUENTE_PRECIOS=<archivo json>` con el formato de models.dev y `XDG_DATA_HOME` temporal.
+- **Cada cambio de comportamiento lleva su prueba**, y la prueba se valida rompiendo a propósito lo que comprueba: una prueba que nunca falló no demuestra nada.
+- `make test-kit` solo existe en el repositorio del kit: vive en `kit.mk`, que no se copia a los proyectos. `pruebas/` tampoco se copia.
+- **Lo que no cubre** (hay que probarlo a mano y decirlo al entregar): `make generar`, `make verificar-generados` y `make cobertura` (borrador en `pruebas/borradores/`), `make doctor`, `make estado`, `make actualizar-modelos`, la descarga real de precios de models.dev, el `ci.yml` que se copia a los proyectos (solo se prueba de verdad en GitHub) y el OpenCode real.
+- Para probar a mano contra el proyecto real, clonarlo a una carpeta temporal: nunca sobre la carpeta de trabajo de Orestes.
 
 ## 7. Hechos verificados (con fecha)
 
@@ -111,10 +107,9 @@ Para `make costos` sin OpenCode real: un `opencode` falso en el `PATH` que respo
 
 ## 8. Pendientes e ideas
 
-- Verificar automáticamente los enlaces internos de `docs/` (hoy se comprueban a mano con un script al cambiar la documentación).
 - **Pruebas e2e en el CI** (punto 7 del informe de `simiente-santa-webside`): job con Playwright solo si existe `frontend/e2e/`. Se dejó fuera de la 1.7.0 por lento y frágil; retomarlo cuando haya flujos críticos de cliente. El proyecto ya tiene su `make e2e` en `proyecto.mk`.
 - La constitución dice "80% en `service/`", pero la estructura usa `service.go` por dominio. Redacción propuesta a Orestes: "en la capa de servicio (archivos `service*.go` de cada dominio)".
-- **Pruebas automáticas** del kit: es la **etapa 0** de `HOJA-DE-RUTA.md`. Los scripts usados a mano en las versiones 1.6.2 a 1.8.0 están en `pruebas/borradores/` (con su README): son el punto de partida.
+- **Pruebas automáticas** del kit (etapa 0 de `HOJA-DE-RUTA.md`): hecha la primera entrega en la 1.9.0 (`make test-kit`, pruebas del núcleo). Falta la segunda: el workflow del repositorio del kit y el grupo de pruebas de Go (generados y cobertura), a partir de `pruebas/borradores/generados-y-cobertura.sh`. El workflow nuevo irá en `.github/workflows/`, que es una carpeta gestionada: hay que agregarlo a `NUNCA` en `instalar_kit.py` para que no llegue a los proyectos.
 - `make costos` para **Claude Code** (transcripciones en `~/.claude/projects/`, incluyen la rama) y **Codex** (`~/.codex/sessions/`).
 - `make costos`: validado en solo lectura contra el OpenCode 2.0.22 real de Orestes (2026-10-03: 35 sesiones, $6.70 según OpenCode). Falta que compare el total con la consola de OpenCode Go.
 - El entorno real de Orestes no coincide con la sección 1: el proyecto está en el disco de Windows (`/mnt/d/IA/environment/wsl/code/`) y hay dos OpenCode (2.x en Ubuntu, 1.18 en Windows vía npm).

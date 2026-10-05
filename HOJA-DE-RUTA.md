@@ -2,7 +2,7 @@
 
 Hacia dónde va el kit, por qué, y en qué punto estamos. Este archivo es la memoria del plan: cualquier persona o sesión de IA que retome el trabajo empieza por aquí.
 
-**Estado actual:** versión 1.8.x publicada. **Próximo paso: etapa 0** (pruebas automáticas del kit).
+**Estado actual:** versión 1.9.0. **Etapa 0 en curso** (pruebas automáticas del kit): hecha la primera entrega, falta la segunda.
 **Última actualización:** 2026-10-04.
 
 - [El norte](#el-norte)
@@ -94,7 +94,7 @@ Cada etapa es una versión que se puede publicar y usar sola.
 
 | # | Etapa | Estado |
 |---|---|---|
-| 0 | Pruebas automáticas del kit | **Siguiente** |
+| 0 | Pruebas automáticas del kit | **En curso** (primera entrega hecha) |
 | 1 | Comandos dentro de la herramienta | Pendiente |
 | 2 | Núcleo sin tecnología y perfil del proyecto (versión 2.0) | Pendiente |
 | 2b | Catálogo de skills y contribuciones | Pendiente |
@@ -106,10 +106,17 @@ Cada etapa es una versión que se puede publicar y usar sola.
 
 ### Etapa 0. Pruebas automáticas del kit
 
-**Qué:** `make probar-kit` (nombre final en inglés, ver etapa 2) y un workflow de integración continua para el repositorio del kit.
+**Qué:** `make test-kit` y un workflow de integración continua para el repositorio del kit.
 **Por qué primero:** la etapa 2 es una cirugía mayor. Sin pruebas no se sabe si rompe los proyectos que ya usan el kit.
 **De dónde parte:** los scripts de `pruebas/borradores/`, usados a mano para validar las versiones 1.6.2 a 1.8.0.
 **Hecho cuando:** un comando instala el kit en un proyecto temporal, lo actualiza desde la versión anterior, comprueba hooks, costos (con OpenCode simulado en 1.x y 2.x), cobertura, código generado y enlaces de la documentación, y falla si algo no cuadra.
+
+| Entrega | Contenido | Estado |
+|---|---|---|
+| A | El ejecutor, las pruebas del núcleo (instalación, actualización, controles, costos, enlaces) y `make test-kit` | Hecha (1.9.0) |
+| B | El workflow del repositorio del kit y el grupo de pruebas de Go (código generado y cobertura) | Pendiente |
+
+Las pruebas de código generado y cobertura son de Go y sqlc, que en la etapa 2 dejan de ser del núcleo. Se prueban igual, porque hoy esos scripts llegan a los proyectos, pero en un grupo aparte que en la etapa 2 se va con la skill de Go (decidido con Orestes el 2026-10-04). `make test-kit` y `pruebas/` son solo del repositorio del kit: no llegan a los proyectos.
 
 ### Etapa 1. Comandos dentro de la herramienta
 
@@ -220,7 +227,7 @@ Si el nombre cambia, es más barato antes de que haya muchos comandos y proyecto
 En una sesión nueva, en la carpeta del kit:
 
 1. Leer este archivo y `MANTENER-KIT.md` (Claude Code carga el segundo automáticamente).
-2. Mirar la tabla de [Las etapas](#las-etapas): la marcada como **Siguiente** es por donde se sigue.
+2. Mirar la tabla de [Las etapas](#las-etapas): la marcada como **Siguiente** o **En curso** es por donde se sigue.
 3. Revisar [Decisiones abiertas](#decisiones-abiertas): si alguna bloquea la etapa siguiente, se resuelve primero con Orestes.
 
 Al terminar una etapa: actualizar su estado en la tabla, la línea de **Estado actual** del inicio y la fecha.

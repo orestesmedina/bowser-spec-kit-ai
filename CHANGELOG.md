@@ -13,6 +13,19 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.9.0] - 2026-10-04
+
+### Agregado
+- **Pruebas automáticas del kit** (`make test-kit`, primera entrega de la etapa 0 de la hoja de ruta). Un comando instala el kit en proyectos temporales, lo actualiza desde la versión anterior publicada con el `Makefile` viejo, y comprueba la instalación sobre un proyecto existente, los archivos editados en el proyecto, `kit.excluir`, los hooks de git (mensajes de commit, secretos, constitución, migraciones, costo cerrado, falta de `python3`), el hook de Claude Code, `make costos` con un OpenCode simulado en formato 1.x y 2.x, los archivos generados, la versión y los enlaces internos de la documentación. Termina con error si algo falla. Detalle en `pruebas/README.md`.
+- `kit.mk`: comandos para mantener el kit. Solo existe en el repositorio del kit; el `Makefile` lo incluye si lo encuentra.
+
+### Cambiado
+- Los borradores de `pruebas/borradores/` que ya son pruebas automáticas se retiraron. `enlaces.py` pasó a `pruebas/enlaces.py`. Queda como borrador el de código generado y cobertura, para la segunda entrega.
+- `docs/contribuir.md`: la sección "Probar un cambio" usa `make test-kit`; la regla de idioma dice que los nombres de comandos nuevos van en inglés.
+- `MANTENER-KIT.md` y `HOJA-DE-RUTA.md`: estado de la etapa 0.
+
+Nada de esto llega a los proyectos: `pruebas/` y `kit.mk` no se copian. En el `Makefile` de los proyectos solo cambia una línea, que busca `kit.mk` y no lo encuentra.
+
 ## [1.8.2] - 2026-10-04
 
 ### Agregado

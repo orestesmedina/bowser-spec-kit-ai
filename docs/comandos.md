@@ -150,6 +150,9 @@ make -f .bowser-spec-kit-ai/Makefile instalar-kit
 
 Más: [Guía de actualización](actualizacion.md) y [El kit como submódulo](submodulo.md).
 
+> [!NOTE]
+> `make test-kit` ejecuta las pruebas automáticas del kit. Solo existe en el repositorio del kit, no en los proyectos: ver [Cómo contribuir](contribuir.md#probar-un-cambio).
+
 ## Comandos propios del proyecto
 
 El proyecto puede agregar sus comandos en un archivo `proyecto.mk`. Aparecen en `make help` junto a los del kit. Ver [Personalizar un proyecto](personalizar.md#comandos-propios).

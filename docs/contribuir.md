@@ -20,6 +20,7 @@ El repositorio tiene dos clases de archivos:
 | Clase | Archivos | Regla |
 |---|---|---|
 | **Fuentes** | `AGENTS.md`, `equipo/orquestador.md`, `equipo/agentes/`, `equipo/config.json`, `.agents/skills/`, `.specify/memory/constitution.md`, `scripts/`, `.githooks/`, `.github/`, `Makefile`, `docs/` | Se editan a mano |
+| **Solo del kit** | `pruebas/`, `kit.mk` | Se editan a mano. No llegan a los proyectos |
 | **Generados** | `CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json` | Nunca se editan. Se regeneran con `make sincronizar` |
 
 Qué llega a los proyectos lo decide `scripts/instalar_kit.py`, en dos listas: los archivos **gestionados** (se reemplazan en cada actualización) y las **semillas** (se copian una sola vez). Un archivo nuevo que deba llegar a los proyectos tiene que estar en una de las dos. La explicación completa está en [El kit como submódulo](submodulo.md).
@@ -37,6 +38,7 @@ Qué llega a los proyectos lo decide `scripts/instalar_kit.py`, en dos listas: l
 | Cambiar una regla del código | La constitución. Es la decisión más pesada: afecta a todos los proyectos |
 | Soportar otro agente de código | Una función `generar_<herramienta>` en `scripts/sincronizar.py` |
 | Agregar un comando | El `Makefile` y, si hace falta, un script en `scripts/` |
+| Agregar un comando que solo sirve para mantener el kit | `kit.mk`, que no se copia a los proyectos |
 
 ## Reglas para cada cambio
 
@@ -46,24 +48,48 @@ Qué llega a los proyectos lo decide `scripts/instalar_kit.py`, en dos listas: l
 4. **Solo biblioteca estándar.** Los scripts usan Python 3.9 o superior sin instalar nada, y bash portable. Tienen que correr en cualquier máquina del equipo.
 5. **Compatibilidad con la versión anterior.** `make actualizar-kit` se ejecuta con el `Makefile` viejo del proyecto; el nuevo recién queda instalado al terminar. Todo comando nuevo debe funcionar bien en ese primer paso.
 6. **Las semillas no se sobrescriben.** Si el kit cambia algo de una semilla, se ofrece un comando explícito que muestre las diferencias y pida confirmación, como `make actualizar-modelos`.
-7. **Todo en español:** documentos, mensajes y nombres de comandos.
+7. **Documentos y mensajes en español; nombres de comandos en inglés.** Los comandos actuales de `make` siguen en español hasta la versión 2.0; todo comando nuevo nace en inglés.
 8. **Scripts ejecutables.** Un hook o un `.sh` nuevo debe guardarse en git con permiso de ejecución; sin él, git lo ignora sin avisar.
 
 ## Probar un cambio
 
-El kit se prueba instalándolo en un proyecto temporal:
+El kit tiene pruebas automáticas. En Linux o WSL, desde la raíz del repositorio del kit:
 
 ```bash
-export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=protocol.file.allow GIT_CONFIG_VALUE_0=always
-T=$(mktemp -d)
-cp -r . $T/kit && (cd $T/kit && rm -rf .git && git init -q && git add -A && git commit -qm kit --no-verify)
-mkdir $T/proy && cd $T/proy && git init -q
-git submodule add -q $T/kit .bowser-spec-kit-ai
-make -f .bowser-spec-kit-ai/Makefile instalar-kit
-git add -A && git commit -m "chore: instala kit"
+make test-kit
 ```
 
-El último commit debe pasar los hooks. Para probar una actualización, cambia algo en `$T/kit`, haz commit ahí y ejecuta `make actualizar-kit` en el proyecto. Conviene probar también partiendo de la versión anterior del kit.
+Instalan el kit en proyectos temporales, lo actualizan desde la versión anterior publicada y comprueban que los controles sigan bloqueando lo que deben bloquear. Prueban la carpeta de trabajo tal como está: no hace falta hacer commit antes. Tardan menos de un minuto.
+
+```text
+Pruebas del kit 1.9.0 · actualización desde v1.8.0
+
+nucleo/repositorio
+  ✓ los archivos generados del kit (CLAUDE.md, .claude/, .codex/, .opencode/) están al día  (0.2 s)
+  ✓ VERSION tiene su entrada en el CHANGELOG y es la más reciente  (0.0 s)
+  …
+nucleo/costos
+  ✓ make costos con OpenCode 1.x y 2.x: mismos totales, subagente enlazado y sin duplicar al repetir  (2.4 s)
+  …
+
+Resultado: 24 pasaron, 0 fallaron, 0 omitidas · 38 s
+✓ Todo pasó.
+```
+
+Cuando una prueba falla, muestra qué esperaba y qué obtuvo:
+
+```text
+  ✗ el mensaje de commit debe seguir Conventional Commits
+      «git commit -m mensaje malo» debía fallar y terminó bien:
+      [main 5b98bf6] mensaje malo
+```
+
+Para repetir solo esa prueba, `make test-kit SOLO=Conventional`. Con `CONSERVAR=1` la carpeta temporal no se borra y se puede entrar a mirar el proyecto.
+
+Si tu cambio agrega o cambia un comportamiento, agrega su prueba. Las opciones, la lista de lo que se comprueba y cómo escribir una prueba están en [`pruebas/README.md`](../pruebas/README.md).
+
+> [!WARNING]
+> Las pruebas no lo cubren todo. `make generar`, `make cobertura`, `make doctor` y `make estado` todavía se prueban a mano, y `make costos` se prueba contra un OpenCode simulado.
 
 > [!NOTE]
 > Lo que cambia en `.github/workflows/ci.yml` solo se prueba de verdad en GitHub. Valida el cambio en un proyecto real antes de darlo por bueno.

@@ -98,3 +98,6 @@ ci: lint verificar-generados test cobertura security ## Lo mismo que corre en CI
 
 # Comandos propios del proyecto (opcional; no lo gestiona el kit).
 -include proyecto.mk
+
+# Comandos para mantener el kit (solo existe en el repositorio del kit; no se copia a los proyectos).
+-include kit.mk
