@@ -19,7 +19,7 @@ El repositorio tiene dos clases de archivos:
 
 | Clase | Archivos | Regla |
 |---|---|---|
-| **Fuentes** | `AGENTS.md`, `equipo/orquestador.md`, `equipo/agentes/`, `equipo/config.json`, `.agents/skills/`, `.specify/memory/constitution.md`, `scripts/`, `.githooks/`, `.github/`, `Makefile`, `docs/` | Se editan a mano |
+| **Fuentes** | `AGENTS.md`, `equipo/orquestador.md`, `equipo/agentes/`, `equipo/comandos/`, `equipo/config.json`, `.agents/skills/`, `.specify/memory/constitution.md`, `scripts/`, `.githooks/`, `.github/`, `Makefile`, `docs/` | Se editan a mano |
 | **Solo del kit** | `pruebas/`, `kit.mk`, `.github/workflows/kit.yml` | Se editan a mano. No llegan a los proyectos |
 | **Generados** | `CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json` | Nunca se editan. Se regeneran con `make sincronizar` |
 
@@ -33,6 +33,7 @@ Qué llega a los proyectos lo decide `scripts/instalar_kit.py`, en dos listas: l
 | Cambiar cómo se ejecuta un flujo (funcionalidad, bug, revisión) | La skill `equipo-*` correspondiente |
 | Cambiar qué hace o qué puede tocar un rol | `equipo/agentes/<rol>.md` |
 | Agregar un rol | Un archivo nuevo en `equipo/agentes/` |
+| Agregar o cambiar un comando del chat (`/bowser-…`) | `equipo/comandos/<nombre>.md`, y su fila en `docs/comandos.md` |
 | Cambiar cómo coordina el orquestador | `equipo/orquestador.md` y `AGENTS.md` |
 | Que algo no pueda pasar nunca | `.githooks/pre-commit` **y** `.github/workflows/ci.yml` |
 | Cambiar una regla del código | La constitución. Es la decisión más pesada: afecta a todos los proyectos |

@@ -2,7 +2,7 @@
 
 Hacia dónde va el kit, por qué, y en qué punto estamos. Este archivo es la memoria del plan: cualquier persona o sesión de IA que retome el trabajo empieza por aquí.
 
-**Estado actual:** versión 1.10.1. **Etapa 0 hecha** (pruebas automáticas del kit; su workflow quedó en verde en GitHub el 2026-10-04). **Sigue la etapa 1** (comandos dentro de la herramienta).
+**Estado actual:** versión 1.11.0. Etapa 0 hecha. **Etapa 1 en curso** (comandos dentro de la herramienta): la primera entrega, con seis comandos, está hecha; falta probarlos a mano en Claude Code, Codex y OpenCode reales.
 **Última actualización:** 2026-10-04.
 
 - [El norte](#el-norte)
@@ -95,7 +95,7 @@ Cada etapa es una versión que se puede publicar y usar sola.
 | # | Etapa | Estado |
 |---|---|---|
 | 0 | Pruebas automáticas del kit | Hecha (1.10.1) |
-| 1 | Comandos dentro de la herramienta | **Siguiente** |
+| 1 | Comandos dentro de la herramienta | **En curso** (primera entrega: 1.11.0) |
 | 2 | Núcleo sin tecnología y perfil del proyecto (versión 2.0) | Pendiente |
 | 2b | Catálogo de skills y contribuciones | Pendiente |
 | 3 | Memoria del producto, con diagramas | Pendiente |
@@ -123,6 +123,19 @@ Las pruebas de código generado y cobertura son de Go y sqlc, que en la etapa 2 
 **Qué:** comandos como `/bowser-update-kit`, `/bowser-status`, `/bowser-doctor`, `/bowser-costs`, para no salir a la terminal.
 **Cómo:** se escriben una vez y `sincronizar.py` genera el formato de cada herramienta. Verificado el 2026-10-04: en Claude Code y Codex los comandos propios se definen como skills; en OpenCode, como archivos en `.opencode/commands/`.
 **Hecho cuando:** cada comando de `make` que usa una persona tiene su equivalente en las tres herramientas, documentado en `docs/comandos.md`.
+
+| Entrega | Contenido | Estado |
+|---|---|---|
+| A | `equipo/comandos/`, el generador para las tres herramientas y seis comandos: `/bowser-status`, `/bowser-costs`, `/bowser-doctor`, `/bowser-update-kit`, `/bowser-news`, `/bowser-models` | Hecha (1.11.0) |
+| B | Probarlos a mano en Claude Code, Codex y OpenCode reales y corregir lo que aparezca | Pendiente |
+
+Quedan fuera a propósito `up`, `test`, `lint`, `ci` y `generar`: dependen de la tecnología y en la etapa 2 pasan a ser del proyecto. Sus comandos se definen ahí, sobre el contrato de verbos.
+
+Detalles que salieron al implementar (2026-10-04):
+
+- Las fuentes viven en `equipo/comandos/` (decisión de Orestes: más ordenado que mezclarlas con las skills). El prefijo `bowser-` está en un solo lugar: `PREFIJO_COMANDOS` de `scripts/sincronizar.py`.
+- Codex solo lee skills de `.agents/skills/`, así que sus comandos se generan ahí, en carpetas `bowser-*`. Es la única carpeta de fuentes con contenido generado; el instalador no las copia a los proyectos.
+- Peso: en Claude Code y Codex el comando se carga solo al escribirlo (cero contexto permanente). En OpenCode cada comando suma una línea de descripción, porque OpenCode también lista como skills lo que hay en `.claude/skills/` y `.agents/skills/`.
 
 ### Etapa 2. Núcleo sin tecnología y perfil del proyecto (versión 2.0)
 
@@ -186,6 +199,7 @@ Las pruebas de código generado y cobertura son de Go y sqlc, que en la etapa 2 
 | 2026-10-04 | El proyecto de validación de la 2.0 es uno existente en PHP puro, HTML, CSS y JavaScript puros, y MySQL | Orestes |
 | 2026-10-04 | Documentación como wiki por temas en `docs/`, única fuente | Orestes |
 | 2026-10-04 | Licencia MIT, a nombre de Infinity Solutions AI | Orestes |
+| 2026-10-04 | Los comandos de la herramienta se escriben en `equipo/comandos/`, no como skills en `.agents/skills/` | Orestes |
 | 2026-10-04 | **El nombre se queda en "bowser" por ahora** (es el nombre de su perro). Los comandos usan el prefijo `/bowser-`. Si más adelante aparece un nombre mejor, se cambia | Orestes |
 
 ## Decisiones abiertas

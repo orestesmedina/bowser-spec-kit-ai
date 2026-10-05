@@ -5,6 +5,7 @@
 - [Fuentes y archivos generados](#fuentes-y-archivos-generados)
 - [Qué lee cada herramienta](#qué-lee-cada-herramienta)
 - [Cómo se traduce un rol](#cómo-se-traduce-un-rol)
+- [Cómo se traduce un comando](#cómo-se-traduce-un-comando)
 - [Regenerar](#regenerar)
 - [Cómo se mantiene al día](#cómo-se-mantiene-al-día)
 - [Lo que no es igual en todas las herramientas](#lo-que-no-es-igual-en-todas-las-herramientas)
@@ -30,9 +31,10 @@ Con una sola fuente:
 |---|---|
 | `AGENTS.md` | `CLAUDE.md` |
 | `equipo/orquestador.md` | `.claude/agents/`, `.claude/skills/`, `.claude/settings.json` |
-| `equipo/agentes/*.md` | `.codex/agents/*.toml` |
-| `equipo/config.json` | `.opencode/agents/*.md` |
-| `.agents/skills/` | `opencode.json` |
+| `equipo/agentes/*.md` | `.codex/agents/*.toml`, `.agents/skills/bowser-*/` |
+| `equipo/comandos/*.md` | `.opencode/agents/*.md`, `.opencode/commands/*.md` |
+| `equipo/config.json` | `opencode.json` |
+| `.agents/skills/` (menos las carpetas `bowser-*`) | |
 | `equipo/adaptadores/` | |
 
 Cada archivo generado empieza con un aviso que dice de qué fuente salió y que no se edita.
@@ -44,6 +46,7 @@ Cada archivo generado empieza con un aviso que dice de qué fuente salió y que 
 | Instrucciones | `CLAUDE.md`, que importa `AGENTS.md` | `AGENTS.md` | `AGENTS.md` |
 | Subagentes | `.claude/agents/*.md` | `.codex/agents/*.toml` | `.opencode/agents/*.md` |
 | Skills | `.claude/skills/` (una copia) | `.agents/skills/` | `.agents/skills/` |
+| Comandos del kit | `.claude/skills/bowser-*/` | `.agents/skills/bowser-*/` | `.opencode/commands/bowser-*.md` |
 | Comandos de Spec Kit | `/speckit.plan` | `$speckit-plan` | `/speckit.plan` |
 | Hooks del agente | Sí | No | No |
 | Hooks de git e integración continua | Sí | Sí | Sí |
@@ -78,6 +81,34 @@ El generador convierte cada campo en lo que entiende cada herramienta:
 | `temperatura` | No aplica | No aplica | Se envía al modelo |
 
 Qué modelo corresponde a cada nivel no está en el rol, sino en `equipo/config.json`. Así, cambiar de modelo no obliga a tocar ningún rol. Ver [Modelos por agente](modelos.md).
+
+## Cómo se traduce un comando
+
+Un comando es lo que una persona escribe en el chat para pedir algo concreto, como `/bowser-status`. Se escribe una vez en `equipo/comandos/`, en un archivo con el nombre del comando sin el prefijo:
+
+```markdown
+---
+nombre: status
+descripcion: Muestra por dónde va el proyecto y cuál es el próximo paso (make estado).
+argumentos: [todo]
+---
+Ejecuta `make estado` en la raíz del proyecto…
+```
+
+`argumentos` es opcional: es la pista de qué se puede escribir después del nombre. El generador agrega el prefijo `bowser-` y produce:
+
+| Herramienta | Archivo generado | Cómo se invoca | Se carga |
+|---|---|---|---|
+| Claude Code | `.claude/skills/bowser-status/SKILL.md` | `/bowser-status` | Solo cuando la persona lo escribe |
+| Codex | `.agents/skills/bowser-status/` | `$bowser-status` | Solo cuando la persona lo escribe |
+| OpenCode | `.opencode/commands/bowser-status.md` | `/bowser-status` | Al escribirlo |
+
+En Claude Code y Codex un comando propio es una skill con la invocación automática desactivada (`disable-model-invocation` y `allow_implicit_invocation: false`): así no ocupa contexto hasta que se usa.
+
+> [!WARNING]
+> Codex solo lee skills de `.agents/skills/`, que es una carpeta de fuentes. Por eso sus comandos se generan ahí mismo, en carpetas que empiezan con `bowser-`. Esas carpetas son generadas: `make sincronizar` las borra y las vuelve a crear. No pongas una skill propia en una carpeta con ese prefijo.
+
+Lista de comandos y cómo usarlos: [Comandos](comandos.md#dentro-de-la-herramienta).
 
 ## Regenerar
 

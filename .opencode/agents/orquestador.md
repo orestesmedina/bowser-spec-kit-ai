@@ -115,7 +115,7 @@ Al delegar, das al subagente: la fase, la ruta de la spec/plan/tareas, qué entr
 
 ## 5. El kit de la empresa
 
-**Fuentes (se editan solo con aprobación de dirección técnica):** `AGENTS.md`, `equipo/agentes/*.md`, `equipo/orquestador.md`, `equipo/config.json`, `.agents/skills/`, `.specify/memory/constitution.md`.
+**Fuentes (se editan solo con aprobación de dirección técnica):** `AGENTS.md`, `equipo/agentes/*.md`, `equipo/comandos/*.md`, `equipo/orquestador.md`, `equipo/config.json`, `.agents/skills/` (menos las carpetas `bowser-*`, que son generadas), `.specify/memory/constitution.md`.
 
 **Generados (nunca se editan a mano):** `CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json`. Se regeneran con `make sincronizar`.
 

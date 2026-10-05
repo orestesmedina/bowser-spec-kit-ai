@@ -13,8 +13,20 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.11.0] - 2026-10-04
+
+### Agregado
+- **Comandos dentro de la herramienta** (etapa 1 de la hoja de ruta): `/bowser-status`, `/bowser-costs`, `/bowser-doctor`, `/bowser-update-kit`, `/bowser-news` y `/bowser-models`. Se escriben en el chat de Claude Code u OpenCode (en Codex, `$bowser-status`); el agente ejecuta el `make` correspondiente y explica el resultado en lenguaje simple. No cierran costos, no fuerzan instalaciones, no cambian modelos y no hacen commits por su cuenta.
+- **`equipo/comandos/`**: cada comando se escribe una vez y `make sincronizar` genera `.claude/skills/bowser-*/`, `.agents/skills/bowser-*/` (Codex) y `.opencode/commands/bowser-*.md`. Un proyecto puede agregar los suyos con un archivo nuevo en esa carpeta. En Claude Code y Codex solo se cargan al escribirlos: no ocupan contexto.
+- Pruebas: `pruebas/nucleo/prueba_comandos.py`.
+
 ### Cambiado
-- `HOJA-DE-RUTA.md` y `MANTENER-KIT.md`: la etapa 0 queda cerrada; el workflow `kit.yml` se confirmó en verde en GitHub.
+- `.agents/skills/` contiene ahora carpetas generadas (las que empiezan con `bowser-`), porque Codex solo lee skills de ahí. El instalador no las copia: cada proyecto genera las suyas según sus herramientas activas.
+- `HOJA-DE-RUTA.md` y `MANTENER-KIT.md`: la etapa 0 queda cerrada (el workflow `kit.yml` se confirmó en verde en GitHub) y la etapa 1 tiene su primera entrega.
+
+### Al actualizar
+- Después de `make actualizar-kit`, el commit incluye carpetas nuevas: `equipo/comandos/`, `.opencode/commands/` y las `bowser-*` de `.claude/skills/` y `.agents/skills/`. Abre una sesión nueva de tu herramienta para que vea los comandos.
+- Si tu proyecto tiene una skill propia en una carpeta `.agents/skills/bowser-…`, cámbiale el nombre **antes** de actualizar: `make sincronizar` borra las carpetas con ese prefijo.
 
 ## [1.10.1] - 2026-10-04
 

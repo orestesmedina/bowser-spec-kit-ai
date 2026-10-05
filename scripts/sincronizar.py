@@ -4,14 +4,15 @@
 Fuente única (lo que el equipo edita):
   AGENTS.md                 instrucciones del proyecto
   equipo/agentes/*.md       definición neutral de cada subagente
+  equipo/comandos/*.md      comandos que la persona escribe dentro de la herramienta (/bowser-status)
   .agents/skills/           skills compartidas (estándar SKILL.md)
   equipo/config.json        herramientas activas y modelos (por nivel, por agente y del orquestador)
   equipo/adaptadores/       archivos propios de cada herramienta (ej. permisos y hooks de Claude Code)
 
 Salida (generada, no editar a mano):
-  Claude Code  -> CLAUDE.md, .claude/agents/, .claude/skills/, .claude/settings.json
-  Codex        -> .codex/agents/*.toml         (lee AGENTS.md y .agents/skills/ directamente)
-  OpenCode     -> .opencode/agents/*.md, opencode.json (si hay modelo de orquestador o adaptador)
+  Claude Code  -> CLAUDE.md, .claude/agents/, .claude/skills/ (skills y comandos), .claude/settings.json
+  Codex        -> .codex/agents/*.toml, .agents/skills/bowser-*/ (comandos; lee AGENTS.md y .agents/skills/ directamente)
+  OpenCode     -> .opencode/agents/*.md, .opencode/commands/*.md, opencode.json (si hay modelo de orquestador o adaptador)
 
 Uso:
   python3 scripts/sincronizar.py              genera los archivos
@@ -23,6 +24,7 @@ Solo usa la biblioteca estándar de Python 3.9+.
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -31,13 +33,20 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 AVISO = "GENERADO por scripts/sincronizar.py desde {fuente}. No editar: cambia la fuente y ejecuta `make sincronizar`."
 
+# Prefijo de los comandos dentro de la herramienta (/bowser-status). Si el kit cambia de nombre, se cambia solo aquí.
+PREFIJO_COMANDOS = "bowser-"
+# Codex solo lee skills de .agents/skills/, que es una carpeta de fuentes: sus comandos se generan ahí,
+# en carpetas con el prefijo. scripts/instalar_kit.py no las copia a los proyectos (se generan en cada uno).
+COMANDOS_CODEX = f".agents/skills/{PREFIJO_COMANDOS}"
+
 # Carpetas y archivos que este script controla por completo, por herramienta.
+# "dirs" admite comodines (*) en el último tramo.
 GESTIONADOS = {
     "claude": {"dirs": [".claude/agents", ".claude/skills"], "files": ["CLAUDE.md", ".claude/settings.json"]},
-    "codex": {"dirs": [".codex/agents"], "files": []},
-    "opencode": {"dirs": [".opencode/agents"], "files": ["opencode.json"]},
+    "codex": {"dirs": [".codex/agents", COMANDOS_CODEX + "*"], "files": []},
+    "opencode": {"dirs": [".opencode/agents", ".opencode/commands"], "files": ["opencode.json"]},
 }
-PREFIJOS = {"claude": (".claude", "CLAUDE"), "codex": (".codex",), "opencode": (".opencode", "opencode.json")}
+PREFIJOS = {"claude": (".claude", "CLAUDE"), "codex": (".codex", COMANDOS_CODEX), "opencode": (".opencode", "opencode.json")}
 
 ACCESOS = {"lectura", "documentos", "completo"}
 NIVELES = {"alto", "medio", "bajo"}
@@ -86,6 +95,53 @@ def leer_agente(ruta: Path) -> dict:
         instrucciones += f"\n\n## Skills que debes aplicar\n{lista} (en `.agents/skills/`)."
     datos["instrucciones"] = instrucciones
     return datos
+
+
+NOMBRE_COMANDO = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
+
+
+def leer_comando(ruta: Path) -> dict:
+    """Un comando de equipo/comandos/: metadatos (nombre, descripcion, argumentos opcional) e instrucciones."""
+    texto = ruta.read_text(encoding="utf-8")
+    ruta_txt = ruta.relative_to(RAIZ).as_posix()
+    if not texto.startswith("---\n"):
+        raise ValueError(f"{ruta_txt}: falta el bloque de metadatos (---)")
+    _, cabecera, cuerpo = texto.split("---\n", 2)
+    datos = {}
+    for linea in cabecera.strip().splitlines():
+        clave, _, valor = linea.partition(":")
+        datos[clave.strip()] = valor.strip()
+
+    for campo in ("nombre", "descripcion"):
+        if not datos.get(campo):
+            raise ValueError(f"{ruta_txt}: falta el campo '{campo}'")
+    if datos["nombre"] != ruta.stem:
+        raise ValueError(f"{ruta_txt}: 'nombre' debe coincidir con el nombre del archivo")
+    if not NOMBRE_COMANDO.fullmatch(datos["nombre"]):
+        raise ValueError(f"{ruta_txt}: 'nombre' solo admite minúsculas, números y guiones (ej. update-kit)")
+    if not cuerpo.strip():
+        raise ValueError(f"{ruta_txt}: el comando no tiene instrucciones")
+    if "$ARGUMENTS" in cuerpo:
+        raise ValueError(f"{ruta_txt}: no escribas $ARGUMENTS; declara 'argumentos' y el generador lo agrega "
+                         "en las herramientas que lo admiten")
+    return {
+        "corto": datos["nombre"],
+        "nombre": PREFIJO_COMANDOS + datos["nombre"],
+        "descripcion": datos["descripcion"],
+        "argumentos": datos.get("argumentos", ""),
+        "instrucciones": cuerpo.strip(),
+        "fuente": ruta_txt,
+    }
+
+
+def cuerpo_comando(c: dict, herramienta: str) -> str:
+    """Instrucciones del comando con el aviso de generado y, si los declara, sus argumentos."""
+    texto = f"<!-- {AVISO.format(fuente=c['fuente'])} -->\n\n{c['instrucciones']}\n"
+    if not c["argumentos"]:
+        return texto
+    if herramienta == "codex":      # Codex no sustituye marcadores: los argumentos se leen de la conversación.
+        return texto + f"\nSi la persona escribió algo junto a `${c['nombre']}`, esos son los argumentos: {c['argumentos']}.\n"
+    return texto + f"\nArgumentos que escribió la persona junto al comando ({c['argumentos']}; puede venir vacío): $ARGUMENTS\n"
 
 
 def config_modelos(config: dict, herramienta: str) -> dict:
@@ -184,7 +240,7 @@ def es_repositorio_del_kit() -> bool:
             and not (RAIZ / ".kit-manifest.json").exists())
 
 
-def generar_claude(agentes: list[dict], config: dict) -> dict[str, bytes]:
+def generar_claude(agentes: list[dict], comandos: list[dict], config: dict) -> dict[str, bytes]:
     salida: dict[str, bytes] = {}
     modelos = config_modelos(config, "claude")
 
@@ -224,12 +280,21 @@ def generar_claude(agentes: list[dict], config: dict) -> dict[str, bytes]:
         texto = "\n".join(cab) + f"\n<!-- {AVISO.format(fuente=a['fuente'])} -->\n\n{a['instrucciones']}\n"
         salida[f".claude/agents/{a['nombre']}.md"] = texto.encode()
 
-    # Skills: copia de .agents/skills para Claude Code.
+    # Skills: copia de .agents/skills para Claude Code (sin los comandos generados ahí para Codex).
     origen = RAIZ / ".agents/skills"
     for archivo in sorted(origen.rglob("*")):
         if archivo.is_file():
             rel = archivo.relative_to(origen).as_posix()
-            salida[f".claude/skills/{rel}"] = archivo.read_bytes()
+            if not rel.startswith(PREFIJO_COMANDOS):
+                salida[f".claude/skills/{rel}"] = archivo.read_bytes()
+
+    # Comandos: skills que solo se cargan cuando la persona las escribe (su descripción no ocupa contexto).
+    for c in comandos:
+        cab = ["---", f"name: {c['nombre']}", f"description: {yaml_texto(c['descripcion'])}", "disable-model-invocation: true"]
+        if c["argumentos"]:
+            cab.append(f"argument-hint: {yaml_texto(c['argumentos'])}")
+        cab.append("---")
+        salida[f".claude/skills/{c['nombre']}/SKILL.md"] = ("\n".join(cab) + "\n" + cuerpo_comando(c, "claude")).encode()
 
     ajustes_ruta = RAIZ / "equipo/adaptadores/claude/settings.json"
     ajustes = json.loads(ajustes_ruta.read_text(encoding="utf-8")) if ajustes_ruta.exists() else {}
@@ -240,7 +305,7 @@ def generar_claude(agentes: list[dict], config: dict) -> dict[str, bytes]:
     return salida
 
 
-def generar_codex(agentes: list[dict], config: dict) -> dict[str, bytes]:
+def generar_codex(agentes: list[dict], comandos: list[dict], config: dict) -> dict[str, bytes]:
     salida: dict[str, bytes] = {}
     modelos = config_modelos(config, "codex")
     esfuerzo = config.get("esfuerzo_codex", {})
@@ -260,10 +325,18 @@ def generar_codex(agentes: list[dict], config: dict) -> dict[str, bytes]:
         lineas.append("")
         lineas.append(f"developer_instructions = {toml_texto_multilinea(a['instrucciones'])}")
         salida[f".codex/agents/{a['nombre']}.toml"] = ("\n".join(lineas) + "\n").encode()
+
+    # Comandos: skills que se invocan con $nombre y que Codex no carga por su cuenta.
+    for c in comandos:
+        carpeta = COMANDOS_CODEX + c["corto"]
+        cab = ["---", f"name: {c['nombre']}", f"description: {yaml_texto(c['descripcion'])}", "---"]
+        salida[f"{carpeta}/SKILL.md"] = ("\n".join(cab) + "\n" + cuerpo_comando(c, "codex")).encode()
+        salida[f"{carpeta}/agents/openai.yaml"] = (
+            f"# {AVISO.format(fuente=c['fuente'])}\npolicy:\n  allow_implicit_invocation: false\n").encode()
     return salida
 
 
-def generar_opencode(agentes: list[dict], config: dict) -> dict[str, bytes]:
+def generar_opencode(agentes: list[dict], comandos: list[dict], config: dict) -> dict[str, bytes]:
     salida: dict[str, bytes] = {}
     modelos = config_modelos(config, "opencode")
     temp_cfg = config_temperatura(config, "opencode")
@@ -295,6 +368,10 @@ def generar_opencode(agentes: list[dict], config: dict) -> dict[str, bytes]:
         cuerpo = (RAIZ / principal["fuente"]).read_text(encoding="utf-8").strip()
         texto = "\n".join(cab) + f"\n<!-- {AVISO.format(fuente=principal['fuente'])} -->\n\n{cuerpo}\n"
         salida[f".opencode/agents/{principal['nombre']}.md"] = texto.encode()
+
+    for c in comandos:
+        cab = ["---", f"description: {yaml_texto(c['descripcion'])}", "---"]
+        salida[f".opencode/commands/{c['nombre']}.md"] = ("\n".join(cab) + "\n" + cuerpo_comando(c, "opencode")).encode()
 
     # opencode.json: modelos y agentes integrados ocultos, sobre la base del adaptador si existe.
     base_ruta = RAIZ / "equipo/adaptadores/opencode/opencode.json"
@@ -385,15 +462,18 @@ def informe_modelos(agentes: list[dict], config: dict, activas: list[str]) -> in
 
 # ---------------------------------------------------------------- escritura / verificación
 
+def carpetas_gestionadas(g: dict) -> list[Path]:
+    """Las carpetas de una herramienta que existen ahora, con los comodines resueltos."""
+    return [c for d in g["dirs"] for c in sorted(RAIZ.glob(d)) if c.is_dir()]
+
+
 def archivos_actuales() -> dict[str, bytes]:
     actuales: dict[str, bytes] = {}
     for g in GESTIONADOS.values():
-        for d in g["dirs"]:
-            base = RAIZ / d
-            if base.exists():
-                for f in base.rglob("*"):
-                    if f.is_file():
-                        actuales[f.relative_to(RAIZ).as_posix()] = f.read_bytes()
+        for base in carpetas_gestionadas(g):
+            for f in base.rglob("*"):
+                if f.is_file():
+                    actuales[f.relative_to(RAIZ).as_posix()] = f.read_bytes()
         for f in g["files"]:
             p = RAIZ / f
             if p.exists():
@@ -412,6 +492,7 @@ def main() -> int:
 
     try:
         agentes = [leer_agente(p) for p in sorted((RAIZ / "equipo/agentes").glob("*.md"))]
+        comandos = [leer_comando(p) for p in sorted((RAIZ / "equipo/comandos").glob("*.md"))]
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1
@@ -439,7 +520,7 @@ def main() -> int:
 
     esperado: dict[str, bytes] = {}
     for h in activas:
-        esperado.update(GENERADORES[h](agentes, config))
+        esperado.update(GENERADORES[h](agentes, comandos, config))
 
     if "--verificar" in args:
         actuales = archivos_actuales()
@@ -457,8 +538,8 @@ def main() -> int:
 
     # Limpia todo lo gestionado (también de herramientas desactivadas) y vuelve a escribir.
     for g in GESTIONADOS.values():
-        for d in g["dirs"]:
-            shutil.rmtree(RAIZ / d, ignore_errors=True)
+        for d in carpetas_gestionadas(g):
+            shutil.rmtree(d, ignore_errors=True)
         for f in g["files"]:
             (RAIZ / f).unlink(missing_ok=True)
     for rel, contenido in esperado.items():

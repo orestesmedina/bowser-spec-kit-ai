@@ -109,6 +109,8 @@ Más: [Integración continua](integracion-continua.md#cuando-falla).
 | El agente da vueltas sin terminar una tarea | La instrucción es ambigua, o la tarea es muy grande | Detenlo. Divide la tarea o da una instrucción concreta |
 | El agente quiere usar `--no-verify` o desactivar una prueba | Busca que el control pase, no resolver el problema | No lo permitas. Pídele que corrija la causa |
 | El presupuesto de la suscripción se agota muy rápido | Un modelo caro en un rol de mucho volumen, o el orquestador hace el trabajo en vez de delegar | `make costos` para ver qué agente consume. Ver [Modelos por agente](modelos.md) |
+| Escribo `/bowser-status` y la herramienta no lo reconoce | La configuración no está generada, la sesión es anterior al cambio, o estás en Codex | `make sincronizar` y abre una sesión nueva. En Codex se escribe `$bowser-status`. Ver [Comandos](comandos.md#dentro-de-la-herramienta) |
+| Desapareció una skill mía de `.agents/skills/` | Su carpeta empezaba con `bowser-`, el prefijo de los comandos generados | Recupérala con git y cámbiale el nombre |
 | `make modelos` marca un modelo con ⚠ | Tu instalación no reconoce ese modelo | Compruébalo con `opencode models opencode-go` y corrige `equipo/config.json` |
 
 ## Estado y costos

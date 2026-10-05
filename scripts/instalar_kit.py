@@ -49,6 +49,7 @@ GESTIONADOS = [
     ".github/workflows/",
     ".specify/memory/constitution.md",
     "equipo/agentes/",
+    "equipo/comandos/",
     "equipo/adaptadores/",
     "equipo/orquestador.md",
     "scripts/",
@@ -57,6 +58,11 @@ GESTIONADOS = [
 # La documentación (docs/*.md) no se copia: en los proyectos se lee desde el submódulo, siempre en la versión instalada.
 # Nunca se copian (solo tienen sentido dentro del kit).
 NUNCA = {"scripts/instalar_kit.py", ".github/workflows/kit.yml"}
+# Tampoco se copian los comandos que sincronizar.py genera para Codex dentro de .agents/skills/:
+# cada proyecto genera los suyos según las herramientas que tenga activas.
+sys.path.insert(0, str(KIT / "scripts"))
+from sincronizar import COMANDOS_CODEX as GENERADO_EN_FUENTES  # noqa: E402
+sys.path.pop(0)
 # Se copian una sola vez; después pertenecen al proyecto.
 SEMILLAS = ["equipo/config.json", ".github/CODEOWNERS", ".env.example", "docker-compose.yml"]
 
@@ -88,7 +94,7 @@ def archivos_del_kit(excluir: list[str]) -> dict[str, Path]:
             candidatos = [origen] if origen.is_file() else []
         for p in candidatos:
             rel = p.relative_to(KIT).as_posix()
-            if rel in NUNCA or es_ignorable(rel) or excluido(rel, excluir):
+            if rel in NUNCA or rel.startswith(GENERADO_EN_FUENTES) or es_ignorable(rel) or excluido(rel, excluir):
                 continue
             resultado[rel] = p
     return resultado

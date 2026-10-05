@@ -2,6 +2,7 @@
 
 - [Introducción](#introducción)
 - [Los que más vas a usar](#los-que-más-vas-a-usar)
+- [Dentro de la herramienta](#dentro-de-la-herramienta)
 - [Estado y costos](#estado-y-costos)
 - [Entorno local](#entorno-local)
 - [Calidad y pruebas](#calidad-y-pruebas)
@@ -14,7 +15,7 @@
 
 ## Introducción
 
-Todo lo que el kit sabe hacer se ejecuta con `make`, desde la raíz del proyecto. Esta página lista cada comando: qué hace, cuándo usarlo y qué opciones tiene.
+Todo lo que el kit sabe hacer se ejecuta con `make`, desde la raíz del proyecto. Esta página lista cada comando: qué hace, cuándo usarlo y qué opciones tiene. Los más usados se pueden pedir también sin salir del chat: ver [Dentro de la herramienta](#dentro-de-la-herramienta).
 
 Para ver la lista en la terminal:
 
@@ -33,6 +34,38 @@ Las opciones se pasan después del comando, en mayúsculas: `make costos TODO=1`
 | `make up` | Levantar la base de datos |
 | `make ci` | ¿Esto va a pasar en GitHub? |
 | `make actualizar-kit` | Traer la última versión del kit |
+
+## Dentro de la herramienta
+
+Los comandos que más usa una persona tienen un equivalente que se escribe en el chat de Claude Code, Codex u OpenCode. El agente ejecuta el `make` correspondiente y explica el resultado en lenguaje simple, así que no hace falta abrir una terminal.
+
+| Comando | Ejecuta | Qué responde |
+|---|---|---|
+| `/bowser-status` | `make estado` | Por dónde vamos y cuál es el próximo paso |
+| `/bowser-costs` | `make costos` | Cuánto ha costado la tarea actual, y qué agentes pesan más |
+| `/bowser-doctor` | `make doctor` | Si el entorno está bien y, si no, cómo arreglar cada cosa |
+| `/bowser-update-kit` | `make actualizar-kit` | Qué trajo la versión nueva y qué pasos hay que hacer a mano |
+| `/bowser-news` | `make novedades` | Qué cambió en el kit, versión por versión |
+| `/bowser-models` | `make modelos` | Qué modelo usa cada agente |
+
+Cómo se escriben en cada herramienta:
+
+| Herramienta | Se escribe | Con opciones |
+|---|---|---|
+| Claude Code | `/bowser-status` | `/bowser-status todo` |
+| OpenCode | `/bowser-status` | `/bowser-status todo` |
+| Codex | `$bowser-status` | `$bowser-status` y la opción en la misma frase: "con todo" |
+
+Opciones: `/bowser-status todo` incluye lo terminado; `/bowser-costs todo` resume el proyecto y `/bowser-costs hoy` cotiza a precios actuales; `/bowser-news 1.9.0` muestra desde esa versión.
+
+Lo que estos comandos **no** hacen por su cuenta, porque son decisión de una persona: cerrar el costo (`make costos CERRAR=1`), forzar una instalación (`FORZAR=1`), cambiar modelos y hacer el commit de una actualización del kit. Los proponen y esperan.
+
+> [!NOTE]
+> Después de `make actualizar-kit` o de `make sincronizar`, abre una sesión nueva para que la herramienta vea los comandos nuevos o cambiados.
+
+**Límites.** En Claude Code y en Codex el comando solo se carga cuando lo escribes: no ocupa espacio en la conversación mientras tanto. En OpenCode, además de aparecer como comando, el agente lo ve en su lista de skills (OpenCode lee `.claude/skills/` y `.agents/skills/`), así que cada comando le suma una línea de descripción. Codex no recibe lo que escribes después del nombre como un dato aparte: lo lee de la frase.
+
+**Cómo cambiarlos o agregar uno.** Cada comando es un archivo en `equipo/comandos/`, y `make sincronizar` genera el formato de cada herramienta. Ver [Una fuente, varias herramientas](una-fuente-varias-herramientas.md#cómo-se-traduce-un-comando) y [Personalizar un proyecto](personalizar.md#roles-skills-y-comandos-propios).
 
 ## Estado y costos
 

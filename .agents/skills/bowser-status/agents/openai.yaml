@@ -1,0 +1,3 @@
+# GENERADO por scripts/sincronizar.py desde equipo/comandos/status.md. No editar: cambia la fuente y ejecuta `make sincronizar`.
+policy:
+  allow_implicit_invocation: false

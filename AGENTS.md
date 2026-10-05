@@ -20,6 +20,7 @@ Las reglas no negociables están en `.specify/memory/constitution.md`. Léela an
 
 ## Dónde está cada cosa
 - `equipo/agentes/` — definición de cada subagente (fuente única; los formatos por herramienta se generan con `make sincronizar`).
+- `equipo/comandos/` — comandos que la persona escribe en el chat (`/bowser-status`, `/bowser-costs`…); también se generan.
 - `.agents/skills/` — conocimiento reutilizable: convenciones del stack (`go-backend`, `react-frontend`, `postgres-db`) y flujos del equipo (`equipo-feature`, `equipo-revision`, `equipo-bug`, `equipo-retomar`).
 - `specs/<feature>/` — spec, plan, tareas y reportes de cada funcionalidad.
 - `specs/<feature>/estado.md` — fase, aprobaciones, hallazgos abiertos, decisiones y próximo paso (lo mantiene el orquestador).

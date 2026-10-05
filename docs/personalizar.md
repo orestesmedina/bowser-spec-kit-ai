@@ -3,7 +3,7 @@
 - [Introducción](#introducción)
 - [Qué se puede personalizar sin tocar el kit](#qué-se-puede-personalizar-sin-tocar-el-kit)
 - [Comandos propios](#comandos-propios)
-- [Roles y skills propios](#roles-y-skills-propios)
+- [Roles, skills y comandos propios](#roles-skills-y-comandos-propios)
 - [Workflows propios](#workflows-propios)
 - [Tu propia versión de un archivo del kit](#tu-propia-versión-de-un-archivo-del-kit)
     - [Cómo excluir un archivo](#cómo-excluir-un-archivo)
@@ -24,6 +24,7 @@ La idea central: **lo que tú agregas es tuyo, y el kit nunca lo toca**. Solo ha
 | Comandos `make` propios | `proyecto.mk` | No |
 | Un rol adicional | Un archivo nuevo en `equipo/agentes/` | No |
 | Una skill adicional | Una carpeta nueva en `.agents/skills/` | No |
+| Un comando del chat adicional | Un archivo nuevo en `equipo/comandos/` | No |
 | Otro workflow de GitHub | Un archivo nuevo en `.github/workflows/` | No |
 | Modelos, herramientas, temperaturas | `equipo/config.json` | No: es una semilla |
 | Servicios locales adicionales | `docker-compose.yml` | No: es una semilla |
@@ -50,12 +51,13 @@ El comentario que empieza con `##` es la descripción que muestra `make help`.
 > [!WARNING]
 > No uses en `proyecto.mk` el nombre de un comando que ya existe en el kit. Los dos se ejecutarían o uno pisaría al otro, y una versión futura del kit puede agregar un comando con ese nombre. La lista está en [Comandos](comandos.md).
 
-## Roles y skills propios
+## Roles, skills y comandos propios
 
-Un archivo nuevo en `equipo/agentes/` o una carpeta nueva en `.agents/skills/` es del proyecto desde que se crea. Después, `make sincronizar`.
+Un archivo nuevo en `equipo/agentes/` o en `equipo/comandos/`, o una carpeta nueva en `.agents/skills/`, es del proyecto desde que se crea. Después, `make sincronizar`.
 
 - Cómo escribir un rol: [Roles](roles.md#agregar-un-rol).
 - Cómo escribir una skill: [Skills](skills.md#agregar-una-skill-propia).
+- Cómo escribir un comando: [Una fuente, varias herramientas](una-fuente-varias-herramientas.md#cómo-se-traduce-un-comando). Un archivo `equipo/comandos/deploy-demo.md` queda como `/bowser-deploy-demo`. No uses el nombre de un comando del kit, ni una carpeta que empiece con `bowser-` en `.agents/skills/`: esas las genera y las borra `make sincronizar`.
 
 Lo más frecuente es una skill con las convenciones de algo propio del proyecto: una pasarela de pagos, un sistema externo, las reglas de un dominio de negocio.
 
