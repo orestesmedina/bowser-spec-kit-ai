@@ -34,7 +34,7 @@ Un "mini framework" de **Spec-Driven Development** sobre **GitHub Spec Kit** par
 - **Fuentes neutrales** (se editan): `AGENTS.md`, `equipo/orquestador.md`, `equipo/agentes/*.md` (10 roles con `nivel`, `acceso`, `temperatura`, `web`, `skills`), `equipo/config.json` (modelos por herramienta, niveles, temperaturas, agente principal, `kit.excluir`, `costos`), `.agents/skills/` (estándar SKILL.md), `.specify/memory/constitution.md`.
 - **Generados** por `scripts/sincronizar.py` (nunca a mano): `CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json`. `make sincronizar` los genera; `--verificar` falla si están desactualizados.
 - **Instalación en proyectos:** `scripts/instalar_kit.py` copia a la raíz del proyecto los archivos **GESTIONADOS** (se reemplazan en cada actualización y quedan en `.kit-manifest.json` con su sha256), copia las **SEMILLAS** una sola vez (`equipo/config.json`, `.github/CODEOWNERS`, `.env.example`, `docker-compose.yml`: después son del proyecto) y nunca copia `scripts/instalar_kit.py`. También mantiene un bloque del kit en `.gitignore`.
-- **No se copian a los proyectos:** `README.md`, `CHANGELOG.md`, `VERSION`, `LICENSE`, `HOJA-DE-RUTA.md`, `kit.mk`, `pruebas/`, este archivo y la documentación (`docs/*.md`), que en los proyectos se lee desde el submódulo (`.bowser-spec-kit-ai/docs/`). De `docs/` solo se copia `docs/plantillas/`. El `CHANGELOG.md` de un proyecto es el del producto (lo escribe el documentador).
+- **No se copian a los proyectos:** `README.md`, `CHANGELOG.md`, `VERSION`, `LICENSE`, `HOJA-DE-RUTA.md`, `kit.mk`, `pruebas/`, `.github/workflows/kit.yml`, este archivo y la documentación (`docs/*.md`), que en los proyectos se lee desde el submódulo (`.bowser-spec-kit-ai/docs/`). De `docs/` solo se copia `docs/plantillas/`. El `CHANGELOG.md` de un proyecto es el del producto (lo escribe el documentador).
 
 ## 3. Mapa de scripts
 
@@ -54,6 +54,7 @@ Un "mini framework" de **Spec-Driven Development** sobre **GitHub Spec Kit** par
 | `.githooks/commit-msg` | Conventional Commits. |
 | `equipo/adaptadores/claude/hooks/` | Claude Code: bloquea secretos, constitución, archivos del kit, migraciones versionadas y `costos.json`; formatea. |
 | `.github/workflows/ci.yml` | Agentes/kit al día, controles, backend y frontend (si existen), gitleaks. |
+| `.github/workflows/kit.yml` | Solo del repositorio del kit (está en `NUNCA` de `instalar_kit.py`): `make test-kit ESTRICTO=1` en cada PR y push a `main`, con Go, Node y sqlc. |
 
 ## 4. Decisiones de diseño (y por qué)
 
@@ -85,11 +86,11 @@ Un "mini framework" de **Spec-Driven Development** sobre **GitHub Spec Kit** par
 make test-kit
 ```
 
-Instala el kit en proyectos temporales, lo actualiza desde el último tag publicado y comprueba hooks, controles, costos (OpenCode simulado 1.x y 2.x), archivos generados y enlaces de la documentación. Prueba la carpeta de trabajo tal como está, sin necesidad de commit. Termina con error si algo falla. Opciones y cómo agregar una prueba: `pruebas/README.md`.
+Instala el kit en proyectos temporales, lo actualiza desde el último tag publicado y comprueba hooks, controles, costos (OpenCode simulado 1.x y 2.x), archivos generados, enlaces de la documentación y, en el grupo `pruebas/go/`, `make generar`, `make verificar-generados` y `make cobertura` (se omiten si falta `go`, `sqlc`, `node` o `npm`; en WSL hay que tener `~/.local/bin` y `~/go/bin` en el `PATH`). Prueba la carpeta de trabajo tal como está, sin necesidad de commit. Termina con error si algo falla. Opciones y cómo agregar una prueba: `pruebas/README.md`.
 
 - **Cada cambio de comportamiento lleva su prueba**, y la prueba se valida rompiendo a propósito lo que comprueba: una prueba que nunca falló no demuestra nada.
 - `make test-kit` solo existe en el repositorio del kit: vive en `kit.mk`, que no se copia a los proyectos. `pruebas/` tampoco se copia.
-- **Lo que no cubre** (hay que probarlo a mano y decirlo al entregar): `make generar`, `make verificar-generados` y `make cobertura` (borrador en `pruebas/borradores/`), `make doctor`, `make estado`, `make actualizar-modelos`, la descarga real de precios de models.dev, el `ci.yml` que se copia a los proyectos (solo se prueba de verdad en GitHub) y el OpenCode real.
+- **Lo que no cubre** (hay que probarlo a mano y decirlo al entregar): `make doctor`, `make estado`, `make actualizar-modelos`, la descarga real de precios de models.dev, el `ci.yml` que se copia a los proyectos y el `kit.yml` del kit (solo se prueban de verdad en GitHub), `make generar` contra un proyecto real y el OpenCode real.
 - Para probar a mano contra el proyecto real, clonarlo a una carpeta temporal: nunca sobre la carpeta de trabajo de Orestes.
 
 ## 7. Hechos verificados (con fecha)
@@ -109,7 +110,7 @@ Instala el kit en proyectos temporales, lo actualiza desde el último tag public
 
 - **Pruebas e2e en el CI** (punto 7 del informe de `simiente-santa-webside`): job con Playwright solo si existe `frontend/e2e/`. Se dejó fuera de la 1.7.0 por lento y frágil; retomarlo cuando haya flujos críticos de cliente. El proyecto ya tiene su `make e2e` en `proyecto.mk`.
 - La constitución dice "80% en `service/`", pero la estructura usa `service.go` por dominio. Redacción propuesta a Orestes: "en la capa de servicio (archivos `service*.go` de cada dominio)".
-- **Pruebas automáticas** del kit (etapa 0 de `HOJA-DE-RUTA.md`): hecha la primera entrega en la 1.9.0 (`make test-kit`, pruebas del núcleo). Falta la segunda: el workflow del repositorio del kit y el grupo de pruebas de Go (generados y cobertura), a partir de `pruebas/borradores/generados-y-cobertura.sh`. El workflow nuevo irá en `.github/workflows/`, que es una carpeta gestionada: hay que agregarlo a `NUNCA` en `instalar_kit.py` para que no llegue a los proyectos.
+- **Pruebas automáticas** del kit (etapa 0 de `HOJA-DE-RUTA.md`): hechas las dos entregas (1.9.0 y 1.10.0). Falta ver `kit.yml` en verde en GitHub después del primer push; si falla ahí, se corrige antes de empezar la etapa 1. Sin pruebas todavía: `make doctor`, `make estado`, `make actualizar-modelos`.
 - `make costos` para **Claude Code** (transcripciones en `~/.claude/projects/`, incluyen la rama) y **Codex** (`~/.codex/sessions/`).
 - `make costos`: validado en solo lectura contra el OpenCode 2.0.22 real de Orestes (2026-10-03: 35 sesiones, $6.70 según OpenCode). Falta que compare el total con la consola de OpenCode Go.
 - El entorno real de Orestes no coincide con la sección 1: el proyecto está en el disco de Windows (`/mnt/d/IA/environment/wsl/code/`) y hay dos OpenCode (2.x en Ubuntu, 1.18 en Windows vía npm).

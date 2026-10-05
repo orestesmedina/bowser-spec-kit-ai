@@ -13,6 +13,19 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.10.0] - 2026-10-04
+
+### Agregado
+- **Las pruebas del kit corren solas en GitHub** (segunda entrega de la etapa 0 de la hoja de ruta). El workflow `.github/workflows/kit.yml` ejecuta `make test-kit ESTRICTO=1` en cada Pull Request y en cada push a `main`, con Go, Node y `sqlc` instalados. Es solo del repositorio del kit.
+- **Pruebas de código generado y cobertura** (`pruebas/go/`): `make generar` y `make verificar-generados` con `sqlc` real y un generador de tipos mínimo (qué se omite, y que una consulta o un contrato cambiado sin regenerar hace fallar la verificación), y `make cobertura` con un perfil escrito a mano y con Go real. Las que necesitan `go`, `sqlc`, `node` o `npm` se omiten, avisando, si falta el programa. Van en un grupo aparte del núcleo porque en la 2.0 se irán con la skill de Go.
+
+### Cambiado
+- `scripts/instalar_kit.py`: `.github/workflows/kit.yml` entra en la lista de lo que nunca se copia a los proyectos, con su prueba.
+- Se retiró `pruebas/borradores/`: el último script manual ya es parte de las pruebas automáticas.
+- `pruebas/README.md`, `docs/contribuir.md`, `MANTENER-KIT.md` y `HOJA-DE-RUTA.md`: la etapa 0 queda hecha y sigue la etapa 1.
+
+Nada de esto llega a los proyectos: al actualizar no cambia ningún archivo.
+
 ## [1.9.0] - 2026-10-04
 
 ### Agregado

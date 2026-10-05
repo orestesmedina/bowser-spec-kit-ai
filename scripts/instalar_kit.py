@@ -56,7 +56,7 @@ GESTIONADOS = [
 ]
 # La documentación (docs/*.md) no se copia: en los proyectos se lee desde el submódulo, siempre en la versión instalada.
 # Nunca se copian (solo tienen sentido dentro del kit).
-NUNCA = {"scripts/instalar_kit.py"}
+NUNCA = {"scripts/instalar_kit.py", ".github/workflows/kit.yml"}
 # Se copian una sola vez; después pertenecen al proyecto.
 SEMILLAS = ["equipo/config.json", ".github/CODEOWNERS", ".env.example", "docker-compose.yml"]
 

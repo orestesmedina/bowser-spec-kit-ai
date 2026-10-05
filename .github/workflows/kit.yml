@@ -1,0 +1,43 @@
+name: Pruebas del kit
+
+# Solo del repositorio del kit: no se copia a los proyectos (está en NUNCA, en scripts/instalar_kit.py).
+# Corre lo mismo que `make test-kit`, sin permitir pruebas omitidas.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: kit-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  SQLC_VERSION: v1.31.1
+
+jobs:
+  pruebas:
+    name: make test-kit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Historial y tags completos: la prueba de actualización parte del último tag publicado.
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.27"
+          cache: false   # el kit no tiene go.sum
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+      - name: Instalar sqlc
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@"$SQLC_VERSION"
+      - name: Pruebas del kit
+        run: make test-kit ESTRICTO=1

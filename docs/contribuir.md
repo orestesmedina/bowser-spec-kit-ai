@@ -20,7 +20,7 @@ El repositorio tiene dos clases de archivos:
 | Clase | Archivos | Regla |
 |---|---|---|
 | **Fuentes** | `AGENTS.md`, `equipo/orquestador.md`, `equipo/agentes/`, `equipo/config.json`, `.agents/skills/`, `.specify/memory/constitution.md`, `scripts/`, `.githooks/`, `.github/`, `Makefile`, `docs/` | Se editan a mano |
-| **Solo del kit** | `pruebas/`, `kit.mk` | Se editan a mano. No llegan a los proyectos |
+| **Solo del kit** | `pruebas/`, `kit.mk`, `.github/workflows/kit.yml` | Se editan a mano. No llegan a los proyectos |
 | **Generados** | `CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json` | Nunca se editan. Se regeneran con `make sincronizar` |
 
 Qué llega a los proyectos lo decide `scripts/instalar_kit.py`, en dos listas: los archivos **gestionados** (se reemplazan en cada actualización) y las **semillas** (se copian una sola vez). Un archivo nuevo que deba llegar a los proyectos tiene que estar en una de las dos. La explicación completa está en [El kit como submódulo](submodulo.md).
@@ -59,10 +59,10 @@ El kit tiene pruebas automáticas. En Linux o WSL, desde la raíz del repositori
 make test-kit
 ```
 
-Instalan el kit en proyectos temporales, lo actualizan desde la versión anterior publicada y comprueban que los controles sigan bloqueando lo que deben bloquear. Prueban la carpeta de trabajo tal como está: no hace falta hacer commit antes. Tardan menos de un minuto.
+Instalan el kit en proyectos temporales, lo actualizan desde la versión anterior publicada y comprueban que los controles sigan bloqueando lo que deben bloquear. Prueban la carpeta de trabajo tal como está: no hace falta hacer commit antes. Tardan cerca de un minuto.
 
 ```text
-Pruebas del kit 1.9.0 · actualización desde v1.8.0
+Pruebas del kit 1.10.0 · actualización desde v1.9.0
 
 nucleo/repositorio
   ✓ los archivos generados del kit (CLAUDE.md, .claude/, .codex/, .opencode/) están al día  (0.2 s)
@@ -71,8 +71,10 @@ nucleo/repositorio
 nucleo/costos
   ✓ make costos con OpenCode 1.x y 2.x: mismos totales, subagente enlazado y sin duplicar al repetir  (2.4 s)
   …
+go/cobertura
+  ✓ make cobertura con Go real: falla con pruebas insuficientes y pasa al completarlas  (12.7 s)
 
-Resultado: 24 pasaron, 0 fallaron, 0 omitidas · 38 s
+Resultado: 32 pasaron, 0 fallaron, 0 omitidas · 58 s
 ✓ Todo pasó.
 ```
 
@@ -88,8 +90,17 @@ Para repetir solo esa prueba, `make test-kit SOLO=Conventional`. Con `CONSERVAR=
 
 Si tu cambio agrega o cambia un comportamiento, agrega su prueba. Las opciones, la lista de lo que se comprueba y cómo escribir una prueba están en [`pruebas/README.md`](../pruebas/README.md).
 
+Las pruebas de código generado y de cobertura necesitan `go`, `sqlc`, `node` y `npm`. Si falta alguno, esas pruebas se omiten y el resultado lo dice:
+
+```text
+  – make cobertura con Go real: falla con pruebas insuficientes y pasa al completarlas
+      omitida: falta go en esta máquina
+```
+
+En GitHub las mismas pruebas corren solas en cada Pull Request y en cada push a `main` (workflow `kit.yml`), con todo instalado y sin permitir pruebas omitidas.
+
 > [!WARNING]
-> Las pruebas no lo cubren todo. `make generar`, `make cobertura`, `make doctor` y `make estado` todavía se prueban a mano, y `make costos` se prueba contra un OpenCode simulado.
+> Las pruebas no lo cubren todo. `make doctor`, `make estado` y `make actualizar-modelos` todavía se prueban a mano, y `make costos` se prueba contra un OpenCode simulado.
 
 > [!NOTE]
 > Lo que cambia en `.github/workflows/ci.yml` solo se prueba de verdad en GitHub. Valida el cambio en un proyecto real antes de darlo por bueno.

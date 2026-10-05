@@ -2,7 +2,7 @@
 
 Hacia dónde va el kit, por qué, y en qué punto estamos. Este archivo es la memoria del plan: cualquier persona o sesión de IA que retome el trabajo empieza por aquí.
 
-**Estado actual:** versión 1.9.0. **Etapa 0 en curso** (pruebas automáticas del kit): hecha la primera entrega, falta la segunda.
+**Estado actual:** versión 1.10.0. **Etapa 0 hecha** (pruebas automáticas del kit); falta ver su workflow en verde en GitHub tras el primer push. **Sigue la etapa 1** (comandos dentro de la herramienta).
 **Última actualización:** 2026-10-04.
 
 - [El norte](#el-norte)
@@ -94,8 +94,8 @@ Cada etapa es una versión que se puede publicar y usar sola.
 
 | # | Etapa | Estado |
 |---|---|---|
-| 0 | Pruebas automáticas del kit | **En curso** (primera entrega hecha) |
-| 1 | Comandos dentro de la herramienta | Pendiente |
+| 0 | Pruebas automáticas del kit | Hecha (1.10.0). Falta confirmar el workflow en GitHub |
+| 1 | Comandos dentro de la herramienta | **Siguiente** |
 | 2 | Núcleo sin tecnología y perfil del proyecto (versión 2.0) | Pendiente |
 | 2b | Catálogo de skills y contribuciones | Pendiente |
 | 3 | Memoria del producto, con diagramas | Pendiente |
@@ -108,13 +108,13 @@ Cada etapa es una versión que se puede publicar y usar sola.
 
 **Qué:** `make test-kit` y un workflow de integración continua para el repositorio del kit.
 **Por qué primero:** la etapa 2 es una cirugía mayor. Sin pruebas no se sabe si rompe los proyectos que ya usan el kit.
-**De dónde parte:** los scripts de `pruebas/borradores/`, usados a mano para validar las versiones 1.6.2 a 1.8.0.
+**De dónde partió:** los scripts usados a mano para validar las versiones 1.6.2 a 1.8.0 (estaban en `pruebas/borradores/`; ya son pruebas automáticas).
 **Hecho cuando:** un comando instala el kit en un proyecto temporal, lo actualiza desde la versión anterior, comprueba hooks, costos (con OpenCode simulado en 1.x y 2.x), cobertura, código generado y enlaces de la documentación, y falla si algo no cuadra.
 
 | Entrega | Contenido | Estado |
 |---|---|---|
 | A | El ejecutor, las pruebas del núcleo (instalación, actualización, controles, costos, enlaces) y `make test-kit` | Hecha (1.9.0) |
-| B | El workflow del repositorio del kit y el grupo de pruebas de Go (código generado y cobertura) | Pendiente |
+| B | El workflow del repositorio del kit (`kit.yml`) y el grupo de pruebas de Go (`pruebas/go/`: código generado y cobertura) | Hecha (1.10.0). El workflow solo se prueba de verdad en GitHub: confirmar que queda en verde tras el primer push |
 
 Las pruebas de código generado y cobertura son de Go y sqlc, que en la etapa 2 dejan de ser del núcleo. Se prueban igual, porque hoy esos scripts llegan a los proyectos, pero en un grupo aparte que en la etapa 2 se va con la skill de Go (decidido con Orestes el 2026-10-04). `make test-kit` y `pruebas/` son solo del repositorio del kit: no llegan a los proyectos.
 

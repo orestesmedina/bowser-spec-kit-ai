@@ -25,7 +25,7 @@ def instalacion_nueva(e):
 def solo_del_kit(e):
     p = e.proyecto(commit=False)
     for rel in ("README.md", "CHANGELOG.md", "VERSION", "LICENSE", "MANTENER-KIT.md", "HOJA-DE-RUTA.md",
-                "kit.mk", "pruebas", "scripts/instalar_kit.py", "docs/README.md"):
+                "kit.mk", "pruebas", "scripts/instalar_kit.py", "docs/README.md", ".github/workflows/kit.yml"):
         afirmar(not p.existe(rel), f"{rel} se copió al proyecto y es solo del kit")
     afirmar(sorted(x.name for x in p.archivo("docs").iterdir()) == ["plantillas"],
             "en docs/ del proyecto solo debe estar plantillas/")
@@ -45,7 +45,7 @@ def permisos(e):
     modos = {linea.split("\t", 1)[1]: linea.split()[0] for linea in listado}
     deben = [r for r in modos if r.startswith(".githooks/") or r.endswith(".sh")]
     afirmar(len(deben) >= 5, f"se esperaban varios hooks y scripts de shell, hay {len(deben)}")
-    malos = [r for r in deben if modos[r] != "100755" and not r.startswith("pruebas/borradores/")]
+    malos = [r for r in deben if modos[r] != "100755"]
     afirmar(not malos, f"guardados en git sin permiso de ejecución (git update-index --chmod=+x): {malos}")
     p = e.proyecto(kit, commit=False)
     for rel in (".githooks/pre-commit", ".githooks/commit-msg", "scripts/doctor.sh",
