@@ -12,6 +12,7 @@ Esta documentación está pensada para leerse de arriba hacia abajo la primera v
 - [Novedades de cada versión](../CHANGELOG.md)
 - [Guía de actualización](actualizacion.md)
 - [Cómo contribuir](contribuir.md)
+- [Hoja de ruta](../HOJA-DE-RUTA.md)
 
 ## Primeros pasos
 

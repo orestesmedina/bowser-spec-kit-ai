@@ -82,6 +82,8 @@ Todos los comandos están en [Comandos](docs/comandos.md), y los errores frecuen
 
 Los cambios al kit se hacen en este repositorio y llegan a los proyectos con `make actualizar-kit`. Cada cambio se registra en [`CHANGELOG.md`](CHANGELOG.md). Cómo está organizado, cómo probar un cambio y cómo mantener tu propia copia: [Cómo contribuir](docs/contribuir.md).
 
+Hacia dónde va el kit (cualquier tecnología, proyectos existentes, catálogo de skills abierto a contribuciones): [Hoja de ruta](HOJA-DE-RUTA.md).
+
 ## Licencia
 
 [MIT](LICENSE) © Infinity Solutions AI. Puedes usar, modificar y distribuir el kit conservando el aviso de autoría. La licencia cubre el kit, no el código de los proyectos que lo usan.

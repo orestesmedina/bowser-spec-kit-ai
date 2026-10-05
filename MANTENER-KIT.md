@@ -6,6 +6,14 @@ Este archivo no se copia a los proyectos. `CLAUDE.md` lo carga solo cuando detec
 
 ---
 
+## 0. Hacia dónde va el kit (léelo primero)
+
+El plan vigente está en **`HOJA-DE-RUTA.md`**: el norte (tres objetivos), los principios de diseño, las etapas con su estado, las decisiones tomadas y las abiertas. **Al iniciar una sesión, léelo y dile a Orestes en qué etapa estamos y cuál es el próximo paso.** Si una decisión abierta bloquea la etapa siguiente, resuélvela con él antes de empezar.
+
+Resumen del norte (2026-10-04): el kit deja de estar atado a React, Go y PostgreSQL. Debe servir para cualquier tecnología (roles como especialistas, tecnologías como skills), para personas que programan y que no, y para que un freelancer con el kit sea una empresa de desarrollo. **El kit no dicta la arquitectura del proyecto:** la integración continua, las tecnologías y los requisitos son del proyecto, y el kit aporta los agentes, skills y comandos que los generan. Y no debe volverse pesado: la ligereza se mide.
+
+Mientras no llegue la versión 2.0, el kit sigue funcionando como describen las secciones de abajo. Las sesiones largas rinden peor y cuestan más: cuando una conversación se alargue, deja el estado escrito en `HOJA-DE-RUTA.md` y propón seguir en una sesión nueva.
+
 ## 1. Con quién trabajas
 
 - **Orestes**, Costa Rica (UTC−6). Está creando una empresa de desarrollo de software donde la IA hace el desarrollo y las personas aprueban. Escribe en español informal; responde en **español**, claro y sin tecnicismos innecesarios.
@@ -15,6 +23,8 @@ Este archivo no se copia a los proyectos. `CLAUDE.md` lo carga solo cuando detec
   - Quiere entender el porqué. Si algo tiene una limitación o un riesgo, dilo de frente.
   - Respeta el proceso que definimos; si propone algo que lo rompe, explica el costo y ofrece la alternativa.
 - La empresa se llamará **Infinity Solutions AI** (titular del `LICENSE`, MIT, decidido el 2026-10-04). El repositorio es **público**: lo lee también gente de fuera del equipo.
+- "Bowser" es el nombre de su perro, y el kit se queda con ese nombre por ahora (decisión del 2026-10-04; lo ya revisado sobre nombres está en `HOJA-DE-RUTA.md`).
+- Explica para qué sirve cada cosa en lenguaje simple antes de proponer el cómo (el 2026-10-04 contó que no había entendido una propuesta técnica de otra IA y la pegó para que se la explicaran; también pidió que le explicaran cómo funcionan en la práctica las contribuciones de terceros). Los commits los pide él, con la frase "haz el commit"; el push y los tags los hace él.
 - El kit vive en su GitHub como `bowser-spec-kit-ai` y se usa en sus proyectos como submódulo en `.bowser-spec-kit-ai/`.
 
 ## 2. Qué es el kit
@@ -54,7 +64,7 @@ Un "mini framework" de **Spec-Driven Development** sobre **GitHub Spec Kit** par
 - **Estado en archivos versionados** (`estado.md`, roadmap con columna Estado): las sesiones se pierden, git no. Las aprobaciones nunca se deducen: solo se registran con la frase explícita del humano.
 - **Costos:** precio congelado por respuesta, historial de precios que se agrega (nunca se reemplaza), cierre al aprobar el PR, bloqueo de cambios posteriores. Es costo **equivalente** a precio de API; con OpenCode Go el gasto real es el % de la consola. Misma fórmula que OpenCode (`getUsage`): input sin caché, output, razonamiento a precio de output, lectura y escritura de caché.
 - **Solo biblioteca estándar de Python 3.9+** en los scripts, y bash portable: tienen que correr en cualquier Ubuntu/WSL sin instalar nada.
-- **Todo en español** (documentos, mensajes, nombres de comandos).
+- **Documentos y mensajes en español; nombres de comandos en inglés** (decisión de Orestes, 2026-10-04). Aplica a los comandos de la herramienta (`/bowser-update-kit`) y a los de `make`. Los de `make` hoy siguen en español: se renombran en la 2.0, dejando los nombres viejos como alias un tiempo. Todo comando nuevo nace en inglés.
 - **Documentación como wiki en `docs/`, al estilo de la de Laravel** (pedido de Orestes, 2026-10-04): Markdown plano, una página por tema, única fuente de verdad. Público: gente técnica que se une al equipo y quien encuentra el kit en GitHub; la vara es que quien la lea termine dominando el kit. Cada página: título, mini índice, introducción (qué es), para qué sirve, cómo y cuándo se usa con comandos copiables y salida real, qué hacer cuando falla (mensaje exacto), límites, cómo cambiarlo, "Siguientes pasos". Notas con `> [!NOTE]`, `> [!WARNING]`, `> [!TIP]`. Sin "la empresa": se habla de "el equipo" y de "dirección técnica" (definida en el glosario). El orquestador depende de `docs/aprobaciones.md`: su nombre no cambia. Un sitio web (Starlight, VitePress) queda como paso posterior opcional, generado desde estas mismas páginas.
 
 ## 5. Reglas al cambiar el kit
@@ -104,7 +114,7 @@ Para `make costos` sin OpenCode real: un `opencode` falso en el `PATH` que respo
 - Verificar automáticamente los enlaces internos de `docs/` (hoy se comprueban a mano con un script al cambiar la documentación).
 - **Pruebas e2e en el CI** (punto 7 del informe de `simiente-santa-webside`): job con Playwright solo si existe `frontend/e2e/`. Se dejó fuera de la 1.7.0 por lento y frágil; retomarlo cuando haya flujos críticos de cliente. El proyecto ya tiene su `make e2e` en `proyecto.mk`.
 - La constitución dice "80% en `service/`", pero la estructura usa `service.go` por dominio. Redacción propuesta a Orestes: "en la capa de servicio (archivos `service*.go` de cada dominio)".
-- **Pruebas automáticas** del kit (`pruebas/` + `make probar-kit`) que conviertan la receta de la sección 6 en scripts, y un workflow de CI para el repositorio del kit.
+- **Pruebas automáticas** del kit: es la **etapa 0** de `HOJA-DE-RUTA.md`. Los scripts usados a mano en las versiones 1.6.2 a 1.8.0 están en `pruebas/borradores/` (con su README): son el punto de partida.
 - `make costos` para **Claude Code** (transcripciones en `~/.claude/projects/`, incluyen la rama) y **Codex** (`~/.codex/sessions/`).
 - `make costos`: validado en solo lectura contra el OpenCode 2.0.22 real de Orestes (2026-10-03: 35 sesiones, $6.70 según OpenCode). Falta que compare el total con la consola de OpenCode Go.
 - El entorno real de Orestes no coincide con la sección 1: el proyecto está en el disco de Windows (`/mnt/d/IA/environment/wsl/code/`) y hay dos OpenCode (2.x en Ubuntu, 1.18 en Windows vía npm).

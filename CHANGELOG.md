@@ -13,6 +13,15 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.8.2] - 2026-10-04
+
+### Agregado
+- `HOJA-DE-RUTA.md`: el plan del kit. El norte (cualquier tecnología, para quien programa y quien no, y un freelancer con el kit como empresa de desarrollo), los principios de diseño (el kit no dicta la arquitectura del proyecto; roles como especialistas y tecnologías como skills; ligero y medido), las etapas con su estado y las decisiones tomadas y abiertas. No se copia a los proyectos.
+- `pruebas/borradores/`: los scripts usados a mano para validar las versiones 1.6.2 a 1.8.0, como punto de partida de las pruebas automáticas (etapa 0 de la hoja de ruta). No se copian a los proyectos.
+
+### Cambiado
+- `MANTENER-KIT.md`: empieza por la hoja de ruta; los nombres de comandos pasan a ser en inglés para todo comando nuevo (los actuales se renombran en la 2.0).
+
 ## [1.8.1] - 2026-10-04
 
 ### Cambiado

@@ -99,4 +99,5 @@ Lo que distingue al kit de la forma en que lo usa cada equipo:
 
 - [Manual de mantenimiento](../MANTENER-KIT.md): el contexto, las decisiones de diseño y los hechos verificados que usa quien mantiene el kit.
 - [Novedades de cada versión](../CHANGELOG.md).
+- [Hoja de ruta](../HOJA-DE-RUTA.md): hacia dónde va el kit y qué etapa sigue.
 - [Una fuente, varias herramientas](una-fuente-varias-herramientas.md): cómo funciona el generador.
