@@ -47,6 +47,7 @@ Los comandos que más usa una persona tienen un equivalente que se escribe en el
 | `/bowser-update-kit` | `make actualizar-kit` | Qué trajo la versión nueva y qué pasos hay que hacer a mano |
 | `/bowser-news` | `make novedades` | Qué cambió en el kit, versión por versión |
 | `/bowser-models` | `make modelos` | Qué modelo usa cada agente |
+| `/bowser-profile` | `make profile` | Crea o actualiza el [perfil del proyecto](perfil-del-proyecto.md) mirando el código, y lo propone para que lo apruebes |
 
 Cómo se escriben en cada herramienta:
 
@@ -56,9 +57,9 @@ Cómo se escriben en cada herramienta:
 | OpenCode | `/bowser-status` | `/bowser-status todo` |
 | Codex | `$bowser-status` | `$bowser-status` y la opción en la misma frase: "con todo" |
 
-Opciones: `/bowser-status todo` incluye lo terminado; `/bowser-costs todo` resume el proyecto y `/bowser-costs hoy` cotiza a precios actuales; `/bowser-news 1.9.0` muestra desde esa versión.
+Opciones: `/bowser-status todo` incluye lo terminado; `/bowser-costs todo` resume el proyecto y `/bowser-costs hoy` cotiza a precios actuales; `/bowser-news 1.9.0` muestra desde esa versión; `/bowser-profile ver` solo muestra el perfil, sin proponer cambios.
 
-Lo que estos comandos **no** hacen por su cuenta, porque son decisión de una persona: cerrar el costo (`make costos CERRAR=1`), forzar una instalación (`FORZAR=1`), cambiar modelos y hacer el commit de una actualización del kit. Los proponen y esperan.
+Lo que estos comandos **no** hacen por su cuenta, porque son decisión de una persona: cerrar el costo (`make costos CERRAR=1`), forzar una instalación (`FORZAR=1`), cambiar modelos, hacer el commit de una actualización del kit y confirmar un cambio del perfil (`APROBADO_PERFIL=1`). Los proponen y esperan.
 
 > [!NOTE]
 > Después de `make actualizar-kit` o de `make sincronizar`, abre una sesión nueva para que la herramienta vea los comandos nuevos o cambiados.
@@ -132,7 +133,27 @@ Activa los hooks de git en tu copia del repositorio y les da permiso de ejecuci�
 | `make security` | Vulnerabilidades en las dependencias de Go y de Node | Después de agregar o actualizar una dependencia |
 | `make ci` | Todo lo anterior, más la verificación del código generado | Antes de abrir un Pull Request |
 
-Estos comandos asumen que el proyecto tiene `backend/` y `frontend/`. Las pruebas de integración necesitan la base de datos levantada: `make up`.
+Esto es lo que ejecutan en un proyecto **sin perfil**: asumen `backend/` en Go y `frontend/` en React. Las pruebas de integración necesitan la base de datos levantada: `make up`.
+
+En un proyecto **con [perfil](perfil-del-proyecto.md)**, cada comando ejecuta el verbo que el proyecto declaró para cada una de sus partes:
+
+| Comando | Verbo del perfil |
+|---|---|
+| `make test` | `probar` |
+| `make lint` | `formato` y `revisar` |
+| `make cobertura` | `cobertura` |
+| `make security` | `auditar` |
+| `make generar`, `make verificar-generados` | `generar` |
+
+`PARTE=nombre` limita el comando a una parte: `make test PARTE=api`. Una parte que no define un verbo se omite con un aviso. `make test-backend` y `make test-frontend` no leen el perfil.
+
+### `make profile`
+
+Muestra el perfil del proyecto y comprueba que esté bien escrito. No modifica nada.
+
+- **Cuándo:** antes de confirmar un cambio en el perfil, o para ver qué comando ejecuta cada verbo.
+- **Opciones:** `DETECTAR=1` no muestra el perfil: mira el proyecto y lista, en JSON, las tecnologías y carpetas que encuentra. Es lo que usa `/bowser-profile` para redactarlo.
+- **Más:** [El perfil del proyecto](perfil-del-proyecto.md).
 
 Más: [Integración continua](integracion-continua.md) y [Cobertura y código generado](cobertura-y-codigo-generado.md).
 
@@ -202,7 +223,7 @@ No hace falta memorizar la lista: la mayoría de los comandos los ejecuta alguie
 | **Los hooks y la integración continua** | `make verificar-kit`, `make verificar-agentes` y sus equivalentes |
 | **Tú** | `make doctor`, `make up`, `make estado`, `make ci`, `make actualizar-kit` |
 
-Dos comandos son **decisión de una persona**, nunca de un agente por su cuenta: `make instalar-kit FORZAR=1` y `make actualizar-modelos`. Y `make costos CERRAR=1` solo se ejecuta después de que apruebas el Pull Request.
+Dos comandos son **decisión de una persona**, nunca de un agente por su cuenta: `make instalar-kit FORZAR=1` y `make actualizar-modelos`. Lo mismo vale para el commit de un cambio en el perfil, que se confirma con `APROBADO_PERFIL=1`. Y `make costos CERRAR=1` solo se ejecuta después de que apruebas el Pull Request.
 
 ## Siguientes pasos
 

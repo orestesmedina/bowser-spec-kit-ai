@@ -69,6 +69,10 @@ La explicación de fondo está en [Windows y WSL](windows-wsl.md).
 | "La constitución cambió" | Se modificó `constitution.md` | Revierte el cambio. Solo lo aprueba quien decide sobre las reglas |
 | "No modifiques migraciones existentes" | Se editó una migración ya versionada | Revierte y crea una migración nueva |
 | "Archivos Go sin formato" | Código sin formatear | `gofmt -w <archivo>` |
+| "El perfil del proyecto (equipo/perfil.json) cambió" | El commit crea, cambia o elimina el perfil y nadie lo confirmó | Revísalo con `make profile` y repite el commit con `APROBADO_PERFIL=1 git commit ...` |
+| "Estos archivos de la parte «…» no se modifican una vez versionados" | El commit cambia, renombra o borra un archivo que el perfil declara inmutable (por ejemplo, una migración) | Deja el archivo como estaba y crea uno nuevo |
+| "La parte «…» no pasa la revisión de formato" | El verbo `formato` del perfil falló en una parte que el commit toca | Formatea el código de esa parte y repite el commit |
+| `equipo/perfil.json:` seguido de un error | El perfil está mal escrito, y con un perfil inválido no entra ningún commit | `make profile` dice qué corregir. Ver [El perfil del proyecto](perfil-del-proyecto.md#cuando-algo-falla) |
 | "La configuración de agentes está desactualizada" | Alguien cambió `equipo/` o `.agents/` sin regenerar | `make sincronizar` y agrega el resultado al commit |
 | "Los archivos del kit no coinciden con .bowser-spec-kit-ai/" | Se editó a mano un archivo del kit, o se actualizó el submódulo sin instalar | `make verificar-kit` para ver cuál. Revierte el cambio, o ejecuta `make instalar-kit` |
 | "El costo de … ya está cerrado" | Se modificó el `costos.json` de una funcionalidad terminada | Revierte el cambio: `git checkout -- <archivo>` |

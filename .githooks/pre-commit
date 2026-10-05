@@ -16,7 +16,8 @@ if ! python3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)" >
 fi
 
 STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
-[ -z "$STAGED" ] && exit 0
+# Un commit que solo elimina archivos también pasa por los controles (migraciones, constitución, perfil).
+[ -z "$(git diff --cached --name-only)" ] && exit 0
 
 # 1. Nunca subir secretos
 while IFS= read -r f; do
@@ -54,22 +55,28 @@ if git diff --cached --name-only --diff-filter=MRD | grep -qx "$CONSTITUCION" &&
   fi
 fi
 
-# 4. Migraciones ya versionadas no se modifican
-MODIFICADAS=$(git diff --cached --name-only --diff-filter=MRD -- 'backend/migrations/*.sql')
-[ -n "$MODIFICADAS" ] && fallar "No modifiques migraciones existentes; crea una nueva: $(echo $MODIFICADAS)"
+if [ -f equipo/perfil.json ] || git diff --cached --name-only | grep -qx "equipo/perfil.json"; then
+  # 4-6. Con perfil: el proyecto declara qué archivos no se modifican y cómo se comprueba el formato de cada parte.
+  #      Un cambio en el perfil lo confirma una persona (APROBADO_PERFIL=1).
+  python3 scripts/verbos.py --pre-commit || ERRORES=1
+else
+  # 4. Migraciones ya versionadas no se modifican
+  MODIFICADAS=$(git diff --cached --name-only --diff-filter=MRD -- 'backend/migrations/*.sql')
+  [ -n "$MODIFICADAS" ] && fallar "No modifiques migraciones existentes; crea una nueva: $(echo $MODIFICADAS)"
 
-# 5. Formato de Go
-GO_FILES=$(echo "$STAGED" | grep -E '\.go$' || true)
-if [ -n "$GO_FILES" ] && command -v gofmt >/dev/null 2>&1; then
-  SIN_FORMATO=$(gofmt -l $GO_FILES)
-  [ -n "$SIN_FORMATO" ] && fallar "Archivos Go sin formato (ejecuta gofmt -w): $SIN_FORMATO"
-fi
+  # 5. Formato de Go
+  GO_FILES=$(echo "$STAGED" | grep -E '\.go$' || true)
+  if [ -n "$GO_FILES" ] && command -v gofmt >/dev/null 2>&1; then
+    SIN_FORMATO=$(gofmt -l $GO_FILES)
+    [ -n "$SIN_FORMATO" ] && fallar "Archivos Go sin formato (ejecuta gofmt -w): $SIN_FORMATO"
+  fi
 
-# 6. Formato del frontend
-FE_FILES=$(echo "$STAGED" | grep -E '^frontend/.*\.(ts|tsx|js|jsx|css)$' || true)
-PRETTIER=frontend/node_modules/.bin/prettier
-if [ -n "$FE_FILES" ] && [ -x "$PRETTIER" ]; then
-  "$PRETTIER" --check $FE_FILES >/dev/null 2>&1 || fallar "Archivos del frontend sin formato (ejecuta: cd frontend && npx prettier --write .)"
+  # 6. Formato del frontend
+  FE_FILES=$(echo "$STAGED" | grep -E '^frontend/.*\.(ts|tsx|js|jsx|css)$' || true)
+  PRETTIER=frontend/node_modules/.bin/prettier
+  if [ -n "$FE_FILES" ] && [ -x "$PRETTIER" ]; then
+    "$PRETTIER" --check $FE_FILES >/dev/null 2>&1 || fallar "Archivos del frontend sin formato (ejecuta: cd frontend && npx prettier --write .)"
+  fi
 fi
 
 # 7. Archivos generados al día

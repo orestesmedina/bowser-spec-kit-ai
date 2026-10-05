@@ -29,6 +29,7 @@ mi-proyecto/
 │   ├── agentes/*.md                 # Los 10 roles
 │   ├── comandos/*.md                # Comandos del chat (/bowser-status…)
 │   ├── config.json                  # Herramientas activas y modelo de cada agente
+│   ├── perfil.json                  # Partes del proyecto y comando de cada verbo (opcional)
 │   └── adaptadores/claude/          # Permisos y hooks propios de Claude Code
 ├── .agents/skills/                  # Skills: convenciones del stack y flujos del equipo
 ├── .githooks/                       # Controles en cada commit

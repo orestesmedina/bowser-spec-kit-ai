@@ -64,7 +64,7 @@ def recortar(texto: str, lineas: int = 25) -> str:
 def entorno_base(datos: Path) -> dict[str, str]:
     """Variables para que git y los scripts se comporten igual en cualquier máquina."""
     e = dict(os.environ)
-    for sobra in ("APROBADO_CONSTITUCION", "APROBADO_COSTOS", "NOVEDADES_AL_FINAL", "KIT", "FORZAR",
+    for sobra in ("APROBADO_CONSTITUCION", "APROBADO_COSTOS", "APROBADO_PERFIL", "NOVEDADES_AL_FINAL", "KIT", "FORZAR", "PARTE", "DETECTAR",
                   "MAKEFLAGS", "MAKELEVEL", "MFLAGS", "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
         e.pop(sobra, None)
     e.update({

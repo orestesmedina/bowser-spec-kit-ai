@@ -1,7 +1,7 @@
 # Makefile del kit. En los proyectos lo gestiona `make instalar-kit`: no lo edites ahí.
 # Para agregar comandos propios de un proyecto, créalos en proyecto.mk (se incluye al final).
 
-.PHONY: help estado costos novedades doctor modelos actualizar-modelos sincronizar verificar-agentes instalar-hooks instalar-kit actualizar-kit verificar-kit up down db-migrate generar verificar-generados test test-backend test-frontend cobertura lint security ci
+.PHONY: help estado costos novedades doctor profile modelos actualizar-modelos sincronizar verificar-agentes instalar-hooks instalar-kit actualizar-kit verificar-kit up down db-migrate generar verificar-generados test test-backend test-frontend cobertura lint security ci
 
 # Carpeta del submódulo del kit: la del `make -f <carpeta>/Makefile` usado, o la guardada al instalar,
 # o el nombre por defecto. Se puede forzar con `make ... KIT=<carpeta>`.
@@ -68,31 +68,64 @@ down: ## Detiene el entorno local (conserva los datos)
 db-migrate: ## Aplica las migraciones pendientes
 	migrate -path backend/migrations -database "$$DATABASE_URL" up
 
-generar: ## Regenera el código generado (sqlc y tipos de la API)
+profile: ## Muestra y valida el perfil del proyecto (DETECTAR=1: qué tecnologías encuentra en el proyecto)
+	@python3 scripts/perfil.py $(if $(DETECTAR),--detectar,)
+
+# Con perfil (equipo/perfil.json), cada comando ejecuta el verbo que el proyecto declaró para cada parte
+# (PARTE=nombre lo limita a una). Sin perfil, se comportan como siempre: Go en backend/ y React en frontend/.
+CON_PERFIL := $(wildcard equipo/perfil.json)
+VERBO = python3 scripts/verbos.py $(1) $(if $(PARTE),--parte $(PARTE),)
+
+generar: ## Regenera el código generado
+ifdef CON_PERFIL
+	@$(call VERBO,generar)
+else
 	@bash scripts/generar.sh
+endif
 
 verificar-generados: ## Regenera y falla si el código generado no estaba al día
+ifdef CON_PERFIL
+	@$(call VERBO,generar --verificar)
+else
 	@bash scripts/generar.sh --verificar
+endif
 
-test: test-backend test-frontend ## Ejecuta todas las pruebas
+test: ## Ejecuta todas las pruebas
+ifdef CON_PERFIL
+	@$(call VERBO,probar)
+else
+	@$(MAKE) --no-print-directory test-backend test-frontend
+endif
 
-test-backend: ## Pruebas del backend (unitarias + integración)
+test-backend: ## Pruebas del backend (unitarias + integración). Solo sin perfil
 	cd backend && go test ./... && go test -tags=integration ./...
 
-test-frontend: ## Pruebas del frontend
+test-frontend: ## Pruebas del frontend. Solo sin perfil
 	cd frontend && npm test -- --run
 
-cobertura: ## Cobertura de la capa de servicio del backend (mínimo 80 %)
+cobertura: ## Cobertura de pruebas (falla bajo el mínimo del proyecto)
+ifdef CON_PERFIL
+	@$(call VERBO,cobertura)
+else
 	cd backend && go test -coverprofile=coverage.out ./...
 	@python3 scripts/cobertura.py backend/coverage.out
+endif
 
-lint: ## Linters de backend y frontend
+lint: ## Formato y análisis estático
+ifdef CON_PERFIL
+	@$(call VERBO,formato revisar)
+else
 	cd backend && gofmt -l . && go vet ./... && golangci-lint run
 	cd frontend && npm run lint && npm run typecheck
+endif
 
 security: ## Auditoría de dependencias
+ifdef CON_PERFIL
+	@$(call VERBO,auditar)
+else
 	cd backend && govulncheck ./...
 	cd frontend && npm audit --audit-level=high
+endif
 
 ci: lint verificar-generados test cobertura security ## Lo mismo que corre en CI
 

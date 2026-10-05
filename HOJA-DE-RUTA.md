@@ -2,8 +2,8 @@
 
 Hacia dónde va el kit, por qué, y en qué punto estamos. Este archivo es la memoria del plan: cualquier persona o sesión de IA que retome el trabajo empieza por aquí.
 
-**Estado actual:** versión 1.11.0. Etapa 0 hecha. **Etapa 1 en curso** (comandos dentro de la herramienta): la primera entrega, con seis comandos, está hecha; falta probarlos a mano en Claude Code, Codex y OpenCode reales.
-**Última actualización:** 2026-10-04.
+**Estado actual:** versión 1.11.0. Etapa 0 hecha. Etapa 1: los seis comandos están hechos y probados en OpenCode; la prueba a mano en Claude Code y Codex queda aplazada. **Etapa 2 en curso** (núcleo sin tecnología): diseño aprobado; hecha la entrega A (perfil del proyecto y verbos), que no rompe los proyectos actuales. Sigue la entrega B, en una rama aparte.
+**Última actualización:** 2026-10-05.
 
 - [El norte](#el-norte)
 - [Principios de diseño](#principios-de-diseño)
@@ -95,8 +95,8 @@ Cada etapa es una versión que se puede publicar y usar sola.
 | # | Etapa | Estado |
 |---|---|---|
 | 0 | Pruebas automáticas del kit | Hecha (1.10.1) |
-| 1 | Comandos dentro de la herramienta | **En curso** (primera entrega: 1.11.0) |
-| 2 | Núcleo sin tecnología y perfil del proyecto (versión 2.0) | Pendiente |
+| 1 | Comandos dentro de la herramienta | Primera entrega hecha (1.11.0). Prueba a mano en Claude Code y Codex: aplazada |
+| 2 | Núcleo sin tecnología y perfil del proyecto (versión 2.0) | **En curso** (entrega A: 1.12.0) |
 | 2b | Catálogo de skills y contribuciones | Pendiente |
 | 3 | Memoria del producto, con diagramas | Pendiente |
 | 4 | Descubrimiento de proyectos existentes | Pendiente |
@@ -127,7 +127,7 @@ Las pruebas de código generado y cobertura son de Go y sqlc, que en la etapa 2 
 | Entrega | Contenido | Estado |
 |---|---|---|
 | A | `equipo/comandos/`, el generador para las tres herramientas y seis comandos: `/bowser-status`, `/bowser-costs`, `/bowser-doctor`, `/bowser-update-kit`, `/bowser-news`, `/bowser-models` | Hecha (1.11.0) |
-| B | Probarlos a mano en Claude Code, Codex y OpenCode reales y corregir lo que aparezca | Pendiente |
+| B | Probarlos a mano en Claude Code, Codex y OpenCode reales y corregir lo que aparezca | OpenCode: probado por Orestes el 2026-10-04. Claude Code y Codex: aplazado (decisión del 2026-10-05) |
 
 Quedan fuera a propósito `up`, `test`, `lint`, `ci` y `generar`: dependen de la tecnología y en la etapa 2 pasan a ser del proyecto. Sus comandos se definen ahí, sobre el contrato de verbos.
 
@@ -147,7 +147,24 @@ Detalles que salieron al implementar (2026-10-04):
 - El kit conserva un workflow propio, pequeño, con los controles que no dependen de la tecnología.
 - Los comandos de `make` pasan a inglés, con los nombres en español funcionando como alias un tiempo.
 
-**Validación:** un proyecto existente de Orestes en **PHP puro, con HTML, CSS y JavaScript puros, y MySQL** (decidido el 2026-10-04; falta que indique cuál es y dónde está). No es para meter esa combinación en el kit, sino para comprobar que el núcleo funciona sin la tecnología original: otro lenguaje, otra base de datos y un proyecto que no tiene la forma "backend y frontend separados". De ahí salen además las primeras skills que no son de Go. Como es un proyecto existente, es también el caso de prueba de la etapa 4.
+| Entrega | Contenido | Estado |
+|---|---|---|
+| A | Perfil del proyecto (`equipo/perfil.json`), los seis verbos, `make profile`, `/bowser-profile` con detección automática, y los controles del commit según el perfil. Sin perfil, todo se comporta como antes | Hecha (1.12.0) |
+| B | Roles sin tecnología, rol nuevo de base de datos, skills asignadas por el perfil y catálogo de skills: cada proyecto recibe solo las suyas | Pendiente |
+| C | La integración continua pasa a ser del proyecto, generada desde el perfil; el kit conserva un workflow pequeño con los controles que no dependen de la tecnología. Constitución en dos partes (falta la aprobación de Orestes). `make doctor` y el hook de Claude Code según el perfil | Pendiente |
+| D | Comandos de `make` en inglés con los nombres viejos como alias, comando de migración a la 2.0, documentación, y validación en los dos proyectos (versión 2.0.0) | Pendiente |
+
+La entrega A se publica sola en `main`. B, C y D rompen proyectos existentes: se trabajan en una rama hasta que los dos proyectos de validación funcionen (acordado con Orestes el 2026-10-05).
+
+Detalles que salieron al implementar la entrega A (2026-10-05):
+
+- El perfil lo redacta un agente y lo corrige una persona (pedido de Orestes). No hay un agente nuevo: es un comando, una skill y el `arquitecto`, porque la tarea es ocasional y un agente más pesaría en todas las sesiones. Un script hace la detección sin IA (gratis y repetible) y el agente completa lo que hace falta criterio.
+- El formato es JSON porque los scripts solo usan la biblioteca estándar de Python.
+- Los verbos son seis: `formato`, `revisar`, `probar`, `cobertura`, `auditar` y `generar`. Uno sin definir avisa y no falla.
+- Un cambio en el perfil lo confirma una persona en el commit (`APROBADO_PERFIL=1`), como la constitución: sus comandos se ejecutan en cada máquina y en la integración continua.
+
+**Validación:** un proyecto existente de Orestes en **PHP puro, con HTML, CSS y JavaScript puros, y MySQL** (decidido el 2026-10-04): **p2p Controller**, en `D:\IA\environment\wsl\code\p2p Controller` (en WSL, `/mnt/d/IA/environment/wsl/code/p2p Controller`), con el script de MySQL en `api.p2pcontroller/@database/p2pcontroller.sql`. No es para meter esa combinación en el kit, sino para comprobar que el núcleo funciona sin la tecnología original: otro lenguaje, otra base de datos y un proyecto que no tiene la forma "backend y frontend separados". De ahí salen además las primeras skills que no son de Go. Como es un proyecto existente, es también el caso de prueba de la etapa 4.
+**Lo que se encontró en p2p Controller (2026-10-05, solo lectura):** dos carpetas hermanas (`api.p2pcontroller`, la API, y `p2pcontroller.com/http`, el panel web), unas 13 000 líneas de PHP propio, 25 tablas y 67 procedimientos almacenados. No es un repositorio de git, y no tiene pruebas, Composer, formateador ni Docker. Trae bibliotecas de terceros copiadas dentro (`libraries/`, `bower_components/`). Consecuencias para el diseño: un verbo puede no estar definido en un proyecto, el perfil debe declarar las carpetas de terceros, y reglas como "80 % de cobertura" son del proyecto, no del núcleo. Se trabaja siempre sobre una copia.
 **Migración:** `simiente-santa-webside` debe poder pasar a la 2.0 con un comando, probado antes contra una copia.
 **Hecho cuando:** el kit no menciona ninguna tecnología fuera del catálogo de skills, y los dos proyectos (`simiente-santa-webside` y el de PHP) funcionan con él: instalación, controles y un cambio real de punta a punta.
 
@@ -200,15 +217,20 @@ Detalles que salieron al implementar (2026-10-04):
 | 2026-10-04 | Documentación como wiki por temas en `docs/`, única fuente | Orestes |
 | 2026-10-04 | Licencia MIT, a nombre de Infinity Solutions AI | Orestes |
 | 2026-10-04 | Los comandos de la herramienta se escriben en `equipo/comandos/`, no como skills en `.agents/skills/` | Orestes |
+| 2026-10-05 | El proyecto de validación de la 2.0 es p2p Controller | Orestes |
+| 2026-10-05 | El kit **no** se distribuye como extensión ni preset de Spec Kit | Orestes |
+| 2026-10-05 | La prueba a mano de los comandos en Claude Code y Codex se aplaza; se empieza la etapa 2 | Orestes |
+| 2026-10-05 | Diseño de la etapa 2 en cuatro entregas (A a D); la A en `main` y el resto en una rama | Propuesto por Claude; aprobado por Orestes |
+| 2026-10-05 | El perfil del proyecto lo redacta un agente de primera instancia; la persona lo corrige y lo aprueba | Orestes |
 | 2026-10-04 | **El nombre se queda en "bowser" por ahora** (es el nombre de su perro). Los comandos usan el prefijo `/bowser-`. Si más adelante aparece un nombre mejor, se cambia | Orestes |
 
 ## Decisiones abiertas
 
 | Decisión | Bloquea | Notas |
 |---|---|---|
-| Distribuir el kit también como extensión o preset de Spec Kit | Nada. Evaluar antes de la etapa 2 | Spec Kit tiene sistema de extensiones y presets; no se investigó a fondo |
 | La documentación en inglés, además de en español | Nada | Ampliaría el alcance de las contribuciones |
-| Cuál es el proyecto de PHP y MySQL de validación, y dónde está | La etapa 2 | Orestes lo indica cuando se llegue a esa etapa |
+| Partir la constitución en principios universales (del kit) y reglas del proyecto, generando el archivo que lee Spec Kit | La entrega C de la etapa 2 | Cambia la constitución: necesita la aprobación explícita de Orestes sobre un texto concreto |
+| Cómo levantar p2p Controller para la validación | La validación de la etapa 2 (entrega D) | Orestes, 2026-10-05: corre en XAMPP con PHP 7.4 y no lo tiene instalado en local. Acordado ese día: Docker con PHP 7.4 y MySQL, sobre una copia temporal con su propio repositorio de git local (sin GitHub). La carpeta original no se toca |
 
 ### Sobre el nombre
 

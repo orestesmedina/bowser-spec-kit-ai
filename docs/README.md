@@ -49,6 +49,7 @@ Esta documentación está pensada para leerse de arriba hacia abajo la primera v
 - [Modelos por agente](modelos.md)
 - [Costos de IA](costos.md)
 - [Cambiar de herramienta](cambiar-de-herramienta.md)
+- [El perfil del proyecto](perfil-del-proyecto.md)
 - [Personalizar un proyecto](personalizar.md)
 
 ## Controles

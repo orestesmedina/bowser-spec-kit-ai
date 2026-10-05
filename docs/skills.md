@@ -15,7 +15,7 @@
 
 ## Introducción
 
-Una skill es un conjunto de instrucciones reutilizables que un agente carga **cuando la tarea lo requiere**. El kit trae siete: tres con las convenciones de cada tecnología y cuatro con el paso a paso de cada flujo de trabajo.
+Una skill es un conjunto de instrucciones reutilizables que un agente carga **cuando la tarea lo requiere**. El kit trae ocho: tres con las convenciones de cada tecnología, cuatro con el paso a paso de cada flujo de trabajo y una para redactar el perfil del proyecto.
 
 Viven en `.agents/skills/`, una carpeta por skill, cada una con un archivo `SKILL.md`.
 
@@ -91,6 +91,8 @@ Describen el paso a paso de cada tipo de trabajo. Las ejecuta el orquestador.
 | `equipo-retomar` | Al iniciar cada sesión, o al preguntar por dónde iban | Reconstruye el estado a partir de los archivos y de git. Solo lee | [Retomar el trabajo](retomar.md) |
 
 Estas skills son las que hacen que el proceso sea el mismo cada vez. El orquestador no improvisa el orden de las fases: lo lee.
+
+Hay una skill más, `perfil-proyecto`, que no es de una tecnología ni de un flujo: explica el formato del [perfil del proyecto](perfil-del-proyecto.md) y cómo redactarlo. La usa el `arquitecto` cuando alguien escribe `/bowser-profile`.
 
 ## El formato de una skill
 

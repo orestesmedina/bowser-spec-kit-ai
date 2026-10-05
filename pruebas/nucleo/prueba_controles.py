@@ -73,6 +73,11 @@ def migraciones(e):
     p.agregar("backend/migrations/000001_inicio.up.sql", "ALTER TABLE a ADD b int;\n")
     contiene(p.commit("fix(db): cambia la migración", espera=1).salida, "No modifiques migraciones existentes")
     p.git("checkout", "-q", "HEAD", "--", "backend/migrations/000001_inicio.up.sql")
+    # Eliminarla también es modificarla, aunque el commit no traiga nada más.
+    p.git("rm", "-q", "backend/migrations/000001_inicio.up.sql")
+    contiene(p.git("commit", "-m", "chore(db): elimina la migración", espera=1).salida, "No modifiques migraciones existentes")
+    p.git("reset", "-q", "HEAD", "--", "backend/migrations/000001_inicio.up.sql")
+    p.git("checkout", "-q", "HEAD", "--", "backend/migrations/000001_inicio.up.sql")
     p.escribir("backend/migrations/000002_columna.up.sql", "ALTER TABLE a ADD b int;\n")
     p.commit("feat(db): agrega una columna")
 

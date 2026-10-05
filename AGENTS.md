@@ -20,6 +20,7 @@ Las reglas no negociables están en `.specify/memory/constitution.md`. Léela an
 
 ## Dónde está cada cosa
 - `equipo/agentes/` — definición de cada subagente (fuente única; los formatos por herramienta se generan con `make sincronizar`).
+- `equipo/perfil.json` — perfil del proyecto, si existe: sus partes, la carpeta de cada una y el comando de cada verbo (probar, revisar, formato…). Con perfil, `make test`, `make lint` y los demás ejecutan lo que él declara, y manda sobre el stack oficial de arriba. Se crea con `/bowser-profile`; el commit que lo cambia lo confirma una persona.
 - `equipo/comandos/` — comandos que la persona escribe en el chat (`/bowser-status`, `/bowser-costs`…); también se generan.
 - `.agents/skills/` — conocimiento reutilizable: convenciones del stack (`go-backend`, `react-frontend`, `postgres-db`) y flujos del equipo (`equipo-feature`, `equipo-revision`, `equipo-bug`, `equipo-retomar`).
 - `specs/<feature>/` — spec, plan, tareas y reportes de cada funcionalidad.
@@ -73,3 +74,4 @@ Si no está claro cuál aplica, pregunta antes de empezar. Nunca escribas códig
 10. **No edites el kit compartido.** Ni la carpeta `.bowser-spec-kit-ai/` (submódulo) ni los archivos listados en `.kit-manifest.json`: se reemplazan al actualizar el kit. Si algo del kit debe cambiar, propónlo al humano para llevarlo al repositorio del kit.
 11. **Mantén el estado al día.** Actualiza `specs/<feature>/estado.md` y el roadmap en cada cambio de fase, puerta, ciclo de corrección y al cerrar la sesión. Una aprobación solo se registra si el humano la dio explícitamente.
 12. **Registra el costo.** `make costos` al iniciar y al cerrar cada sesión; `make costos CERRAR=1` cuando el humano aprueba el PR. Nunca edites `costos.json` a mano.
+13. **El perfil lo confirma una persona.** Nunca uses `APROBADO_PERFIL=1` por tu cuenta: deja el cambio de `equipo/perfil.json` listo y pide a la persona que haga ese commit.

@@ -129,7 +129,8 @@ Al delegar, das al subagente: la fase, la ruta de la spec/plan/tareas, qué entr
 | `make costos` | Registrar y ver el costo de IA de la tarea (`TODO=1` proyecto completo, `PRECIOS=hoy` cotizar, `CERRAR=1` cerrar) |
 | `make doctor` | Verificar el entorno (herramientas, WSL, Docker, kit, hooks) |
 | `make up` / `make down` | Levantar / detener PostgreSQL local |
-| `make test`, `make lint`, `make security`, `make ci` | Pruebas, linters, auditoría, todo junto |
+| `make test`, `make lint`, `make security`, `make ci` | Pruebas, linters, auditoría, todo junto. Con perfil ejecutan los verbos que el proyecto declaró (`PARTE=nombre` para una sola parte) |
+| `make profile` | Ver y validar el perfil del proyecto, `equipo/perfil.json` (`DETECTAR=1`: qué tecnologías hay en el proyecto). Se redacta con `/bowser-profile` |
 | `make generar` / `make verificar-generados` | Regenerar el código generado (sqlc, tipos de la API) / comprobar que está al día |
 | `make cobertura` | Cobertura de la capa de servicio del backend (el CI exige 80 %) |
 | `make sincronizar` / `make modelos` | Regenerar configuración de agentes / ver modelos por agente |
@@ -146,6 +147,10 @@ Al delegar, das al subagente: la fase, la ruta de la spec/plan/tareas, qué entr
 |---|---|---|
 | "Mensaje de commit inválido" | No es Conventional Commits | Reescribe el mensaje |
 | "No modifiques migraciones existentes" | Se editó una migración versionada | Revierte y crea una migración nueva |
+| "no se modifican una vez versionados" | Lo mismo, en un proyecto con perfil: se tocó un archivo que el perfil declara inmutable | Revierte y crea un archivo nuevo |
+| "El perfil del proyecto … cambió" | El commit toca `equipo/perfil.json` | No lo fuerces: lo confirma una persona con `APROBADO_PERFIL=1` |
+| "no pasa la revisión de formato" | Falló el verbo `formato` de una parte que el commit toca | Devuélvelo al desarrollador de esa parte |
+| "La parte «…» no define el verbo «…»" | Aviso: esa parte todavía no tiene eso (por ejemplo, pruebas) | No inventes un comando; infórmalo como deuda |
 | "La configuración de agentes está desactualizada" | Cambió una fuente sin regenerar | `make sincronizar` y vuelve a hacer commit |
 | "Los archivos del kit no coinciden" | Se editó un archivo del kit o no se instaló la versión nueva | `make verificar-kit`; informa al humano, no fuerces |
 | "La constitución cambió" | Alguien la modificó | Revierte; solo dirección técnica la cambia |

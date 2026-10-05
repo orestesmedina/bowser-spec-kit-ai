@@ -13,6 +13,27 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.12.0] - 2026-10-05
+
+Primera entrega de la etapa 2 de la hoja de ruta (el kit deja de suponer la tecnología del proyecto). No cambia nada en un proyecto que no cree su perfil.
+
+### Agregado
+- **Perfil del proyecto** (`equipo/perfil.json`, opcional): el proyecto declara sus partes, la carpeta de cada una, el rol y las skills que la trabajan, sus carpetas de terceros y los archivos que no se modifican una vez versionados. Es del proyecto: el kit no lo instala ni lo reemplaza. Página nueva: `docs/perfil-del-proyecto.md`.
+- **Verbos**: `formato`, `revisar`, `probar`, `cobertura`, `auditar` y `generar`. Cada parte declara en el perfil qué comando ejecuta cada uno. Con perfil, `make test`, `make lint`, `make cobertura`, `make security`, `make generar` y `make verificar-generados` ejecutan esos comandos (`PARTE=nombre` para una sola parte). Un verbo sin definir se omite con un aviso: sirve para proyectos que todavía no tienen pruebas o formateador.
+- **`/bowser-profile`** y `make profile`: el comando del chat mira el proyecto (`make profile DETECTAR=1`, solo lectura), el `arquitecto` redacta el perfil con la skill nueva `perfil-proyecto`, pregunta lo que no se puede deducir y lo propone para aprobación. `make profile` lo muestra y lo valida.
+- **Controles del commit con perfil**: un cambio en el perfil se confirma con `APROBADO_PERFIL=1` (sus comandos se ejecutan en cada máquina y en la integración continua); los archivos `inmutables` de cada parte no se modifican, renombran ni borran; y el verbo `formato` corre solo en las partes que el commit toca, sin contar el código de terceros.
+- `scripts/perfil.py` y `scripts/verbos.py`. Pruebas: `pruebas/nucleo/prueba_perfil.py`.
+
+### Corregido
+- **Un commit que solo eliminaba archivos se saltaba todos los controles.** Borrar una migración ya versionada, sin ningún otro cambio en el commit, pasaba sin aviso. Ahora pasa por las mismas comprobaciones que cualquier commit.
+
+### Límites de esta entrega
+- La integración continua (`ci.yml`), los roles, `make doctor` y el hook de Claude Code todavía no leen el perfil: siguen hablando de Go, React y PostgreSQL. Un proyecto con otra forma necesita por ahora su propio workflow. Llega en las entregas siguientes de la etapa 2.
+
+### Al actualizar
+- Nada obligatorio. Tu proyecto sigue funcionando igual sin perfil.
+- Si quieres probarlo: `/bowser-profile` en el chat, revisa la propuesta y confirma el commit con `APROBADO_PERFIL=1 git commit ...`. Desde ese momento `make test`, `make lint` y los controles del commit usan lo que el perfil declara, así que comprueba con `make ci` que todo sigue pasando.
+
 ## [1.11.0] - 2026-10-04
 
 ### Agregado

@@ -70,6 +70,16 @@ Revisa únicamente los archivos incluidos en el commit. Hace estas comprobacione
 | Que la configuración de los agentes esté al día | Si cambió un rol o una skill y no se regeneraron los archivos de cada herramienta, los agentes trabajarían con instrucciones viejas | `make sincronizar` y agrega el resultado al commit |
 | Que no cambie un `costos.json` cerrado | El costo de una funcionalidad se congela al aprobar su Pull Request | Revierte el cambio |
 
+En un proyecto con [perfil](perfil-del-proyecto.md), las comprobaciones de migraciones y de formato de esta tabla se reemplazan por lo que el perfil declara:
+
+| Qué revisa | Por qué | Cómo corregirlo |
+|---|---|---|
+| Que el perfil no haya cambiado sin confirmación, y que esté bien escrito | Sus comandos se ejecutan en la máquina de cada persona y en la integración continua | Revísalo con `make profile` y confirma con `APROBADO_PERFIL=1` |
+| Que no se modifique, renombre ni borre un archivo `inmutable` de ninguna parte | Es la misma regla de las migraciones, para la carpeta y el patrón que use el proyecto | Deja el archivo como estaba y crea uno nuevo |
+| Que pase el verbo `formato` de cada parte que el commit toca | Un formato único, con la herramienta de cada tecnología | Formatea el código de esa parte |
+
+Un commit que solo elimina archivos pasa por las mismas comprobaciones que cualquier otro.
+
 Hay una comprobación más que **avisa pero no bloquea**: si cambian `spec.md`, `plan.md` o `tasks.md` de una funcionalidad y no cambia su `estado.md`, muestra una advertencia, porque el estado probablemente quedó desactualizado.
 
 ### El mensaje: commit-msg
@@ -107,14 +117,15 @@ Si los hooks fallan todos a la vez con mensajes sobre `python3`, el problema no 
 
 ## Excepciones autorizadas
 
-Dos comprobaciones admiten una excepción explícita, pensada para que la tome una persona con autoridad y no un agente:
+Tres comprobaciones admiten una confirmación explícita, pensada para que la tome una persona con autoridad y no un agente:
 
 | Situación | Cómo se autoriza |
 |---|---|
 | Cambiar la constitución | `APROBADO_CONSTITUCION=1 git commit ...` |
 | Corregir un `costos.json` ya cerrado | `APROBADO_COSTOS=1 git commit ...` |
+| Crear, cambiar o eliminar el perfil del proyecto | `APROBADO_PERFIL=1 git commit ...` |
 
-Ambas dejan constancia en el propio comando de que alguien decidió saltarse la regla. Las demás comprobaciones no tienen excepción.
+Las tres dejan constancia en el propio comando de que alguien decidió saltarse la regla. Las demás comprobaciones no tienen excepción.
 
 ## Lo que los hooks no hacen
 

@@ -1,0 +1,74 @@
+---
+name: perfil-proyecto
+description: Cómo redactar o corregir el perfil del proyecto (equipo/perfil.json), que declara sus partes, tecnologías y el comando de cada verbo. Usar con el comando bowser-profile, al iniciar un proyecto, o cuando el proyecto suma una parte o una tecnología.
+---
+# El perfil del proyecto
+
+`equipo/perfil.json` describe el proyecto para que el kit no suponga nada: qué partes tiene, dónde están y cómo se ejecuta cada verbo. Es del proyecto. Lo redacta un agente y lo aprueba una persona.
+
+## Formato
+
+```json
+{
+  "partes": [
+    {
+      "nombre": "api",
+      "carpeta": "backend",
+      "descripcion": "API REST del producto",
+      "rol": "dev-backend",
+      "skills": ["go-backend", "postgres-db"],
+      "terceros": ["vendor"],
+      "inmutables": ["migrations/*.sql"],
+      "verbos": {
+        "formato": "test -z \"$(gofmt -l .)\"",
+        "revisar": "go vet ./... && golangci-lint run",
+        "probar": "go test ./...",
+        "cobertura": null,
+        "auditar": "govulncheck ./...",
+        "generar": null
+      }
+    }
+  ]
+}
+```
+
+| Campo | Qué es |
+|---|---|
+| `nombre` | Minúsculas, números y guiones. Único |
+| `carpeta` | Relativa a la raíz. `"."` si el proyecto es una sola parte |
+| `rol` | El agente de `equipo/agentes/` que trabaja esa parte |
+| `skills` | Skills de `.agents/skills/` con las convenciones de su tecnología |
+| `terceros` | Carpetas con código ajeno copiado dentro de la parte (relativas a ella). No se revisan ni se formatean |
+| `inmutables` | Patrones de archivos que no se modifican una vez versionados (relativos a la parte). Ej.: migraciones |
+| `verbos` | El comando de cada verbo. Se ejecuta con `bash` **dentro de la carpeta de la parte** |
+
+## Los verbos
+
+| Verbo | Qué debe hacer el comando | Lo usa |
+|---|---|---|
+| `formato` | Comprobar el formato sin cambiar archivos. Rápido | Cada commit (si el commit toca la parte) y `make lint` |
+| `revisar` | Análisis estático: linters, tipos, sintaxis | `make lint` |
+| `probar` | Ejecutar las pruebas | `make test` |
+| `cobertura` | Medir cobertura y **fallar** bajo el mínimo del proyecto | `make cobertura` |
+| `auditar` | Buscar vulnerabilidades en las dependencias | `make security` |
+| `generar` | Regenerar el código generado | `make generar`, `make verificar-generados` |
+
+Todo comando termina con código 0 si está bien y distinto de 0 si no.
+
+## Cómo redactarlo
+
+1. Parte de los hechos: la salida de `make profile DETECTAR=1` y lo que leas en el código (archivos de configuración, `README`, scripts existentes).
+2. **Una parte es algo que se construye, se prueba o se despliega por separado.** No dividas por dividir: un proyecto pequeño puede ser una sola parte con `"carpeta": "."`.
+3. Usa solo comandos que el proyecto ya puede ejecutar: herramientas que ya usa o que están en sus archivos de configuración. Si propones una herramienta nueva, dilo aparte como recomendación; no la pongas en el perfil hasta que esté instalada.
+4. **Si el proyecto no tiene algo, el verbo va en `null`.** Un proyecto sin pruebas tiene `"probar": null`, no un comando inventado que siempre pasa. Lista los verbos sin definir como deuda, para que la persona decida.
+5. Lo que no puedas deducir, pregúntalo: cómo se levanta, qué versión del lenguaje usa, si una carpeta dudosa es de terceros.
+6. Asigna solo skills que existan en `.agents/skills/`. Si falta la de una tecnología, dilo: el agente trabajará sin ella.
+7. Nada de secretos en los comandos: las credenciales vienen de variables de entorno.
+
+## Entrega
+
+- El JSON propuesto.
+- Un resumen en lenguaje simple: partes, tecnología de cada una, verbos definidos y verbos sin definir.
+- Las preguntas abiertas.
+
+Después de escribirlo, `make profile` lo valida. El commit lo confirma una persona con `APROBADO_PERFIL=1`; un agente nunca usa esa variable.
