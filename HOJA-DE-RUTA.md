@@ -2,7 +2,7 @@
 
 Hacia dónde va el kit, por qué, y en qué punto estamos. Este archivo es la memoria del plan: cualquier persona o sesión de IA que retome el trabajo empieza por aquí.
 
-**Estado actual:** versión 1.13.0 en la rama `etapa-2` (en `main`, la 1.12.1). Etapa 0 hecha. Etapa 1: los seis comandos están hechos y probados en OpenCode; la prueba a mano en Claude Code y Codex queda aplazada. **Etapa 2 en curso** (núcleo sin tecnología): diseño aprobado; hecha la entrega A (perfil del proyecto y verbos), que no rompe los proyectos actuales, y validada sobre copias de los dos proyectos. La entrega B va en la rama `etapa-2`: hecho el paso B1, sigue el B2 (pasos en la [etapa 2](#etapa-2-núcleo-sin-tecnología-y-perfil-del-proyecto-versión-20)).
+**Estado actual:** versión 1.14.0 en la rama `etapa-2` (en `main`, la 1.12.1). Etapa 0 hecha. Etapa 1: los seis comandos están hechos y probados en OpenCode; la prueba a mano en Claude Code y Codex queda aplazada. **Etapa 2 en curso** (núcleo sin tecnología): diseño aprobado; hecha la entrega A (perfil del proyecto y verbos), que no rompe los proyectos actuales, y validada sobre copias de los dos proyectos. La entrega B va en la rama `etapa-2`: hechos los pasos B1 y B2 (catálogo de skills), sigue el B3 (pasos en la [etapa 2](#etapa-2-núcleo-sin-tecnología-y-perfil-del-proyecto-versión-20)).
 **Última actualización:** 2026-10-08.
 
 - [El norte](#el-norte)
@@ -188,7 +188,7 @@ Pasos de la entrega B, en orden (rama `etapa-2`, que sale de `main` con la 1.12.
 | Paso | Contenido | Estado |
 |---|---|---|
 | B1 | Perfil: `roles` (lista) por parte, aceptando el `rol` de la entrega A; las skills de cada rol dentro de la parte; variables `PERFIL_RAIZ` y `PERFIL_TERCEROS` para los comandos de los verbos; carpeta del proyecto para sus propios scripts; resumen al final de `make ci` con lo comprobado y lo que quedó sin comprobar | Hecho (1.13.0, 2026-10-08) |
-| B2 | Catálogo: las skills de tecnología salen de `.agents/skills/` a una carpeta de catálogo del kit, con etiqueta de madurez; `make instalar-kit` copia solo las que el perfil nombra (sin perfil, las tres de siempre) y avisa si el perfil pide una que no existe | Pendiente |
+| B2 | Catálogo: las skills de tecnología salen de `.agents/skills/` a una carpeta de catálogo del kit, con etiqueta de madurez; `make instalar-kit` copia solo las que el perfil nombra (sin perfil, las tres de siempre) y avisa si el perfil pide una que no existe | Hecho (1.14.0, 2026-10-09) |
 | B3 | Roles sin tecnología: `dev-backend`, `dev-frontend`, `arquitecto`, `qa-tester`, `devops` y el resto dejan de nombrar Go, React y PostgreSQL y leen el perfil (carpetas, skills y verbos); rol nuevo de base de datos; `sincronizar.py` ya no saca las skills del rol sino del perfil; orquestador y `AGENTS.md` al día | Pendiente |
 | B4 | Skills `php`, `mysql` y `web-sin-framework`, redactadas con la documentación oficial y el código de p2p Controller | Pendiente |
 | B5 | Semillas sin tecnología: `docker-compose.yml`, `.env.example` y el bloque de `.gitignore` dejan de traer PostgreSQL, Go y Node a quien no los usa | Pendiente |
@@ -202,6 +202,16 @@ Detalles que salieron al implementar el paso B1 (2026-10-08):
 - Con perfil, `make ci` es una sola ejecución de los seis verbos y ya no se detiene en el primer fallo; sin perfil sigue encadenando los comandos de siempre.
 - Las versiones de la rama (1.13.0 en adelante) no se publican con tag: existen porque una prueba exige que `VERSION` tenga su entrada en el `CHANGELOG`. Al publicar la 2.0.0 se decide si se conservan como historial o se funden en una sola entrada.
 - Para B3: `roles_de(parte)` de `scripts/perfil.py` ya devuelve cada rol con sus skills; es lo que `sincronizar.py` debe leer.
+
+Detalles que salieron al implementar el paso B2 (2026-10-09):
+
+- El catálogo está en `catalogo/skills/`. La madurez va dentro del `SKILL.md` de cada skill (`metadata: madurez`, `probada` o `redactada`), no en un índice aparte: así una skill es una carpeta completa, que es lo que hará falta para las contribuciones de la etapa 2b.
+- En el proyecto, una skill del catálogo queda en `.agents/skills/` como cualquier archivo del kit: no se edita ahí, se puede excluir y se retira sola cuando el perfil deja de nombrarla.
+- Cambiar las skills del perfil (o crear o quitar el perfil) obliga a ejecutar `make instalar-kit` antes del commit. Se eligió lo estricto: si no, el perfil diría una cosa y los agentes tendrían otra. `/bowser-profile` lo hace solo.
+- Comando nuevo `make skills`, que no estaba en el diseño: sin él, la madurez solo se vería abriendo cada archivo.
+- Puente hasta el B3: como los roles todavía llevan sus skills escritas, `sincronizar.py` les quita las que el proyecto no tiene. El texto del rol las sigue nombrando; eso se va en el B3.
+- Para B4: una skill nueva es una carpeta en `catalogo/skills/` con `madurez: redactada`; `make test-kit` comprueba el formato.
+- Para B6: en la copia de `simiente-santa-webside`, comprobar que el perfil nombra `go-backend`, `postgres-db` y `react-frontend`; si no, la actualización se las retira.
 
 **Validación:** un proyecto existente de Orestes en **PHP puro, con HTML, CSS y JavaScript puros, y MySQL** (decidido el 2026-10-04): **p2p Controller**, en `D:\IA\environment\wsl\code\p2p Controller` (en WSL, `/mnt/d/IA/environment/wsl/code/p2p Controller`), con el script de MySQL en `api.p2pcontroller/@database/p2pcontroller.sql`. No es para meter esa combinación en el kit, sino para comprobar que el núcleo funciona sin la tecnología original: otro lenguaje, otra base de datos y un proyecto que no tiene la forma "backend y frontend separados". De ahí salen además las primeras skills que no son de Go. Como es un proyecto existente, es también el caso de prueba de la etapa 4.
 **Lo que se encontró en p2p Controller (2026-10-05, solo lectura):** dos carpetas hermanas (`api.p2pcontroller`, la API, y `p2pcontroller.com/http`, el panel web), unas 13 000 líneas de PHP propio, 25 tablas y 67 procedimientos almacenados. No es un repositorio de git, y no tiene pruebas, Composer, formateador ni Docker. Trae bibliotecas de terceros copiadas dentro (`libraries/`, `bower_components/`). Consecuencias para el diseño: un verbo puede no estar definido en un proyecto, el perfil debe declarar las carpetas de terceros, y reglas como "80 % de cobertura" son del proyecto, no del núcleo. Se trabaja siempre sobre una copia.

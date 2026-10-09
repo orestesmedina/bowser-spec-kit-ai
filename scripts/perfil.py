@@ -13,7 +13,8 @@ El perfil vive en equipo/perfil.json y es del proyecto (el kit no lo instala ni 
           "dev-backend",                        solo el nombre, o
           {"rol": "dev-frontend", "skills": ["react-frontend"]}     el nombre y las skills que son solo suyas
         ],
-        "skills": ["go-backend"],             opcional: skills de .agents/skills/ para todos los roles de la parte
+        "skills": ["go-backend"],             opcional: skills para todos los roles de la parte (del catálogo del
+                                              kit, que `make instalar-kit` copia, o propias en .agents/skills/)
         "terceros": ["vendor"],               opcional: carpetas con código ajeno (relativas a la parte)
         "inmutables": ["migrations/*.sql"],   opcional: archivos que no se modifican una vez versionados
         "verbos": {                           opcional: comando de cada verbo, ejecutado dentro de la carpeta
@@ -48,7 +49,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-RAIZ = Path(__file__).resolve().parent.parent
+import catalogo
+
+RAIZ =Path(__file__).resolve().parent.parent
 RUTA = "equipo/perfil.json"
 
 # Lo único que el núcleo sabe pedir. El comando de cada uno lo declara el proyecto.
@@ -107,6 +110,7 @@ def validar(perfil: dict, raiz: Path = RAIZ) -> tuple[list[str], list[str]]:
 
     nombres: set[str] = set()
     carpetas: set[str] = set()
+    en_catalogo, _ = catalogo.leer(catalogo.carpeta(raiz))
     for i, parte in enumerate(partes, 1):
         if not isinstance(parte, dict):
             errores.append(f"la parte {i} debe ser un objeto")
@@ -168,8 +172,14 @@ def validar(perfil: dict, raiz: Path = RAIZ) -> tuple[list[str], list[str]]:
                 nombradas += propias
 
         for s in dict.fromkeys(nombradas):
-            if not (raiz / ".agents/skills" / s / "SKILL.md").exists():
-                avisos.append(f"{quien}: la skill «{s}» no está en .agents/skills/ (el agente trabajará sin ella)")
+            if (raiz / catalogo.INSTALADAS / s / "SKILL.md").exists():
+                continue
+            if s in en_catalogo:
+                avisos.append(f"{quien}: la skill «{s}» está en el catálogo del kit pero todavía no en el proyecto "
+                              "(ejecuta: make instalar-kit)")
+            else:
+                avisos.append(f"{quien}: la skill «{s}» no está en .agents/skills/ ni en el catálogo del kit "
+                              "(el agente trabajará sin ella)")
 
         terceros = parte.get("terceros", [])
         if not lista_de_textos(terceros) or not all(ruta_segura(t) for t in terceros):
@@ -212,6 +222,22 @@ def roles_de(parte: dict) -> list[dict]:
         nombre, propias = (r["rol"], r.get("skills", [])) if isinstance(r, dict) else (r, [])
         resultado.append({"rol": nombre, "skills": list(dict.fromkeys([*comunes, *propias]))})
     return resultado
+
+
+def skills_nombradas(perfil) -> list[str]:
+    """Todas las skills que el perfil nombra, en las partes y en sus roles, sin repetir.
+    No exige un perfil validado: lo que no tenga la forma esperada se salta."""
+    nombres: list[str] = []
+    partes = perfil.get("partes") if isinstance(perfil, dict) else None
+    for parte in partes if isinstance(partes, list) else []:
+        if not isinstance(parte, dict):
+            continue
+        listas = [parte.get("skills")]
+        roles = parte.get("roles")
+        listas += [r.get("skills") for r in (roles if isinstance(roles, list) else []) if isinstance(r, dict)]
+        for lista in listas:
+            nombres += [s for s in (lista if isinstance(lista, list) else []) if isinstance(s, str) and s.strip()]
+    return list(dict.fromkeys(nombres))
 
 
 def perfil_valido(raiz: Path = RAIZ) -> dict | None:
@@ -417,6 +443,9 @@ def detectar(raiz: Path = RAIZ) -> dict:
         dato["lenguajes"] = dict(sorted(dato["lenguajes"].items(), key=lambda kv: -kv[1]))
         dato["subcarpetas"] = sorted(dato["subcarpetas"])[:40]
 
+    en_catalogo, _ = catalogo.leer(catalogo.carpeta(raiz))
+    propias = {p.parent.name for p in (raiz / catalogo.INSTALADAS).glob("*/SKILL.md")
+               if not p.parent.name.startswith(("bowser-", "equipo-", "perfil-"))}
     return {
         "repositorio_git": es_git,
         "perfil_actual": RUTA if (raiz / RUTA).exists() else None,
@@ -429,8 +458,9 @@ def detectar(raiz: Path = RAIZ) -> dict:
             {"carpeta": c, "archivos": n} for c, n in sorted(dudosas.items(), key=lambda kv: -kv[1])[:30]],
         "archivos_sql": sql,
         "roles_disponibles": sorted(p.stem for p in (raiz / "equipo/agentes").glob("*.md")),
-        "skills_disponibles": sorted(p.parent.name for p in (raiz / ".agents/skills").glob("*/SKILL.md")
-                                     if not p.parent.name.startswith(("bowser-", "equipo-", "perfil-"))),
+        # Las del catálogo del kit (make instalar-kit copia las que el perfil nombre) y las propias del proyecto.
+        "skills_disponibles": sorted(propias | set(en_catalogo)),
+        "madurez_de_las_skills_del_catalogo": {n: s["madurez"] for n, s in en_catalogo.items()},
         "verbos": VERBOS,
         "nota": "Son hechos, no decisiones. Lo que no aparece aquí (cómo se prueba, cómo se levanta, qué versión se usa) "
                 "se le pregunta a la persona: no se inventa.",

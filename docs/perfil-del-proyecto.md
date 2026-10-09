@@ -74,7 +74,7 @@ Una lista de **partes**. Una parte es algo que se construye, se prueba o se desp
 | `carpeta` | Dónde está, relativa a la raíz del proyecto. `"."` si el proyecto entero es una sola parte | Sí |
 | `descripcion` | Una línea para quien lo lea | No |
 | `roles` | Los agentes de `equipo/agentes/` que trabajan esa parte. Ver [Varios roles en una parte](#varios-roles-en-una-parte) | No |
-| `skills` | Las [skills](skills.md) con las convenciones de su tecnología. Las reciben todos los roles de la parte | No |
+| `skills` | Las [skills](skills.md) con las convenciones de su tecnología. Las reciben todos los roles de la parte. Las del [catálogo del kit](skills.md#el-catálogo-de-skills-de-tecnología) que nombres aquí son las que `make instalar-kit` copia al proyecto | No |
 | `terceros` | Carpetas con código ajeno copiado dentro de la parte. No se les revisa el formato, y cada comando las recibe en `PERFIL_TERCEROS` | No |
 | `inmutables` | Archivos que no se modifican una vez guardados en git, como las migraciones. Son patrones relativos a la parte | No |
 | `verbos` | El comando de cada verbo | No |
@@ -169,10 +169,14 @@ En el chat de tu herramienta:
 3. Te pregunta lo que no puede saber mirando el código: cómo se prueba, qué versión se usa, si una carpeta dudosa es de terceros.
 4. Te muestra la propuesta en lenguaje simple y espera tu aprobación.
 5. Con tu "sí", escribe `equipo/perfil.json` y lo valida.
+6. Ejecuta `make instalar-kit`, que trae del catálogo las skills que el perfil nombra y retira las que no.
 
 En un proyecto recién creado, sin código todavía, el paso 1 no encuentra nada y el perfil sale de la conversación sobre qué se va a construir.
 
-Si prefieres escribirlo a mano, es un archivo de texto: créalo con el formato de arriba y valídalo con `make profile`.
+Si prefieres escribirlo a mano, es un archivo de texto: créalo con el formato de arriba, valídalo con `make profile` y ejecuta `make instalar-kit` para que las skills del proyecto sean las que el perfil nombra.
+
+> [!NOTE]
+> Sin perfil, el proyecto tiene las tres skills de siempre (`go-backend`, `postgres-db`, `react-frontend`). Al crear el perfil, `make instalar-kit` retira las que no nombres: es lo esperado, y esos archivos borrados van en el mismo commit que el perfil.
 
 ## Ver y validar el perfil
 
@@ -273,7 +277,9 @@ Antes de confirmarlo, lee los comandos con `make profile`. Un agente nunca usa e
 | `el rol «x» no existe en equipo/agentes/` | El nombre del rol está mal escrito | Mira los disponibles en `equipo/agentes/` |
 | `usa "roles" (lista) o "rol" (uno solo), no los dos` | La parte tiene los dos campos | Deja solo `roles` |
 | `el rol «x» está dos veces` | El mismo rol aparece repetido en los `roles` de una parte | Déjalo una vez, con todas sus skills |
-| `la skill «x» no está en .agents/skills/` | Es un aviso: el agente trabajará sin esa skill | Quítala del perfil o agrega la skill al proyecto |
+| `la skill «x» no está en .agents/skills/ ni en el catálogo del kit` | Es un aviso: el agente trabajará sin esa skill | Corrige el nombre (`make skills` lista las del catálogo), quítala del perfil o agrega la skill al proyecto |
+| `la skill «x» está en el catálogo del kit pero todavía no en el proyecto` | Es un aviso: el perfil la nombra y falta copiarla | `make instalar-kit` |
+| `Los archivos del kit no coinciden` al hacer el commit del perfil | Cambiaron las `skills` del perfil y no se instaló | `make instalar-kit` y repite el commit. Ver [Skills](skills.md#cuando-algo-falla) |
 | `La parte «x» no define el verbo «y»: se omite` | Es un aviso: esa parte todavía no tiene eso | Nada, si es cierto. Si ya lo tiene, agrega el comando al perfil |
 | `Ninguna parte define «y»` | Es un aviso: el comando no ejecutó nada | Lo mismo |
 | `Pasó lo que se comprobó: N de M comprobaciones` | Es un aviso de `make ci`: no hubo fallos, pero hay verbos sin definir | Lee el resumen: lo que dice «sin definir» no lo revisó nadie |
@@ -286,7 +292,7 @@ Con un perfil inválido el kit no ejecuta ningún verbo y bloquea los commits ha
 ## Límites
 
 - **La integración continua todavía no lee el perfil.** El `ci.yml` que trae el kit sigue buscando `backend/go.mod` y `frontend/package.json`. Un proyecto con otra forma necesita por ahora su propio workflow. Se resuelve en una entrega posterior.
-- **Los roles y `make doctor` todavía hablan de Go, React y PostgreSQL.** Los `roles` y las `skills` del perfil se validan y se muestran, pero los agentes todavía no las reciben de ahí: siguen llevando las suyas escritas. También es de una entrega posterior.
+- **Los roles y `make doctor` todavía hablan de Go, React y PostgreSQL.** Las `skills` del perfil ya deciden cuáles llegan al proyecto, pero todavía no cuál recibe cada agente: cada rol sigue llevando las suyas escritas, y solo se le quitan las que el proyecto no tiene. También es de una entrega posterior.
 - **El hook de Claude Code sigue protegiendo `backend/migrations/`**, no los `inmutables` del perfil. El control del commit sí usa el perfil, y es el que vale para las tres herramientas.
 - **`make verificar-generados` revisa toda la carpeta de la parte.** Si tienes otros cambios sin commit en ella, los toma por código generado desactualizado.
 - **La detección describe, no decide.** Reconoce las tecnologías más comunes por sus archivos; una que no conozca aparece solo como carpetas con archivos. Y no sabe cómo se prueba ni cómo se levanta el proyecto: eso se pregunta.

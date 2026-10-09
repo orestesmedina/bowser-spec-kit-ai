@@ -5,7 +5,7 @@ Fuente única (lo que el equipo edita):
   AGENTS.md                 instrucciones del proyecto
   equipo/agentes/*.md       definición neutral de cada subagente
   equipo/comandos/*.md      comandos que la persona escribe dentro de la herramienta (/bowser-status)
-  .agents/skills/           skills compartidas (estándar SKILL.md)
+  .agents/skills/           skills compartidas (estándar SKILL.md); las de tecnología llegan del catálogo del kit
   equipo/config.json        herramientas activas y modelos (por nivel, por agente y del orquestador)
   equipo/adaptadores/       archivos propios de cada herramienta (ej. permisos y hooks de Claude Code)
 
@@ -86,7 +86,10 @@ def leer_agente(ruta: Path) -> dict:
             raise ValueError(f"{ruta_txt}: temperatura debe estar entre 0 y 2")
 
     datos["web"] = datos.get("web", "no") == "si"
-    datos["skills"] = [s.strip() for s in datos.get("skills", "").split(",") if s.strip()]
+    # Solo las skills que el proyecto tiene: las de tecnología llegan del catálogo según el perfil
+    # (scripts/instalar_kit.py), y un rol no debe declarar una que no está.
+    datos["skills"] = [s.strip() for s in datos.get("skills", "").split(",")
+                       if s.strip() and (RAIZ / ".agents/skills" / s.strip() / "SKILL.md").exists()]
     datos["fuente"] = ruta.relative_to(RAIZ).as_posix()
 
     instrucciones = cuerpo.strip()

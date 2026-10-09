@@ -31,7 +31,7 @@ mi-proyecto/
 │   ├── config.json                  # Herramientas activas y modelo de cada agente
 │   ├── perfil.json                  # Partes del proyecto y comando de cada verbo (opcional)
 │   └── adaptadores/claude/          # Permisos y hooks propios de Claude Code
-├── .agents/skills/                  # Skills: convenciones del stack y flujos del equipo
+├── .agents/skills/                  # Skills: flujos del equipo y las de tecnología que pide el perfil
 ├── .githooks/                       # Controles en cada commit
 ├── .github/
 │   ├── workflows/ci.yml             # Integración continua
@@ -84,7 +84,7 @@ Todo archivo que no es código del producto pertenece a una de estas clases. Sab
 | Archivo | Qué es | Clase |
 |---|---|---|
 | `equipo/agentes/*.md` | Un archivo por rol: qué hace, qué puede tocar y qué entrega. Ver [Roles](roles.md) | Del kit |
-| `.agents/skills/` | Conocimiento reutilizable: cómo escribir código en este stack y cómo ejecutar cada flujo. Ver [Skills](skills.md). Las carpetas `bowser-*` son generadas (comandos para Codex) | Del kit |
+| `.agents/skills/` | Conocimiento reutilizable: cómo ejecutar cada flujo y cómo escribir código en las tecnologías del proyecto. Las de tecnología llegan del catálogo del kit según el perfil. Ver [Skills](skills.md). Las carpetas `bowser-*` son generadas (comandos para Codex) | Del kit |
 | `equipo/comandos/*.md` | Un archivo por comando del chat. Ver [Comandos](comandos.md#dentro-de-la-herramienta) | Del kit |
 | `equipo/config.json` | Qué herramientas usa el equipo y qué modelo usa cada agente. Ver [Configuración](configuracion.md) | Semilla |
 | `equipo/adaptadores/claude/` | Permisos y [hooks del agente](hooks-del-agente.md) para Claude Code | Del kit |

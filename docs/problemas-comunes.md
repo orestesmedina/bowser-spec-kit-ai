@@ -115,6 +115,9 @@ Más: [Integración continua](integracion-continua.md#cuando-falla).
 | El presupuesto de la suscripción se agota muy rápido | Un modelo caro en un rol de mucho volumen, o el orquestador hace el trabajo en vez de delegar | `make costos` para ver qué agente consume. Ver [Modelos por agente](modelos.md) |
 | Escribo `/bowser-status` y la herramienta no lo reconoce | La configuración no está generada, la sesión es anterior al cambio, o estás en Codex | `make sincronizar` y abre una sesión nueva. En Codex se escribe `$bowser-status`. Ver [Comandos](comandos.md#dentro-de-la-herramienta) |
 | Desapareció una skill mía de `.agents/skills/` | Su carpeta empezaba con `bowser-`, el prefijo de los comandos generados | Recupérala con git y cámbiale el nombre |
+| Desaparecieron `go-backend`, `react-frontend` o `postgres-db` al instalar | El proyecto tiene perfil y no las nombra: cada proyecto recibe solo las skills que su perfil pide | Si las usa, agrégalas a las `skills` del perfil y ejecuta `make instalar-kit`. Ver [Skills](skills.md#qué-skills-llegan-a-tu-proyecto) |
+| "Las skills instaladas no son las que pide el perfil" | Cambiaron las `skills` del perfil y no se instaló | `make instalar-kit`. Ver [Skills](skills.md#cuando-algo-falla) |
+| "El perfil pide la skill «x», que no está en el catálogo del kit" | Nombre mal escrito, o esa tecnología no tiene skill todavía | `make skills` lista las que hay. Los agentes trabajan sin ella mientras tanto |
 | `make modelos` marca un modelo con ⚠ | Tu instalación no reconoce ese modelo | Compruébalo con `opencode models opencode-go` y corrige `equipo/config.json` |
 
 ## Estado y costos

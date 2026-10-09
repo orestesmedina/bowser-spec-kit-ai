@@ -1,6 +1,8 @@
 ---
 name: postgres-db
 description: Convenciones de la empresa para diseñar esquemas, migraciones y consultas en PostgreSQL. Usar al crear tablas, migraciones, índices o consultas SQL.
+metadata:
+  madurez: probada
 ---
 # PostgreSQL — convenciones
 

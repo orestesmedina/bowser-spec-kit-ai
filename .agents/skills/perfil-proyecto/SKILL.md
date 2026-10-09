@@ -37,7 +37,7 @@ description: Cómo redactar o corregir el perfil del proyecto (equipo/perfil.jso
 | `nombre` | Minúsculas, números y guiones. Único |
 | `carpeta` | Relativa a la raíz. `"."` si el proyecto es una sola parte |
 | `roles` | Los agentes de `equipo/agentes/` que trabajan esa parte. Cada elemento es un nombre (`"dev-backend"`) o un objeto con las skills que son solo de ese rol (`{"rol": "dev-frontend", "skills": ["react-frontend"]}`) |
-| `skills` | Skills de `.agents/skills/` con las convenciones de su tecnología. Las reciben todos los roles de la parte, además de las propias de cada uno |
+| `skills` | Skills con las convenciones de su tecnología: del catálogo del kit o propias del proyecto (`.agents/skills/`). Las reciben todos los roles de la parte, además de las propias de cada uno |
 | `terceros` | Carpetas con código ajeno copiado dentro de la parte (relativas a ella). No se revisan ni se formatean |
 | `inmutables` | Patrones de archivos que no se modifican una vez versionados (relativos a la parte). Ej.: migraciones |
 | `verbos` | El comando de cada verbo. Se ejecuta con `bash` **dentro de la carpeta de la parte** |
@@ -66,7 +66,7 @@ Si un verbo necesita un script propio del proyecto, va en `tools/`, en la raíz,
 3. Usa solo comandos que el proyecto ya puede ejecutar: herramientas que ya usa o que están en sus archivos de configuración. Si propones una herramienta nueva, dilo aparte como recomendación; no la pongas en el perfil hasta que esté instalada.
 4. **Si el proyecto no tiene algo, el verbo va en `null`.** Un proyecto sin pruebas tiene `"probar": null`, no un comando inventado que siempre pasa. Lista los verbos sin definir como deuda, para que la persona decida.
 5. Lo que no puedas deducir, pregúntalo: cómo se levanta, qué versión del lenguaje usa, si una carpeta dudosa es de terceros.
-6. Asigna solo skills que existan en `.agents/skills/`. Si falta la de una tecnología, dilo: el agente trabajará sin ella.
+6. Asigna solo skills que aparezcan en `skills_disponibles` de la detección: son las del catálogo del kit más las propias del proyecto. Las del catálogo que el perfil nombre las copia `make instalar-kit`, y las que deje de nombrar las retira. Si una es `redactada` (ver `madurez_de_las_skills_del_catalogo`), avisa que todavía no se usó en un proyecto real. Si falta la de una tecnología, dilo: el agente trabajará sin ella.
 7. Nada de secretos en los comandos: las credenciales vienen de variables de entorno.
 
 ## Entrega

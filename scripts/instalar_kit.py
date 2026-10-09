@@ -5,9 +5,11 @@ Las herramientas (Claude Code, Codex, OpenCode, Spec Kit, GitHub Actions) leen s
 en la raíz del proyecto, no dentro del submódulo. Este script:
 
   1. Copia a la raíz los archivos GESTIONADOS por el kit (se reemplazan en cada actualización).
-  2. Copia las SEMILLAS solo si no existen (después son del proyecto: config.json, CODEOWNERS…).
-  3. Mantiene un bloque del kit dentro de .gitignore.
-  4. Registra en .kit-manifest.json qué archivos vienen del kit y su hash, para:
+  2. Copia del catálogo (catalogo/skills/) a .agents/skills/ solo las skills de tecnología que nombra el perfil
+     del proyecto (equipo/perfil.json); sin perfil, las tres de siempre. También quedan gestionadas.
+  3. Copia las SEMILLAS solo si no existen (después son del proyecto: config.json, CODEOWNERS…).
+  4. Mantiene un bloque del kit dentro de .gitignore.
+  5. Registra en .kit-manifest.json qué archivos vienen del kit y su hash, para:
        - borrar los que el kit eliminó,
        - detectar si alguien modificó localmente un archivo del kit (y no pisarlo).
 
@@ -62,6 +64,8 @@ NUNCA = {"scripts/instalar_kit.py", ".github/workflows/kit.yml"}
 # cada proyecto genera los suyos según las herramientas que tenga activas.
 sys.path.insert(0, str(KIT / "scripts"))
 from sincronizar import COMANDOS_CODEX as GENERADO_EN_FUENTES  # noqa: E402
+import catalogo  # noqa: E402
+import perfil as perfil_proyecto  # noqa: E402
 sys.path.pop(0)
 # Se copian una sola vez; después pertenecen al proyecto.
 SEMILLAS = ["equipo/config.json", ".github/CODEOWNERS", ".env.example", "docker-compose.yml"]
@@ -98,6 +102,42 @@ def archivos_del_kit(excluir: list[str]) -> dict[str, Path]:
                 continue
             resultado[rel] = p
     return resultado
+
+
+def skill_de(rel: str) -> str | None:
+    """El nombre de la skill a la que pertenece un archivo de .agents/skills/, o None si no es de una skill."""
+    partes = rel.split("/")
+    return partes[2] if rel.startswith(catalogo.INSTALADAS + "/") and len(partes) > 3 else None
+
+
+def archivos_del_catalogo(excluir: list[str], anterior: dict) -> tuple[dict[str, Path], list[str]]:
+    """Las skills del catálogo que le tocan a este proyecto (ruta en el proyecto -> archivo de origen) y avisos.
+    Con perfil, las que nombra; sin perfil, las de siempre."""
+    disponibles, _ = catalogo.leer(KIT / catalogo.CARPETA)
+    avisos: list[str] = []
+    try:
+        perfil = perfil_proyecto.cargar(DESTINO)
+    except perfil_proyecto.ErrorPerfil:
+        # No se sabe qué pide el proyecto: ni se agregan ni se retiran skills hasta que el perfil se pueda leer.
+        pedidas = sorted({skill_de(rel) for rel in anterior} & set(disponibles))
+        avisos.append(f"{perfil_proyecto.RUTA} no se puede leer: las skills del catálogo se dejan como estaban. "
+                      "Corrígelo (make profile) y repite make instalar-kit.")
+    else:
+        pedidas = list(catalogo.SIN_PERFIL) if perfil is None else perfil_proyecto.skills_nombradas(perfil)
+        for s in pedidas:
+            if s not in disponibles and not (DESTINO / catalogo.INSTALADAS / s / "SKILL.md").exists():
+                avisos.append(f"El perfil pide la skill «{s}», que no está en el catálogo del kit ni en "
+                              f"{catalogo.INSTALADAS}/: los agentes trabajarán sin ella (catálogo: make skills).")
+    resultado: dict[str, Path] = {}
+    for nombre in pedidas:
+        if nombre not in disponibles:
+            continue
+        origen = disponibles[nombre]["carpeta"]
+        for p in origen.rglob("*"):
+            rel = f"{catalogo.INSTALADAS}/{nombre}/{p.relative_to(origen).as_posix()}"
+            if p.is_file() and not es_ignorable(rel) and not excluido(rel, excluir):
+                resultado[rel] = p
+    return resultado, avisos
 
 
 def excluido(rel: str, excluir: list[str]) -> bool:
@@ -229,8 +269,10 @@ def analizar(excluir: list[str]) -> dict:
     """Compara kit, manifiesto anterior y archivos actuales del proyecto."""
     kit = archivos_del_kit(excluir)
     anterior = leer_manifiesto()["archivos"]
+    del_catalogo, avisos = archivos_del_catalogo(excluir, anterior)
+    kit.update(del_catalogo)
     r = {"kit": kit, "nuevos": [], "actualizar": [], "iguales": [], "conflictos": [],
-         "previos": [], "eliminar": [], "eliminar_modificados": []}
+         "previos": [], "eliminar": [], "eliminar_modificados": [], "catalogo": set(del_catalogo), "avisos": avisos}
 
     for rel, origen in sorted(kit.items()):
         destino = DESTINO / rel
@@ -348,6 +390,14 @@ def instalar(forzar: bool) -> int:
             print(f"        {rel}")
     if respaldo:
         print(f"  Respaldo de lo reemplazado: {respaldo.relative_to(DESTINO)}/")
+    # Skills del catálogo: lo que el perfil pide y no hay, y las que llegan por primera vez sin estar probadas.
+    for aviso in a["avisos"]:
+        print(f"  ! {aviso}")
+    disponibles, _ = catalogo.leer(KIT / catalogo.CARPETA)
+    for nombre in sorted({skill_de(rel) for rel in a["nuevos"] if rel in a["catalogo"]}):
+        if disponibles[nombre]["madurez"] != "probada":
+            print(f"  ! La skill «{nombre}» está {catalogo.MADUREZ[disponibles[nombre]['madurez']]}. "
+                  "Revisa con más cuidado lo que los agentes hagan con ella.")
     if not (a["nuevos"] or a["actualizar"] or a["previos"] or eliminados or semillas or (forzar and a["conflictos"])):
         print("  Sin cambios: el proyecto ya estaba al día.")
     # El Makefile del kit muestra las novedades al final (--resumen-novedades). Un Makefile anterior no lo hace:
@@ -391,7 +441,15 @@ def verificar() -> int:
         for rel in a["conflictos"] + a["previos"]:
             print(f"    {rel}", file=sys.stderr)
     pendientes = a["nuevos"] + a["actualizar"] + a["eliminar"]
-    if pendientes:
+    disponibles, _ = catalogo.leer(KIT / catalogo.CARPETA)
+    if pendientes and anterior.get("version") == version_kit() and all(skill_de(rel) in disponibles for rel in pendientes):
+        # Misma versión del kit y solo cambian skills del catálogo: lo que cambió es el perfil del proyecto.
+        problemas += 1
+        print(f"✗ Las skills instaladas no son las que pide el perfil ({perfil_proyecto.RUTA}). Ejecuta: make instalar-kit",
+              file=sys.stderr)
+        for nombre in sorted({skill_de(rel) for rel in pendientes}):
+            print(f"    {nombre}: {'sobra' if not any(skill_de(rel) == nombre for rel in a['kit']) else 'falta'}", file=sys.stderr)
+    elif pendientes:
         problemas += 1
         print(f"✗ El submódulo {RUTA_KIT}/ está en {nombre_version(version_kit(), commit_kit())} pero se instaló "
               f"{nombre_version(anterior.get('version'), anterior.get('commit'))}. Ejecuta: make instalar-kit", file=sys.stderr)

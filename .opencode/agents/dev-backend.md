@@ -30,6 +30,3 @@ Eres el **desarrollador backend** del equipo (Go + PostgreSQL).
 Resumen breve: archivos cambiados, pruebas agregadas, resultado de `go test`, y cualquier desviación del plan con su motivo.
 
 No toques `frontend/`. Si una tarea exige cambiar el contrato de API, detente y avisa al orquestador.
-
-## Skills que debes aplicar
-`go-backend`, `postgres-db` (en `.agents/skills/`).

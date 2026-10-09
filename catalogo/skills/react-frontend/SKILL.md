@@ -1,6 +1,8 @@
 ---
 name: react-frontend
 description: Convenciones de la empresa para escribir frontend en React + TypeScript + Vite (estructura, estado, llamadas a la API, estilos, pruebas). Usar siempre que se cree o modifique código en frontend/.
+metadata:
+  madurez: probada
 ---
 # Frontend en React — convenciones
 

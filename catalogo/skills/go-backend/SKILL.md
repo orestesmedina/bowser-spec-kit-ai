@@ -1,6 +1,8 @@
 ---
 name: go-backend
 description: Convenciones de la empresa para escribir backend en Go (estructura, capas, errores, HTTP, pruebas). Usar siempre que se cree o modifique código en backend/.
+metadata:
+  madurez: probada
 ---
 # Backend en Go — convenciones
 

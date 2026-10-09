@@ -26,6 +26,7 @@ def con_perfil(e, perfil: dict | None = None):
     p.escribir("servidor/index.php", "<?php\n")
     p.escribir("web/panel/index.html", "<html></html>\n")
     escribir_perfil(p, perfil or base())
+    p.make("instalar-kit")      # las skills del proyecto pasan a ser las que nombra el perfil
     p.commit("chore: perfil del proyecto", extra=APROBADO)
     return p
 
@@ -108,10 +109,11 @@ def perfil_invalido(e):
         contiene(p.commit("chore: cambia el perfil", espera=1, extra=APROBADO).salida, mensaje, "el commit con un perfil inválido")
 
     # Una skill que falta es un aviso, no un error: el agente trabaja sin ella.
-    escribir_perfil(p, cambiar(skills=["php", "go-backend"]))
+    p.escribir(".agents/skills/propia/SKILL.md", "---\nname: propia\ndescription: Del proyecto.\n---\n")
+    escribir_perfil(p, cambiar(skills=["php", "propia"]))
     r = p.make("profile")
     contiene(r.salida, "la skill «php» no está en .agents/skills/")
-    afirmar("«go-backend»" not in r.salida, "avisó de una skill que sí existe")
+    afirmar("«propia»" not in r.salida, "avisó de una skill que sí existe")
 
 
 @prueba("una parte puede tener varios roles, cada uno con las skills de la parte más las suyas; el «rol» único sigue valiendo")
@@ -173,6 +175,7 @@ def variables_de_los_verbos(e):
                "echo \"raiz=$PERFIL_RAIZ en=$PWD\"\n"
                "while IFS= read -r t; do echo \"tercero=<$t>\"; done <<< \"$PERFIL_TERCEROS\"\n")
     escribir_perfil(p, perfil)
+    p.make("instalar-kit")
     # El commit toca la parte «api»: su verbo formato corre en el hook y necesita las dos variables.
     p.commit("chore: perfil del proyecto", extra=APROBADO)
 
@@ -232,6 +235,7 @@ def controles_del_commit(e):
     perfil = base()
     perfil["partes"][0]["verbos"]["formato"] = "touch ../formato-corrio; ! grep -rIlq --exclude-dir=ajeno SIN_FORMATO ."
     escribir_perfil(p, perfil)
+    p.make("instalar-kit")
     contiene(p.commit("chore: perfil del proyecto", espera=1).salida, "El perfil del proyecto (equipo/perfil.json) cambió")
     afirmar(p.commits() == 1, "el perfil entró al historial sin la confirmación de una persona")
     p.commit("chore: perfil del proyecto", extra=APROBADO)
@@ -270,6 +274,8 @@ def controles_del_commit(e):
 
     # Quitar el perfil también lo confirma una persona; sin él vuelven los controles de siempre.
     p.git("rm", "-q", PERFIL)
+    p.make("instalar-kit")      # sin perfil, vuelven las tres skills de siempre
+    p.git("add", "-A")
     contiene(p.git("commit", "-m", "chore: quita el perfil", espera=1).salida, "El perfil del proyecto (equipo/perfil.json) cambió")
     p.git("commit", "-m", "chore: quita el perfil", extra=APROBADO)
     p.agregar("backend/migrations/000001_inicio.up.sql", "-- otra edición\n")

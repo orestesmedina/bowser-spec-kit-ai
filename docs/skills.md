@@ -3,6 +3,10 @@
 - [Introducción](#introducción)
 - [Skill, rol y constitución](#skill-rol-y-constitución)
 - [Cómo se activa una skill](#cómo-se-activa-una-skill)
+- [El catálogo de skills de tecnología](#el-catálogo-de-skills-de-tecnología)
+    - [Qué skills llegan a tu proyecto](#qué-skills-llegan-a-tu-proyecto)
+    - [La madurez de una skill](#la-madurez-de-una-skill)
+    - [Cuando algo falla](#cuando-algo-falla)
 - [Las skills del stack](#las-skills-del-stack)
     - [go-backend](#go-backend)
     - [react-frontend](#react-frontend)
@@ -15,9 +19,12 @@
 
 ## Introducción
 
-Una skill es un conjunto de instrucciones reutilizables que un agente carga **cuando la tarea lo requiere**. El kit trae ocho: tres con las convenciones de cada tecnología, cuatro con el paso a paso de cada flujo de trabajo y una para redactar el perfil del proyecto.
+Una skill es un conjunto de instrucciones reutilizables que un agente carga **cuando la tarea lo requiere**. El kit trae dos grupos:
 
-Viven en `.agents/skills/`, una carpeta por skill, cada una con un archivo `SKILL.md`.
+- **Las que usa todo proyecto:** cuatro con el paso a paso de cada flujo de trabajo y una para redactar el perfil del proyecto.
+- **Las de tecnología:** cómo se escribe código en Go, en React, en PostgreSQL. Están en un [catálogo](#el-catálogo-de-skills-de-tecnología) dentro del kit, y a cada proyecto llegan solo las que usa.
+
+En el proyecto, todas viven en `.agents/skills/`, una carpeta por skill, cada una con un archivo `SKILL.md`.
 
 ## Skill, rol y constitución
 
@@ -36,12 +43,75 @@ La ventaja de separar el "cómo" en skills es que varios roles comparten el mism
 De tres maneras:
 
 - **Por su descripción.** Cada skill dice cuándo usarse. Cuando la tarea coincide, el agente la carga solo. Es lo normal.
-- **Porque el rol la declara.** `dev-backend` lleva `skills: go-backend, postgres-db` en su definición, así que siempre las aplica.
+- **Porque el rol la declara.** `dev-backend` lleva `skills: go-backend, postgres-db` en su definición, así que siempre las aplica, si el proyecto las tiene: una skill que no llegó al proyecto no se le declara.
 - **Nombrándola.** Puedes pedirla: "Usa la skill equipo-revision". En Claude Code también se invocan como `/equipo-feature`.
+
+## El catálogo de skills de tecnología
+
+Un proyecto en PHP no necesita las convenciones de Go, y si las tuviera, sus agentes las verían en la lista y podrían aplicarlas donde no toca. Por eso las skills de tecnología no se copian todas: viven en el kit, en `catalogo/skills/`, y cada proyecto recibe las suyas.
+
+Para ver el catálogo:
+
+```bash
+make skills
+```
+
+```text
+Catálogo de skills del kit (.bowser-spec-kit-ai/catalogo/skills/): 3
+
+  go-backend      probada    en el proyecto
+                  Convenciones de la empresa para escribir backend en Go (estructura, capas, errores, HTTP, pruebas). Usar siempre que se cree o modifique código en backend/.
+  postgres-db     probada    en el proyecto
+                  Convenciones de la empresa para diseñar esquemas, migraciones y consultas en PostgreSQL. Usar al crear tablas, migraciones, índices o consultas SQL.
+  react-frontend  probada    —
+                  Convenciones de la empresa para escribir frontend en React + TypeScript + Vite (estructura, estado, llamadas a la API, estilos, pruebas). Usar siempre que se cree o modifique código en frontend/.
+
+  probada: usada en un proyecto real
+  redactada: solo redactada: todavía no se usó en un proyecto real
+
+Al proyecto llegan con `make instalar-kit`: las que nombra equipo/perfil.json.
+```
+
+### Qué skills llegan a tu proyecto
+
+Lo decide el [perfil del proyecto](perfil-del-proyecto.md), y lo aplica `make instalar-kit` (también `make actualizar-kit`, que lo ejecuta al final):
+
+| Tu proyecto | Qué recibe del catálogo |
+|---|---|
+| No tiene perfil | Las tres de siempre: `go-backend`, `postgres-db` y `react-frontend` |
+| Tiene perfil | Las que nombra en `skills`, de las partes y de los roles. Ninguna más |
+
+Cuando cambias las skills del perfil, ejecuta `make instalar-kit`: copia las que agregaste y retira las que quitaste. `/bowser-profile` lo hace por ti. Hasta que lo ejecutes, el commit se rechaza, para que lo que dice el perfil y lo que tienen los agentes no se separen.
+
+Una skill que llega del catálogo es un archivo del kit, igual que un rol: no se edita en el proyecto, y las actualizaciones la reemplazan. Si el proyecto necesita su propia versión, se excluye. Ver [Personalizar un proyecto](personalizar.md).
+
+El perfil también puede nombrar skills propias del proyecto, las que no están en el catálogo y viven solo en su `.agents/skills/`. Esas el kit no las toca. Ver [Agregar una skill propia](#agregar-una-skill-propia).
+
+### La madurez de una skill
+
+Cada skill del catálogo lleva una etiqueta:
+
+| Etiqueta | Qué significa | Qué hacer |
+|---|---|---|
+| `probada` | Se usó en un proyecto real y se corrigió con lo que salió ahí | Nada especial |
+| `redactada` | Se escribió a partir de la documentación oficial, pero todavía no se hizo ningún cambio real con ella | Revisa con más cuidado lo que los agentes hagan con ella, y corrígela cuando contradiga lo que el proyecto necesita |
+
+`make instalar-kit` avisa la primera vez que trae una skill `redactada`. Hoy las tres del catálogo son `probada`.
+
+### Cuando algo falla
+
+| Mensaje | Qué significa | Qué hacer |
+|---|---|---|
+| `Las skills instaladas no son las que pide el perfil` | Cambiaste las `skills` del perfil (o creaste o quitaste el perfil) y no instalaste. Debajo dice cuál `falta` y cuál `sobra` | `make instalar-kit` y agrega los cambios al commit |
+| `la skill «x» está en el catálogo del kit pero todavía no en el proyecto` | Aviso de `make profile`: es el mismo caso | `make instalar-kit` |
+| `El perfil pide la skill «x», que no está en el catálogo del kit ni en .agents/skills/` | Aviso: el nombre está mal escrito, o esa tecnología todavía no tiene skill | Corrige el nombre (`make skills` lista las que hay), o escribe una skill propia. Mientras tanto los agentes trabajan sin ella |
+| `La skill «x» está solo redactada` | Aviso al traerla por primera vez | Ver [La madurez de una skill](#la-madurez-de-una-skill) |
+| `equipo/perfil.json no se puede leer: las skills del catálogo se dejan como estaban` | El perfil tiene un error de escritura y el kit no sabe qué pide el proyecto | Corrígelo con `make profile` y repite `make instalar-kit` |
+| `El kit eliminó estos archivos, pero tienen cambios locales; se conservaron` | Quitaste del perfil una skill que alguien había editado en el proyecto | Si ya no la necesitas, bórrala a mano |
 
 ## Las skills del stack
 
-Dicen cómo se escribe el código en cada tecnología. Son la razón por la que el código de distintas funcionalidades, escritas en distintos días, se parece.
+Son las del catálogo. Dicen cómo se escribe el código en cada tecnología, y son la razón por la que el código de distintas funcionalidades, escritas en distintos días, se parece.
 
 ### go-backend
 
@@ -102,6 +172,8 @@ Una skill sigue el estándar abierto `SKILL.md`, que entienden las tres herramie
 ---
 name: go-backend
 description: Convenciones para escribir backend en Go (estructura, capas, errores, HTTP, pruebas). Usar siempre que se cree o modifique código en backend/.
+metadata:
+  madurez: probada
 ---
 # Backend en Go — convenciones
 
@@ -113,6 +185,7 @@ description: Convenciones para escribir backend en Go (estructura, capas, errore
 |---|---|
 | `name` | El nombre de la skill, igual al de su carpeta |
 | `description` | Qué contiene y **cuándo usarla**. El agente decide si la carga leyendo esta frase |
+| `metadata: madurez` | Solo en las skills del catálogo, y obligatoria ahí: `probada` o `redactada`. Una skill propia del proyecto no la necesita |
 
 El cuerpo es texto libre. Funciona mejor cuando es concreto: reglas cortas, la estructura de carpetas dibujada y un ejemplo de código.
 
@@ -129,7 +202,7 @@ La señal más clara: **un mismo error aparece en varias funcionalidades**. Si e
 | Un flujo siempre se atasca en el mismo paso | Ajusta la skill de flujo correspondiente |
 | La regla debe cumplirse sin excepción | Va en la constitución, no en una skill |
 
-Las skills vienen del kit: el cambio se hace en el repositorio del kit, o el proyecto excluye la skill para tener su versión. Ver [Personalizar un proyecto](personalizar.md).
+Las skills vienen del kit: el cambio se hace en el repositorio del kit (las de tecnología, en `catalogo/skills/`; las demás, en `.agents/skills/`), o el proyecto excluye la skill para tener su versión. Ver [Personalizar un proyecto](personalizar.md).
 
 ## Agregar una skill propia
 
@@ -141,7 +214,10 @@ mkdir -p .agents/skills/pagos-stripe
 make sincronizar
 ```
 
-Una skill que no viene del kit es del proyecto: las actualizaciones nunca la tocan.
+Una skill que no viene del kit es del proyecto: las actualizaciones nunca la tocan. Si es de una tecnología, nómbrala en las `skills` del [perfil](perfil-del-proyecto.md) para la parte que la usa.
+
+> [!WARNING]
+> No le pongas el nombre de una skill del catálogo (`make skills` los lista). Si el perfil la nombra, `make instalar-kit` la reemplaza por la del kit y deja la tuya en `.kit-respaldo/`.
 
 Buenos candidatos para una skill propia: las convenciones de una integración externa, las reglas de un dominio de negocio particular, o un procedimiento que el equipo repite.
 

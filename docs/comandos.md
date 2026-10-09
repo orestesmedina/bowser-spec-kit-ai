@@ -156,6 +156,13 @@ Muestra el perfil del proyecto y comprueba que esté bien escrito. No modifica n
 - **Opciones:** `DETECTAR=1` no muestra el perfil: mira el proyecto y lista, en JSON, las tecnologías y carpetas que encuentra. Es lo que usa `/bowser-profile` para redactarlo.
 - **Más:** [El perfil del proyecto](perfil-del-proyecto.md).
 
+### `make skills`
+
+Muestra el catálogo de skills de tecnología del kit: la madurez de cada una (`probada` o `redactada`), cuáles tiene el proyecto y cuáles pide el perfil sin tenerlas todavía. No modifica nada.
+
+- **Cuándo:** al escribir el perfil, para saber qué skills existen, o cuando un aviso dice que una skill falta.
+- **Más:** [Skills](skills.md#el-catálogo-de-skills-de-tecnología).
+
 Más: [Integración continua](integracion-continua.md) y [Cobertura y código generado](cobertura-y-codigo-generado.md).
 
 ## Código generado

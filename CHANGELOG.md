@@ -13,6 +13,30 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.14.0] - 2026-10-09
+
+Segundo paso (B2) de la entrega B de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0. Un proyecto sin perfil recibe lo mismo que antes.
+
+### Agregado
+- **Catálogo de skills de tecnología.** `go-backend`, `postgres-db` y `react-frontend` salen de `.agents/skills/` del kit y pasan a `catalogo/skills/`. `make instalar-kit` copia a `.agents/skills/` del proyecto solo las que nombra su perfil (en las `skills` de las partes y de los roles); sin perfil, las tres de siempre. Así un proyecto en otra tecnología no recibe convenciones que no son suyas.
+- **Etiqueta de madurez** en cada skill del catálogo (`metadata: madurez` en su `SKILL.md`): `probada`, usada en un proyecto real, o `redactada`, escrita pero todavía sin usar en uno. Las tres actuales son `probada`. La instalación avisa la primera vez que trae una `redactada`.
+- **`make skills`**: muestra el catálogo, la madurez de cada skill, cuáles tiene el proyecto y cuáles pide el perfil sin tenerlas.
+- La instalación avisa si el perfil pide una skill que no está en el catálogo ni en el proyecto. `make profile` distingue entre "está en el catálogo y falta instalarla" y "no existe".
+- `make profile DETECTAR=1` ofrece en `skills_disponibles` las del catálogo además de las propias del proyecto, con su madurez.
+- `scripts/catalogo.py`. Pruebas: `pruebas/nucleo/prueba_catalogo.py`.
+
+### Cambiado
+- **Cambiar las skills del perfil exige `make instalar-kit`** (también al crear o quitar el perfil). Hasta entonces `make verificar-kit` falla con `Las skills instaladas no son las que pide el perfil` y el commit se rechaza. `/bowser-profile` lo ejecuta solo.
+- Un rol ya no declara una skill que el proyecto no tiene: si el perfil no nombra `react-frontend`, `dev-frontend` se genera sin ella.
+
+### Límites
+- Qué skill recibe cada agente lo sigue diciendo el rol, no el perfil. Llega en el paso B3.
+- Si el proyecto tiene una skill propia con el nombre de una del catálogo y el perfil la nombra, la instalación la reemplaza por la del kit y deja la propia en `.kit-respaldo/`.
+
+### Al actualizar
+- Si tu proyecto tiene perfil y usa Go, React o PostgreSQL, comprueba que el perfil nombre `go-backend`, `react-frontend` y `postgres-db` en las `skills` de la parte que corresponda: la actualización retira del proyecto las que no nombre. Para recuperarlas, agrégalas al perfil y ejecuta `make instalar-kit`.
+- Un proyecto sin perfil no tiene que hacer nada.
+
 ## [1.13.0] - 2026-10-08
 
 Primer paso (B1) de la entrega B de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0. No cambia nada en un proyecto sin perfil, y los perfiles ya escritos siguen valiendo.
