@@ -327,6 +327,7 @@ def detectar(raiz: Path = RAIZ) -> dict:
         if ajeno:
             continue
         # Carpetas que a veces son código ajeno y a veces propio: se cuentan igual y se informan aparte.
+        dudosa = None
         for i, tramo in enumerate(tramos[:-1]):
             if tramo in TERCEROS_A_REVISAR and i + 1 < len(tramos) - 1:
                 dudosa = "/".join(tramos[:i + 2])
@@ -338,6 +339,9 @@ def detectar(raiz: Path = RAIZ) -> dict:
 
         if nombre in MARCADORES or nombre.endswith((".csproj", ".sln")):
             dato = {"archivo": rel, "indica": MARCADORES.get(nombre, ".NET")}
+            if dudosa:
+                # Puede ser el archivo de una biblioteca copiada dentro, no la tecnología del proyecto.
+                dato["dentro_de_carpeta_a_confirmar"] = dudosa
             if nombre == "package.json":
                 paquete = leer_json(raiz / rel)
                 deps = {**paquete.get("dependencies", {}), **paquete.get("devDependencies", {})} \

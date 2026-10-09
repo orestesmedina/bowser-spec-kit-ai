@@ -80,6 +80,8 @@ def ejecutar(perfil: dict, verbos: list[str], solo: str | None, verificar: bool)
                         print(f"  {c}", file=sys.stderr)
                     print("  Ejecuta 'make generar' y agrega el resultado al commit.", file=sys.stderr)
                     fallos.append(f"código generado de «{parte['nombre']}»")
+                else:
+                    print(f"✓ Código generado al día en la parte «{parte['nombre']}».")
         if not definido:
             print(f"⚠ Ninguna parte define «{verbo}» ({VERBOS[verbo]}). Se agrega en {RUTA}.")
 

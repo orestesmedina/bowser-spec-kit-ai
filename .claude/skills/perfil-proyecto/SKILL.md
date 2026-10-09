@@ -57,7 +57,7 @@ Todo comando termina con código 0 si está bien y distinto de 0 si no.
 
 ## Cómo redactarlo
 
-1. Parte de los hechos: la salida de `make profile DETECTAR=1` y lo que leas en el código (archivos de configuración, `README`, scripts existentes).
+1. Parte de los hechos: la salida de `make profile DETECTAR=1` y lo que leas en el código (archivos de configuración, `README`, scripts existentes). Un archivo de tecnología que trae `dentro_de_carpeta_a_confirmar` suele ser de una biblioteca copiada dentro del proyecto: no lo tomes por la tecnología del proyecto sin mirar la carpeta.
 2. **Una parte es algo que se construye, se prueba o se despliega por separado.** No dividas por dividir: un proyecto pequeño puede ser una sola parte con `"carpeta": "."`.
 3. Usa solo comandos que el proyecto ya puede ejecutar: herramientas que ya usa o que están en sus archivos de configuración. Si propones una herramienta nueva, dilo aparte como recomendación; no la pongas en el perfil hasta que esté instalada.
 4. **Si el proyecto no tiene algo, el verbo va en `null`.** Un proyecto sin pruebas tiene `"probar": null`, no un comando inventado que siempre pasa. Lista los verbos sin definir como deuda, para que la persona decida.

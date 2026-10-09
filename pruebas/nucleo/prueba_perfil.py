@@ -175,7 +175,7 @@ def generados_con_perfil(e):
     contiene(r.salida, "El código generado de la parte «api» no estaba al día")
     contiene(r.salida, "servidor/salida.gen")
     p.commit("chore: código generado")
-    p.make("verificar-generados")
+    contiene(p.make("verificar-generados").salida, "Código generado al día en la parte «api»")
     p.make("generar")
     afirmar(not p.pendientes(), f"generar dos veces dejó cambios: {p.pendientes()}")
 
@@ -187,6 +187,7 @@ def detectar(e):
     p.escribir("api/modelo/Usuario.php", "<?php\n")
     p.escribir("api/vendor/alguien/paquete/a.php", "<?php\n")
     p.escribir("api/libraries/Hojas/Hoja.php", "<?php\n")
+    p.escribir("api/libraries/Hojas/composer.json", json.dumps({"require": {"php": ">=5.0"}}))
     p.escribir("api/composer.json", json.dumps({"require": {"php": ">=8.2"}, "scripts": {"test": "phpunit"}}))
     p.escribir("datos/esquema.sql",
                "CREATE TABLE `a` (`id` int NOT NULL AUTO_INCREMENT) ENGINE=InnoDB;\n"
@@ -203,10 +204,14 @@ def detectar(e):
     afirmar(set(carpetas) == {"api", "datos", "web"}, f"carpetas con código inesperadas (¿contó el kit?): {sorted(carpetas)}")
     afirmar(carpetas["api"]["lenguajes"] == {"PHP": 3}, f"contó mal el PHP propio (vendor no cuenta): {carpetas['api']}")
     afirmar(d["carpetas_de_terceros"] == ["api/vendor"], f"terceros: {d['carpetas_de_terceros']}")
-    afirmar(d["carpetas_a_confirmar_si_son_de_terceros"] == [{"carpeta": "api/libraries/Hojas", "archivos": 1}],
+    afirmar(d["carpetas_a_confirmar_si_son_de_terceros"] == [{"carpeta": "api/libraries/Hojas", "archivos": 2}],
             f"carpetas a confirmar: {d['carpetas_a_confirmar_si_son_de_terceros']}")
     marcas = {m["archivo"]: m for m in d["archivos_que_indican_tecnologia"]}
-    afirmar(set(marcas) == {"api/composer.json", "web/package.json"}, f"marcadores: {sorted(marcas)}")
+    afirmar(set(marcas) == {"api/composer.json", "api/libraries/Hojas/composer.json", "web/package.json"},
+            f"marcadores: {sorted(marcas)}")
+    afirmar(marcas["api/libraries/Hojas/composer.json"].get("dentro_de_carpeta_a_confirmar") == "api/libraries/Hojas"
+            and "dentro_de_carpeta_a_confirmar" not in marcas["api/composer.json"],
+            f"no distingue el composer.json de una biblioteca copiada del propio: {marcas}")
     afirmar(marcas["web/package.json"]["paquetes_conocidos"] == ["react", "vitest"], f"paquetes: {marcas['web/package.json']}")
     afirmar(marcas["web/package.json"]["scripts"] == ["lint", "test"], f"scripts: {marcas['web/package.json']}")
     afirmar(marcas["api/composer.json"]["scripts"] == ["test"], f"scripts de Composer: {marcas['api/composer.json']}")

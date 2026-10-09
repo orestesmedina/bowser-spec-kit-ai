@@ -2,8 +2,8 @@
 
 Hacia dónde va el kit, por qué, y en qué punto estamos. Este archivo es la memoria del plan: cualquier persona o sesión de IA que retome el trabajo empieza por aquí.
 
-**Estado actual:** versión 1.11.0. Etapa 0 hecha. Etapa 1: los seis comandos están hechos y probados en OpenCode; la prueba a mano en Claude Code y Codex queda aplazada. **Etapa 2 en curso** (núcleo sin tecnología): diseño aprobado; hecha la entrega A (perfil del proyecto y verbos), que no rompe los proyectos actuales. Sigue la entrega B, en una rama aparte.
-**Última actualización:** 2026-10-05.
+**Estado actual:** versión 1.12.1. Etapa 0 hecha. Etapa 1: los seis comandos están hechos y probados en OpenCode; la prueba a mano en Claude Code y Codex queda aplazada. **Etapa 2 en curso** (núcleo sin tecnología): diseño aprobado; hecha la entrega A (perfil del proyecto y verbos), que no rompe los proyectos actuales, y validada sobre copias de los dos proyectos. Sigue la entrega B, en una rama aparte: diseño aprobado el 2026-10-08, sin empezar (pasos en la [etapa 2](#etapa-2-núcleo-sin-tecnología-y-perfil-del-proyecto-versión-20)).
+**Última actualización:** 2026-10-08.
 
 - [El norte](#el-norte)
 - [Principios de diseño](#principios-de-diseño)
@@ -163,6 +163,37 @@ Detalles que salieron al implementar la entrega A (2026-10-05):
 - Los verbos son seis: `formato`, `revisar`, `probar`, `cobertura`, `auditar` y `generar`. Uno sin definir avisa y no falla.
 - Un cambio en el perfil lo confirma una persona en el commit (`APROBADO_PERFIL=1`), como la constitución: sus comandos se ejecutan en cada máquina y en la integración continua.
 
+Validación de la entrega A sobre copias de los dos proyectos (2026-10-08, en `~/validacion-kit/` de WSL; los originales no se tocaron):
+
+- **`simiente-santa-webside`** (pasó de la 1.6.4 a la 1.12.0 en la copia): con un perfil de dos partes, `make lint`, `make verificar-generados`, `make test` (176 pruebas del frontend y las de integración) y `make cobertura` (87 %) dan lo mismo que sin perfil. `make security` falla igual en los dos casos, por el Go 1.27.1 de la máquina (corregido en 1.27.2): no es del kit.
+- **p2p Controller**: perfil de tres partes (`api`, `base-de-datos`, `panel`). El único verbo que el proyecto puede tener hoy es `revisar`: sintaxis de PHP 7.4 dentro de Docker, 103 archivos propios sin errores. Los otros cinco quedan sin definir y `make ci` termina bien. Los controles del commit funcionan.
+- No se probó: `/bowser-profile` dentro de una herramienta real (los dos perfiles los redactó Claude Code a mano siguiendo la skill), ni un cambio real de punta a punta.
+
+Lo que la validación deja para las entregas siguientes:
+
+| Hallazgo | Dónde se atiende |
+|---|---|
+| No hay skills de PHP, MySQL ni JavaScript puro: en p2p las tres partes quedan con `skills: []` | B (primeras skills fuera de Go) |
+| La base de datos no tiene quién la trabaje: 67 procedimientos almacenados y ningún rol | B (rol de base de datos) |
+| El panel es PHP que genera HTML, más CSS y JavaScript: ni "backend" ni "frontend" lo describen solos | B (decisión abierta: roles por parte) |
+| Las semillas traen tecnología: a un proyecto de PHP y MySQL le llegan un `docker-compose.yml` con PostgreSQL, un `.gitignore` de Go y Node y un `ci.yml` de Go y React | B y C |
+| La lista de terceros se escribe dos veces: en `terceros` y otra vez en el comando del verbo, para excluirlos | B (pasar al comando las variables `PERFIL_TERCEROS` y `PERFIL_RAIZ`) |
+| Un proyecto sin herramientas necesita un script propio para un verbo, y `scripts/` es del kit: en la copia se usó `herramientas/` | B (definir la carpeta y documentarla) |
+| `make ci` en verde con cinco de seis verbos sin definir se lee como "todo bien" | B (resumen final: qué se comprobó y qué no) |
+| `make doctor` exige golangci-lint, sqlc y migrate en un proyecto de PHP | C (ya previsto) |
+| Tecnologías nombradas fuera de las skills, hoy: `dev-backend` 14 menciones, constitución 13, `dev-frontend` 11, `AGENTS.md` 9, orquestador 7, `arquitecto` 5, otros roles 10 | Medida de partida del "Hecho cuando" |
+
+Pasos de la entrega B, en orden (rama `etapa-2`, que sale de `main` con la 1.12.1 ya en el historial). Cada paso termina con `make test-kit` en verde:
+
+| Paso | Contenido | Estado |
+|---|---|---|
+| B1 | Perfil: `roles` (lista) por parte, aceptando el `rol` de la entrega A; las skills de cada rol dentro de la parte; variables `PERFIL_RAIZ` y `PERFIL_TERCEROS` para los comandos de los verbos; carpeta del proyecto para sus propios scripts; resumen al final de `make ci` con lo comprobado y lo que quedó sin comprobar | Pendiente |
+| B2 | Catálogo: las skills de tecnología salen de `.agents/skills/` a una carpeta de catálogo del kit, con etiqueta de madurez; `make instalar-kit` copia solo las que el perfil nombra (sin perfil, las tres de siempre) y avisa si el perfil pide una que no existe | Pendiente |
+| B3 | Roles sin tecnología: `dev-backend`, `dev-frontend`, `arquitecto`, `qa-tester`, `devops` y el resto dejan de nombrar Go, React y PostgreSQL y leen el perfil (carpetas, skills y verbos); rol nuevo de base de datos; `sincronizar.py` ya no saca las skills del rol sino del perfil; orquestador y `AGENTS.md` al día | Pendiente |
+| B4 | Skills `php`, `mysql` y `web-sin-framework`, redactadas con la documentación oficial y el código de p2p Controller | Pendiente |
+| B5 | Semillas sin tecnología: `docker-compose.yml`, `.env.example` y el bloque de `.gitignore` dejan de traer PostgreSQL, Go y Node a quien no los usa | Pendiente |
+| B6 | Repetir la validación de las dos copias con la rama y un cambio pequeño de verdad en cada una | Pendiente |
+
 **Validación:** un proyecto existente de Orestes en **PHP puro, con HTML, CSS y JavaScript puros, y MySQL** (decidido el 2026-10-04): **p2p Controller**, en `D:\IA\environment\wsl\code\p2p Controller` (en WSL, `/mnt/d/IA/environment/wsl/code/p2p Controller`), con el script de MySQL en `api.p2pcontroller/@database/p2pcontroller.sql`. No es para meter esa combinación en el kit, sino para comprobar que el núcleo funciona sin la tecnología original: otro lenguaje, otra base de datos y un proyecto que no tiene la forma "backend y frontend separados". De ahí salen además las primeras skills que no son de Go. Como es un proyecto existente, es también el caso de prueba de la etapa 4.
 **Lo que se encontró en p2p Controller (2026-10-05, solo lectura):** dos carpetas hermanas (`api.p2pcontroller`, la API, y `p2pcontroller.com/http`, el panel web), unas 13 000 líneas de PHP propio, 25 tablas y 67 procedimientos almacenados. No es un repositorio de git, y no tiene pruebas, Composer, formateador ni Docker. Trae bibliotecas de terceros copiadas dentro (`libraries/`, `bower_components/`). Consecuencias para el diseño: un verbo puede no estar definido en un proyecto, el perfil debe declarar las carpetas de terceros, y reglas como "80 % de cobertura" son del proyecto, no del núcleo. Se trabaja siempre sobre una copia.
 **Migración:** `simiente-santa-webside` debe poder pasar a la 2.0 con un comando, probado antes contra una copia.
@@ -222,6 +253,9 @@ Detalles que salieron al implementar la entrega A (2026-10-05):
 | 2026-10-05 | La prueba a mano de los comandos en Claude Code y Codex se aplaza; se empieza la etapa 2 | Orestes |
 | 2026-10-05 | Diseño de la etapa 2 en cuatro entregas (A a D); la A en `main` y el resto en una rama | Propuesto por Claude; aprobado por Orestes |
 | 2026-10-05 | El perfil del proyecto lo redacta un agente de primera instancia; la persona lo corrige y lo aprueba | Orestes |
+| 2026-10-08 | Entrega B: una parte del perfil puede declarar varios roles, y cada rol recibe las skills de esa parte que le corresponden | Propuesto por Claude; aprobado por Orestes |
+| 2026-10-08 | Entrega B: las únicas skills nuevas son las de p2p Controller (`php`, `mysql`, `web-sin-framework`), marcadas "solo redactadas" hasta que haya un cambio real hecho con ellas | Propuesto por Claude; aprobado por Orestes |
+| 2026-10-08 | Entrega B: el catálogo de skills vive en el kit y la instalación copia solo las que el perfil nombra; sin perfil, las tres de siempre | Propuesto por Claude; aprobado por Orestes |
 | 2026-10-04 | **El nombre se queda en "bowser" por ahora** (es el nombre de su perro). Los comandos usan el prefijo `/bowser-`. Si más adelante aparece un nombre mejor, se cambia | Orestes |
 
 ## Decisiones abiertas

@@ -13,6 +13,17 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.12.1] - 2026-10-08
+
+Correcciones que salieron al escribir el perfil de dos proyectos reales sobre copias (uno en Go y React, otro en PHP puro con MySQL).
+
+### Corregido
+- **`make profile DETECTAR=1` presentaba como tecnología del proyecto el `composer.json` de una biblioteca copiada dentro** (por ejemplo `libraries/PHPMailer/composer.json`). Ahora ese dato lleva el campo `dentro_de_carpeta_a_confirmar` con la carpeta dudosa, y la skill `perfil-proyecto` indica cómo leerlo.
+- **`make verificar-generados` con perfil no decía nada cuando todo estaba bien.** Ahora confirma cada parte: `✓ Código generado al día en la parte «api».`
+
+### Al actualizar
+- Nada que hacer.
+
 ## [1.12.0] - 2026-10-05
 
 Primera entrega de la etapa 2 de la hoja de ruta (el kit deja de suponer la tecnología del proyecto). No cambia nada en un proyecto que no cree su perfil.

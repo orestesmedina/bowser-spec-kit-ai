@@ -106,7 +106,7 @@ En el chat de tu herramienta:
 
 (En Codex, `$bowser-profile`.) El agente hace esto:
 
-1. Ejecuta `make profile DETECTAR=1`, que mira el proyecto y lista lo que encuentra: carpetas con código y en qué lenguaje, archivos que delatan una tecnología (`go.mod`, `composer.json`, `package.json`), archivos de SQL con su motor probable, y carpetas que parecen de terceros. Solo lee.
+1. Ejecuta `make profile DETECTAR=1`, que mira el proyecto y lista lo que encuentra: carpetas con código y en qué lenguaje, archivos que delatan una tecnología (`go.mod`, `composer.json`, `package.json`), archivos de SQL con su motor probable, y carpetas que parecen de terceros. Si uno de esos archivos está dentro de una carpeta dudosa (por ejemplo `libraries/PHPMailer/composer.json`), lo marca con `dentro_de_carpeta_a_confirmar`: suele ser de una biblioteca copiada, no la tecnología del proyecto. Solo lee.
 2. Le pasa esos hechos al `arquitecto`, que redacta el perfil.
 3. Te pregunta lo que no puede saber mirando el código: cómo se prueba, qué versión se usa, si una carpeta dudosa es de terceros.
 4. Te muestra la propuesta en lenguaje simple y espera tu aprobación.
