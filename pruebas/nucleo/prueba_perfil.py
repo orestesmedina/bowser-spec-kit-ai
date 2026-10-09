@@ -114,6 +114,116 @@ def perfil_invalido(e):
     afirmar("«go-backend»" not in r.salida, "avisó de una skill que sí existe")
 
 
+@prueba("una parte puede tener varios roles, cada uno con las skills de la parte más las suyas; el «rol» único sigue valiendo")
+def roles_de_la_parte(e):
+    p = con_perfil(e)
+    contiene(p.make("profile").salida, "    roles:      dev-backend\n", "el perfil con «rol» (formato de la entrega A)")
+
+    def con_roles(roles, **campos) -> dict:
+        perfil = base()
+        del perfil["partes"][0]["rol"]
+        perfil["partes"][0].update(roles=roles, **campos)
+        return perfil
+
+    escribir_perfil(p, con_roles(["dev-backend", {"rol": "dev-frontend", "skills": ["react-frontend", "go-backend"]}, "qa-tester"],
+                                 skills=["go-backend"]))
+    r = p.make("profile")
+    contiene(r.salida, "    roles:      dev-backend (go-backend)  ·  dev-frontend (go-backend, react-frontend)  ·  qa-tester (go-backend)\n")
+    contiene(r.salida, "OK: perfil válido (2 partes).")
+
+    # Skills sin ningún rol: se dice, porque nadie las recibe.
+    sin_rol = base()
+    del sin_rol["partes"][0]["rol"]
+    sin_rol["partes"][0]["skills"] = ["go-backend"]
+    escribir_perfil(p, sin_rol)
+    contiene(p.make("profile").salida, "skills:     go-backend (ningún rol las recibe")
+
+    # La skill que falta también se avisa cuando es de un solo rol.
+    escribir_perfil(p, con_roles([{"rol": "dev-backend", "skills": ["php"]}]))
+    contiene(p.make("profile").salida, "la skill «php» no está en .agents/skills/")
+
+    ambos = base()
+    ambos["partes"][0]["roles"] = ["dev-backend"]
+    malos = [
+        (ambos, "usa \"roles\" (lista) o \"rol\" (uno solo), no los dos"),
+        (con_roles("dev-backend"), "\"roles\" debe ser una lista de roles"),
+        (con_roles(["dev-backend", "dev-inventado"]), "el rol «dev-inventado» no existe"),
+        (con_roles([{"skills": ["go-backend"]}]), "el rol «None» no existe"),
+        (con_roles(["dev-backend", {"rol": "dev-backend"}]), "el rol «dev-backend» está dos veces"),
+        (con_roles([{"rol": "dev-backend", "skill": ["go-backend"]}]), "un rol solo admite \"rol\" y \"skills\" (sobra «skill»)"),
+        (con_roles([{"rol": "dev-backend", "skills": "go-backend"}]), "las \"skills\" del rol «dev-backend» deben ser una lista"),
+    ]
+    for perfil, mensaje in malos:
+        escribir_perfil(p, perfil)
+        contiene(p.make("profile", espera=1).salida, mensaje)
+        afirmar("▶" not in p.make("test", espera=1).salida, f"se ejecutó un verbo con un perfil inválido ({mensaje})")
+
+
+@prueba("los comandos de los verbos reciben PERFIL_RAIZ y PERFIL_TERCEROS, también en el commit, y pueden usar scripts de tools/")
+def variables_de_los_verbos(e):
+    perfil = base()
+    perfil["partes"][0]["terceros"] = ["ajeno", "libs/con espacio/"]
+    perfil["partes"][0]["verbos"] = {"probar": "bash \"$PERFIL_RAIZ/tools/mostrar.sh\"",
+                                     "formato": "test -f \"$PERFIL_RAIZ/equipo/perfil.json\" && test -n \"$PERFIL_TERCEROS\""}
+    perfil["partes"][1]["verbos"] = {"probar": "test -z \"$PERFIL_TERCEROS\" && echo panel-sin-terceros"}
+    p = e.proyecto()
+    p.escribir("servidor/index.php", "<?php\n")
+    p.escribir("web/panel/index.html", "<html></html>\n")
+    p.escribir("tools/mostrar.sh",
+               "echo \"raiz=$PERFIL_RAIZ en=$PWD\"\n"
+               "while IFS= read -r t; do echo \"tercero=<$t>\"; done <<< \"$PERFIL_TERCEROS\"\n")
+    escribir_perfil(p, perfil)
+    # El commit toca la parte «api»: su verbo formato corre en el hook y necesita las dos variables.
+    p.commit("chore: perfil del proyecto", extra=APROBADO)
+
+    r = p.make("test")
+    contiene(r.salida, f"raiz={p.ruta} en={p.ruta}/servidor\n")
+    contiene(r.salida, "tercero=<ajeno>\ntercero=<libs/con espacio>\n")
+    afirmar(r.salida.count("tercero=<") == 2, f"PERFIL_TERCEROS no trae una carpeta por línea:\n{r.salida}")
+    contiene(r.salida, "panel-sin-terceros")
+
+    # tools/ es del proyecto: instalar el kit otra vez no la toca ni la registra como suya.
+    p.make("instalar-kit")
+    p.verificar_kit()
+    afirmar(p.existe("tools/mostrar.sh") and not p.pendientes(), f"instalar el kit tocó el proyecto: {p.pendientes()}")
+    afirmar(not [a for a in json.loads(p.leer(".kit-manifest.json"))["archivos"] if a.startswith("tools/")],
+            "tools/ quedó registrada como carpeta del kit")
+
+
+@prueba("make ci con perfil ejecuta todos los verbos aunque uno falle y termina con un resumen de lo comprobado y lo que no")
+def resumen_de_ci(e):
+    contiene(e.proyecto().make("-n", "ci").salida, "go test", "make ci sin perfil")
+
+    p = con_perfil(e)
+    r = p.make("ci")
+    contiene(r.salida, "Resumen de lo comprobado")
+    contiene(r.salida, "  probar     bien: api  ·  sin definir: panel\n")
+    contiene(r.salida, "  cobertura  sin definir en ninguna parte\n")
+    contiene(r.salida, "⚠ Pasó lo que se comprobó: 1 de 12 comprobaciones. Las otras 11 no existen")
+    afirmar("Resumen" not in p.make("test").salida, "make test mostró el resumen, que es de make ci")
+
+    # Un fallo no corta lo que sigue, y el resumen dice dónde fue.
+    perfil = base()
+    perfil["partes"][0]["verbos"].update({"revisar": "exit 3", "generar": "echo generado > salida.gen"})
+    perfil["partes"][1]["verbos"] = {"revisar": "echo revisar-panel"}
+    escribir_perfil(p, perfil)
+    r = p.make("ci", espera=1)
+    contiene(r.salida, "  revisar    FALLÓ: api  ·  bien: panel\n")
+    contiene(r.salida, "  generar    FALLÓ: api  ·  sin definir: panel\n", "el código generado sin commit")
+    contiene(r.salida, "▶ probar · api", "los verbos que siguen a un fallo")
+    afirmar("Pasó lo que se comprobó" not in r.salida and "Todo comprobado" not in r.salida, "un ci con fallos dijo que pasó")
+    contiene(r.salida, "✗ Falló: revisar en «api»; código generado de «api».")
+
+    # Con todo definido y sin fallos, lo dice. PARTE limita el resumen a esa parte.
+    completo = {"partes": [{"nombre": "todo", "carpeta": "servidor", "verbos": {v: f"echo {v}-ok" for v in
+                                                                                 ("formato", "revisar", "probar", "cobertura", "auditar", "generar")}}]}
+    escribir_perfil(p, completo)
+    p.commit("chore: perfil completo", extra=APROBADO)
+    contiene(p.make("ci").salida, "✓ Todo comprobado y sin fallos (6 comprobaciones).")
+    escribir_perfil(p, base())
+    contiene(p.make("ci", "PARTE=api").salida, "1 de 6 comprobaciones")
+
+
 @prueba("commit: el perfil se confirma con APROBADO_PERFIL, sus inmutables no se modifican y el formato corre solo en la parte tocada")
 def controles_del_commit(e):
     p = e.proyecto()

@@ -144,6 +144,7 @@ En un proyecto **con [perfil](perfil-del-proyecto.md)**, cada comando ejecuta el
 | `make cobertura` | `cobertura` |
 | `make security` | `auditar` |
 | `make generar`, `make verificar-generados` | `generar` |
+| `make ci` | Los seis, y al final un [resumen](perfil-del-proyecto.md#el-resumen-de-make-ci) de qué se comprobó y qué quedó sin comprobar |
 
 `PARTE=nombre` limita el comando a una parte: `make test PARTE=api`. Una parte que no define un verbo se omite con un aviso. `make test-backend` y `make test-frontend` no leen el perfil.
 

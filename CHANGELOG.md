@@ -13,6 +13,27 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.13.0] - 2026-10-08
+
+Primer paso (B1) de la entrega B de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0. No cambia nada en un proyecto sin perfil, y los perfiles ya escritos siguen valiendo.
+
+### Agregado
+- **Varios roles por parte.** En el perfil, `roles` es una lista: cada elemento es el nombre de un rol o un objeto con las skills que son solo suyas (`{"rol": "dev-frontend", "skills": ["react-frontend"]}`). Cada rol recibe las `skills` de la parte más las propias. Sirve para partes que mezclan oficios, como un panel en PHP con su CSS y su JavaScript. `"rol": "dev-backend"` sigue valiendo y equivale a `"roles": ["dev-backend"]`.
+- **`PERFIL_RAIZ` y `PERFIL_TERCEROS`**: cada comando de un verbo recibe la ruta de la raíz del proyecto y las carpetas de terceros de su parte (una por línea). Ya no hace falta repetir la lista de terceros dentro del comando.
+- **`tools/`**: la carpeta del proyecto para los scripts propios que un verbo necesite (`scripts/` es del kit). El kit no la crea ni la toca.
+- **Resumen al final de `make ci`** (con perfil): por cada verbo, en qué partes pasó, en cuáles falló y en cuáles no está definido. Si no hubo fallos pero quedaron verbos sin definir, lo dice: `Pasó lo que se comprobó: 5 de 12 comprobaciones`.
+
+### Cambiado
+- Con perfil, `make ci` ejecuta todos los verbos aunque uno falle (antes se detenía en el primero), para que el resumen esté completo. Sigue terminando con error si algo falla.
+- `make profile` muestra los roles de cada parte en una línea propia, con las skills de cada uno.
+- Una carpeta de `terceros` o un patrón de `inmutables` con caracteres de control (un salto de línea, por ejemplo) se rechaza.
+
+### Límites
+- Los agentes todavía no reciben sus skills desde el perfil: los `roles` y las `skills` se validan y se muestran. Llega en el paso B3.
+
+### Al actualizar
+- Nada obligatorio. Si tu perfil repite la lista de terceros dentro de un comando, puedes cambiarla por `PERFIL_TERCEROS` (ver `docs/perfil-del-proyecto.md`); ese commit se confirma con `APROBADO_PERFIL=1`.
+
 ## [1.12.1] - 2026-10-08
 
 Correcciones que salieron al escribir el perfil de dos proyectos reales sobre copias (uno en Go y React, otro en PHP puro con MySQL).

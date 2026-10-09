@@ -127,7 +127,10 @@ else
 	cd frontend && npm audit --audit-level=high
 endif
 
-ci: lint verificar-generados test cobertura security ## Lo mismo que corre en CI
+ci: $(if $(CON_PERFIL),,lint verificar-generados test cobertura security) ## Lo mismo que corre en CI (con perfil, termina con un resumen)
+ifdef CON_PERFIL
+	@$(call VERBO,formato revisar generar probar cobertura auditar --verificar --resumen)
+endif
 
 # Comandos propios del proyecto (opcional; no lo gestiona el kit).
 -include proyecto.mk

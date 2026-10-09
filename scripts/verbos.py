@@ -3,13 +3,15 @@
 
 El núcleo del kit solo sabe pedir verbos (formato, revisar, probar, cobertura, auditar, generar). Qué comando
 corresponde a cada uno lo declara cada parte del proyecto en su perfil. Este script lo busca y lo ejecuta
-dentro de la carpeta de la parte. Una parte que no define un verbo se omite con un aviso: no es un error.
+dentro de la carpeta de la parte, con las variables PERFIL_RAIZ (raíz del proyecto) y PERFIL_TERCEROS (carpetas
+de terceros de la parte, una por línea). Una parte que no define un verbo se omite con un aviso: no es un error.
 
 Uso:
   python3 scripts/verbos.py probar                 el verbo en todas las partes
   python3 scripts/verbos.py formato revisar        varios verbos, en orden
   python3 scripts/verbos.py probar --parte api     solo en una parte
   python3 scripts/verbos.py generar --verificar    además falla si la parte quedó con cambios sin commit
+  python3 scripts/verbos.py formato probar --resumen   al final, qué se comprobó y qué quedó sin comprobar (make ci)
   python3 scripts/verbos.py --pre-commit           controles del perfil en cada commit (lo llama el hook de git)
 
 Solo usa la biblioteca estándar de Python 3.9+.
@@ -24,10 +26,14 @@ import sys
 from perfil import RAIZ, RUTA, VERBOS, ErrorPerfil, cargar, comando_de, perfil_valido, validar
 
 
-def correr(comando: str, carpeta: str) -> int:
+def correr(comando: str, parte: dict) -> int:
+    """Ejecuta el comando dentro de la carpeta de la parte. Le pasa la raíz del proyecto y las carpetas de
+    terceros de la parte (una por línea), para que no tenga que repetirlas."""
     sys.stdout.flush()
     sys.stderr.flush()
-    return subprocess.run(["bash", "-o", "pipefail", "-c", comando], cwd=RAIZ / carpeta).returncode
+    entorno = dict(os.environ, PERFIL_RAIZ=str(RAIZ),
+                   PERFIL_TERCEROS="\n".join(t.rstrip("/") for t in parte.get("terceros", [])))
+    return subprocess.run(["bash", "-o", "pipefail", "-c", comando], cwd=RAIZ / parte["carpeta"], env=entorno).returncode
 
 
 def git(*args: str) -> list[str]:
@@ -49,7 +55,32 @@ def es_de_terceros(rel: str, parte: dict) -> bool:
 
 # ---------------------------------------------------------------- ejecutar verbos
 
-def ejecutar(perfil: dict, verbos: list[str], solo: str | None, verificar: bool) -> int:
+def resumir(verbos: list[str], resultados: dict[str, dict[str, list[str]]]) -> None:
+    """Qué se comprobó y qué no. Que nada falle no significa que todo esté comprobado: un verbo sin definir
+    no se ejecutó."""
+    sys.stderr.flush()
+    print("\nResumen de lo comprobado")
+    total = hechas = 0
+    for verbo in verbos:
+        r = resultados[verbo]
+        total += sum(len(nombres) for nombres in r.values())
+        hechas += len(r["bien"]) + len(r["falló"])
+        if not r["bien"] and not r["falló"]:
+            print(f"  {verbo:<10} sin definir en ninguna parte")
+            continue
+        grupos = [f"{titulo}: {', '.join(r[clave])}"
+                  for clave, titulo in (("falló", "FALLÓ"), ("bien", "bien"), ("sin definir", "sin definir")) if r[clave]]
+        print(f"  {verbo:<10} {'  ·  '.join(grupos)}")
+    if any(resultados[v]["falló"] for v in verbos):
+        return
+    if hechas < total:
+        print(f"⚠ Pasó lo que se comprobó: {hechas} de {total} comprobaciones. Las otras {total - hechas} no existen "
+              f"todavía en este proyecto (arriba, «sin definir»): nadie las revisó.")
+    else:
+        print(f"✓ Todo comprobado y sin fallos ({total} comprobaciones).")
+
+
+def ejecutar(perfil: dict, verbos: list[str], solo: str | None, verificar: bool, resumen: bool = False) -> int:
     partes = [p for p in perfil["partes"] if solo in (None, p["nombre"])]
     if not partes:
         nombres = ", ".join(p["nombre"] for p in perfil["partes"])
@@ -57,19 +88,22 @@ def ejecutar(perfil: dict, verbos: list[str], solo: str | None, verificar: bool)
         return 2
 
     fallos: list[str] = []
+    resultados = {v: {"bien": [], "falló": [], "sin definir": []} for v in verbos}
     for verbo in verbos:
         definido = False
         for parte in partes:
             comando = comando_de(parte, verbo)
             if not comando:
                 print(f"⚠ La parte «{parte['nombre']}» no define el verbo «{verbo}»: se omite.")
+                resultados[verbo]["sin definir"].append(parte["nombre"])
                 continue
             definido = True
             print(f"▶ {verbo} · {parte['nombre']} ({parte['carpeta']}): {comando}")
-            codigo = correr(comando, parte["carpeta"])
+            codigo = correr(comando, parte)
             if codigo != 0:
                 print(f"✗ {verbo} falló en la parte «{parte['nombre']}» (código {codigo}).", file=sys.stderr)
                 fallos.append(f"{verbo} en «{parte['nombre']}»")
+                resultados[verbo]["falló"].append(parte["nombre"])
                 continue
             if verificar and verbo == "generar":
                 cambios = git("status", "--porcelain", "--", parte["carpeta"])
@@ -80,11 +114,15 @@ def ejecutar(perfil: dict, verbos: list[str], solo: str | None, verificar: bool)
                         print(f"  {c}", file=sys.stderr)
                     print("  Ejecuta 'make generar' y agrega el resultado al commit.", file=sys.stderr)
                     fallos.append(f"código generado de «{parte['nombre']}»")
-                else:
-                    print(f"✓ Código generado al día en la parte «{parte['nombre']}».")
+                    resultados[verbo]["falló"].append(parte["nombre"])
+                    continue
+                print(f"✓ Código generado al día en la parte «{parte['nombre']}».")
+            resultados[verbo]["bien"].append(parte["nombre"])
         if not definido:
             print(f"⚠ Ninguna parte define «{verbo}» ({VERBOS[verbo]}). Se agrega en {RUTA}.")
 
+    if resumen:
+        resumir(verbos, resultados)
     if fallos:
         print(f"\n✗ Falló: {'; '.join(fallos)}.", file=sys.stderr)
         return 1
@@ -142,7 +180,7 @@ def pre_commit() -> int:
             continue
         propios = [rel for rel in (dentro_de(a, parte["carpeta"]) for a in nuevos)
                    if rel is not None and not es_de_terceros(rel, parte)]
-        if propios and correr(comando, parte["carpeta"]) != 0:
+        if propios and correr(comando, parte) != 0:
             fallar(f"La parte «{parte['nombre']}» no pasa la revisión de formato ({comando}).")
 
     return 1 if errores else 0
@@ -179,7 +217,7 @@ def main() -> int:
     if perfil is None:
         print(f"✗ Este proyecto no tiene perfil ({RUTA}). Para crearlo, escribe en el chat: /bowser-profile", file=sys.stderr)
         return 1
-    return ejecutar(perfil, verbos, solo, verificar)
+    return ejecutar(perfil, verbos, solo, verificar, "--resumen" in args)
 
 
 if __name__ == "__main__":

@@ -43,7 +43,7 @@ Las pruebas de `nucleo/`:
 | `prueba_controles.py` | Mensajes de commit, secretos, constitución, migraciones, falta de `python3` y el hook de Claude Code |
 | `prueba_comandos.py` | Comandos del chat: generados para las tres herramientas, retirados al desactivar una, comandos propios, errores de formato y llegada al actualizar |
 | `prueba_costos.py` | `make costos` con OpenCode 1.x y 2.x, avisos y costo cerrado |
-| `prueba_perfil.py` | Perfil del proyecto: `make` ejecuta los verbos de cada parte, perfiles mal escritos, controles del commit (confirmación, inmutables, formato) y `make profile DETECTAR=1` |
+| `prueba_perfil.py` | Perfil del proyecto: `make` ejecuta los verbos de cada parte, perfiles mal escritos, varios roles por parte, las variables `PERFIL_RAIZ` y `PERFIL_TERCEROS`, el resumen de `make ci`, controles del commit (confirmación, inmutables, formato) y `make profile DETECTAR=1` |
 
 Las pruebas de `go/`:
 

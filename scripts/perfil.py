@@ -9,8 +9,11 @@ El perfil vive en equipo/perfil.json y es del proyecto (el kit no lo instala ni 
         "nombre": "api",                      minúsculas, números y guiones; único
         "carpeta": "backend",                 relativa a la raíz ("." si el proyecto es una sola parte)
         "descripcion": "API REST",            opcional
-        "rol": "dev-backend",                 opcional: el agente de equipo/agentes/ que la trabaja
-        "skills": ["go-backend"],             opcional: skills de .agents/skills/ que aplican
+        "roles": [                            opcional: los agentes de equipo/agentes/ que la trabajan
+          "dev-backend",                        solo el nombre, o
+          {"rol": "dev-frontend", "skills": ["react-frontend"]}     el nombre y las skills que son solo suyas
+        ],
+        "skills": ["go-backend"],             opcional: skills de .agents/skills/ para todos los roles de la parte
         "terceros": ["vendor"],               opcional: carpetas con código ajeno (relativas a la parte)
         "inmutables": ["migrations/*.sql"],   opcional: archivos que no se modifican una vez versionados
         "verbos": {                           opcional: comando de cada verbo, ejecutado dentro de la carpeta
@@ -20,6 +23,12 @@ El perfil vive en equipo/perfil.json y es del proyecto (el kit no lo instala ni 
       }
     ]
   }
+
+"rol": "dev-backend" (un solo rol, el formato de la primera versión del perfil) equivale a "roles": ["dev-backend"].
+
+Cada comando recibe dos variables de entorno: PERFIL_RAIZ (ruta absoluta de la raíz del proyecto) y
+PERFIL_TERCEROS (las carpetas de terceros de la parte, una por línea). Los scripts propios del proyecto que
+un verbo necesite van en tools/ (scripts/ es del kit).
 
 Sin perfil, el kit se comporta como antes de tenerlo (Go en backend/ y React en frontend/).
 
@@ -51,7 +60,7 @@ VERBOS = {
     "auditar": "busca vulnerabilidades en las dependencias",
     "generar": "regenera el código generado",
 }
-CAMPOS = {"nombre", "carpeta", "descripcion", "rol", "skills", "terceros", "inmutables", "verbos"}
+CAMPOS = {"nombre", "carpeta", "descripcion", "rol", "roles", "skills", "terceros", "inmutables", "verbos"}
 NOMBRE = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
 
 
@@ -80,7 +89,8 @@ def ruta_segura(valor) -> bool:
     if not isinstance(valor, str) or not valor.strip():
         return False
     p = valor.replace("\\", "/")
-    return not p.startswith("/") and not re.match(r"^[A-Za-z]:", p) and ".." not in p.split("/")
+    return (not p.startswith("/") and not re.match(r"^[A-Za-z]:", p) and ".." not in p.split("/")
+            and not any(ord(c) < 32 for c in p))
 
 
 def lista_de_textos(valor) -> bool:
@@ -126,18 +136,40 @@ def validar(perfil: dict, raiz: Path = RAIZ) -> tuple[list[str], list[str]]:
                 errores.append(f"{quien}: la carpeta «{carpeta}» ya pertenece a otra parte")
             carpetas.add(normal)
 
-        rol = parte.get("rol")
-        if rol is not None:
-            if not isinstance(rol, str) or not (raiz / "equipo/agentes" / f"{rol}.md").exists():
-                errores.append(f"{quien}: el rol «{rol}» no existe en equipo/agentes/")
-
         skills = parte.get("skills", [])
         if not lista_de_textos(skills):
             errores.append(f"{quien}: \"skills\" debe ser una lista de nombres de skills")
-        else:
-            for s in skills:
-                if not (raiz / ".agents/skills" / s / "SKILL.md").exists():
-                    avisos.append(f"{quien}: la skill «{s}» no está en .agents/skills/ (el agente trabajará sin ella)")
+            skills = []
+        nombradas = list(skills)
+
+        if "rol" in parte and "roles" in parte:
+            errores.append(f"{quien}: usa \"roles\" (lista) o \"rol\" (uno solo), no los dos")
+        roles = parte["roles"] if "roles" in parte else [parte["rol"]] if "rol" in parte else []
+        if not isinstance(roles, list):
+            errores.append(f"{quien}: \"roles\" debe ser una lista de roles (ej. [\"dev-backend\"])")
+            roles = []
+        vistos: set[str] = set()
+        for r in roles:
+            propias = []
+            if isinstance(r, dict):
+                sobran = sorted(k for k in r if k not in ("rol", "skills") and not k.startswith("_"))
+                if sobran:
+                    errores.append(f"{quien}: un rol solo admite \"rol\" y \"skills\" (sobra «{sobran[0]}»)")
+                r, propias = r.get("rol"), r.get("skills", [])
+            if not isinstance(r, str) or not (raiz / "equipo/agentes" / f"{r}.md").exists():
+                errores.append(f"{quien}: el rol «{r}» no existe en equipo/agentes/")
+                continue
+            if r in vistos:
+                errores.append(f"{quien}: el rol «{r}» está dos veces")
+            vistos.add(r)
+            if not lista_de_textos(propias):
+                errores.append(f"{quien}: las \"skills\" del rol «{r}» deben ser una lista de nombres de skills")
+            else:
+                nombradas += propias
+
+        for s in dict.fromkeys(nombradas):
+            if not (raiz / ".agents/skills" / s / "SKILL.md").exists():
+                avisos.append(f"{quien}: la skill «{s}» no está en .agents/skills/ (el agente trabajará sin ella)")
 
         terceros = parte.get("terceros", [])
         if not lista_de_textos(terceros) or not all(ruta_segura(t) for t in terceros):
@@ -170,6 +202,18 @@ def comando_de(parte: dict, verbo: str) -> str | None:
     return comando if isinstance(comando, str) and comando.strip() else None
 
 
+def roles_de(parte: dict) -> list[dict]:
+    """Los roles que trabajan la parte, cada uno con sus skills: las de la parte más las que son solo suyas.
+    Para un perfil ya validado."""
+    comunes = parte.get("skills", [])
+    roles = parte["roles"] if "roles" in parte else [parte["rol"]] if "rol" in parte else []
+    resultado = []
+    for r in roles:
+        nombre, propias = (r["rol"], r.get("skills", [])) if isinstance(r, dict) else (r, [])
+        resultado.append({"rol": nombre, "skills": list(dict.fromkeys([*comunes, *propias]))})
+    return resultado
+
+
 def perfil_valido(raiz: Path = RAIZ) -> dict | None:
     """El perfil ya validado, o None si no hay. Termina con error (código 1) si está mal escrito."""
     try:
@@ -194,14 +238,15 @@ def mostrar(perfil: dict) -> None:
     partes = perfil["partes"]
     print(f"Perfil del proyecto ({RUTA}): {len(partes)} parte{'s' if len(partes) != 1 else ''}\n")
     for parte in partes:
-        linea = f"  {parte['nombre']}  ·  carpeta {parte['carpeta']}"
-        if parte.get("rol"):
-            linea += f"  ·  {parte['rol']}"
-        if parte.get("skills"):
-            linea += f"  ·  skills: {', '.join(parte['skills'])}"
-        print(linea)
+        print(f"  {parte['nombre']}  ·  carpeta {parte['carpeta']}")
         if parte.get("descripcion"):
             print(f"    {parte['descripcion']}")
+        roles = roles_de(parte)
+        if roles:
+            print("    roles:      " + "  ·  ".join(
+                r["rol"] + (f" ({', '.join(r['skills'])})" if r["skills"] else "") for r in roles))
+        elif parte.get("skills"):
+            print(f"    skills:     {', '.join(parte['skills'])} (ningún rol las recibe: la parte no tiene roles)")
         for verbo in VERBOS:
             print(f"    {verbo:<10} {comando_de(parte, verbo) or '— sin definir'}")
         if parte.get("terceros"):

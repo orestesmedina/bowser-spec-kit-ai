@@ -39,6 +39,7 @@ mi-proyecto/
 ├── scripts/                         # Los programas detrás de los comandos make
 ├── Makefile                         # Comandos del kit
 ├── proyecto.mk                      # Comandos propios del proyecto (opcional)
+├── tools/                           # Scripts propios del proyecto para los verbos del perfil (opcional)
 │
 ├── docs/
 │   ├── producto/idea.md             # La idea del producto

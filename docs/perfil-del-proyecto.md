@@ -3,9 +3,13 @@
 - [Introducción](#introducción)
 - [Para qué sirve](#para-qué-sirve)
 - [Qué contiene](#qué-contiene)
+- [Varios roles en una parte](#varios-roles-en-una-parte)
 - [Los verbos](#los-verbos)
+- [Lo que recibe cada comando](#lo-que-recibe-cada-comando)
+- [Scripts propios del proyecto](#scripts-propios-del-proyecto)
 - [Crear el perfil](#crear-el-perfil)
 - [Ver y validar el perfil](#ver-y-validar-el-perfil)
+- [El resumen de make ci](#el-resumen-de-make-ci)
 - [Qué cambia cuando hay perfil](#qué-cambia-cuando-hay-perfil)
 - [Aprobar un cambio en el perfil](#aprobar-un-cambio-en-el-perfil)
 - [Cuando algo falla](#cuando-algo-falla)
@@ -38,7 +42,7 @@ Una lista de **partes**. Una parte es algo que se construye, se prueba o se desp
       "nombre": "api",
       "carpeta": "servidor",
       "descripcion": "API del inventario",
-      "rol": "dev-backend",
+      "roles": ["dev-backend"],
       "skills": ["go-backend", "postgres-db"],
       "terceros": ["vendor"],
       "inmutables": ["migrations/*.sql"],
@@ -54,9 +58,10 @@ Una lista de **partes**. Una parte es algo que se construye, se prueba o se desp
     {
       "nombre": "panel",
       "carpeta": "web/panel",
-      "rol": "dev-frontend",
+      "roles": ["dev-frontend"],
+      "terceros": ["libraries"],
       "verbos": {
-        "revisar": "find . -name '*.php' -not -path './libraries/*' -print0 | xargs -0 -n1 php -l > /dev/null"
+        "revisar": "bash \"$PERFIL_RAIZ/tools/sintaxis-php.sh\""
       }
     }
   ]
@@ -68,11 +73,32 @@ Una lista de **partes**. Una parte es algo que se construye, se prueba o se desp
 | `nombre` | Cómo se llama la parte. Minúsculas, números y guiones; no se repite | Sí |
 | `carpeta` | Dónde está, relativa a la raíz del proyecto. `"."` si el proyecto entero es una sola parte | Sí |
 | `descripcion` | Una línea para quien lo lea | No |
-| `rol` | El agente de `equipo/agentes/` que trabaja esa parte | No |
-| `skills` | Las [skills](skills.md) con las convenciones de su tecnología | No |
-| `terceros` | Carpetas con código ajeno copiado dentro de la parte. No se les revisa el formato | No |
+| `roles` | Los agentes de `equipo/agentes/` que trabajan esa parte. Ver [Varios roles en una parte](#varios-roles-en-una-parte) | No |
+| `skills` | Las [skills](skills.md) con las convenciones de su tecnología. Las reciben todos los roles de la parte | No |
+| `terceros` | Carpetas con código ajeno copiado dentro de la parte. No se les revisa el formato, y cada comando las recibe en `PERFIL_TERCEROS` | No |
 | `inmutables` | Archivos que no se modifican una vez guardados en git, como las migraciones. Son patrones relativos a la parte | No |
 | `verbos` | El comando de cada verbo | No |
+
+## Varios roles en una parte
+
+Hay partes que no son de un solo oficio. Un panel hecho en PHP que además lleva sus hojas de estilo y su JavaScript lo trabajan dos especialistas, y cada uno necesita convenciones distintas. Para eso `roles` es una lista, y cada rol puede traer skills que son solo suyas:
+
+```json
+{
+  "nombre": "panel",
+  "carpeta": "web/panel",
+  "skills": ["convenciones-del-panel"],
+  "roles": [
+    { "rol": "dev-backend", "skills": ["php"] },
+    { "rol": "dev-frontend", "skills": ["web-sin-framework"] },
+    "qa-tester"
+  ]
+}
+```
+
+Cada elemento de `roles` es el nombre de un rol, o un objeto con `rol` y sus `skills`. Un rol recibe las `skills` de la parte más las suyas: en el ejemplo, `dev-backend` trabaja con `convenciones-del-panel` y `php`; `qa-tester`, solo con `convenciones-del-panel`.
+
+`"rol": "dev-backend"`, el formato de la primera versión del perfil, sigue valiendo y significa lo mismo que `"roles": ["dev-backend"]`. Una parte usa uno de los dos, no ambos.
 
 ## Los verbos
 
@@ -95,6 +121,38 @@ Tres reglas:
 
 > [!WARNING]
 > No rellenes un verbo con un comando que siempre pasa (`"probar": "true"`) para quitar el aviso. El aviso es información: dice que esa parte no tiene pruebas. Un comando falso lo esconde.
+
+## Lo que recibe cada comando
+
+El kit le pasa dos variables de entorno a cada comando, para que no tenga que repetir lo que el perfil ya dice:
+
+| Variable | Qué trae | Para qué |
+|---|---|---|
+| `PERFIL_RAIZ` | La ruta completa de la raíz del proyecto | Llamar a un script del proyecto sin contar `../` desde la carpeta de la parte |
+| `PERFIL_TERCEROS` | Las carpetas de `terceros` de esa parte, una por línea y relativas a ella. Vacía si no hay | Excluir el código ajeno sin escribir la lista otra vez en el comando |
+
+Van una por línea, y no separadas por espacios, porque una carpeta puede tener espacios en el nombre.
+
+## Scripts propios del proyecto
+
+Un proyecto sin herramientas instaladas (sin linter ni formateador) suele necesitar un script propio para un verbo. Esos scripts van en la carpeta **`tools/`**, en la raíz del proyecto. No en `scripts/`: esa carpeta es del kit y se reemplaza en cada actualización.
+
+```bash
+# tools/sintaxis-php.sh: revisa la sintaxis de todo el PHP propio de la parte
+excluir=()
+while IFS= read -r carpeta; do
+  [ -n "$carpeta" ] && excluir+=(-not -path "./$carpeta/*")
+done <<< "$PERFIL_TERCEROS"
+find . -name '*.php' "${excluir[@]}" -print0 | xargs -0 -n1 php -l > /dev/null
+```
+
+Y en el perfil, el verbo lo llama desde la raíz:
+
+```json
+"revisar": "bash \"$PERFIL_RAIZ/tools/sintaxis-php.sh\""
+```
+
+El script corre dentro de la carpeta de la parte, así que el mismo sirve para varias partes: cada una le pasa sus propios terceros. `tools/` es del proyecto: el kit no la crea ni la toca.
 
 ## Crear el perfil
 
@@ -125,8 +183,9 @@ make profile
 ```text
 Perfil del proyecto (equipo/perfil.json): 2 partes
 
-  api  ·  carpeta servidor  ·  dev-backend  ·  skills: go-backend, postgres-db
+  api  ·  carpeta servidor
     API del inventario
+    roles:      dev-backend (go-backend, postgres-db)
     formato    test -z "$(gofmt -l .)"
     revisar    go vet ./...
     probar     go test ./...
@@ -136,13 +195,15 @@ Perfil del proyecto (equipo/perfil.json): 2 partes
     terceros:   vendor
     inmutables: migrations/*.sql
 
-  panel  ·  carpeta web/panel  ·  dev-frontend
+  panel  ·  carpeta web/panel
+    roles:      dev-frontend
     formato    — sin definir
-    revisar    find . -name '*.php' -not -path './libraries/*' -print0 | xargs -0 -n1 php -l > /dev/null
+    revisar    bash "$PERFIL_RAIZ/tools/sintaxis-php.sh"
     probar     — sin definir
     cobertura  — sin definir
     auditar    — sin definir
     generar    — sin definir
+    terceros:   libraries
 
 OK: perfil válido (2 partes).
 ```
@@ -155,6 +216,25 @@ Para ejecutar un verbo en una sola parte:
 make test PARTE=api
 ```
 
+## El resumen de make ci
+
+Un verbo sin definir no falla, y eso tiene una trampa: en un proyecto que solo define `revisar`, `make ci` termina bien habiendo comprobado muy poco. Por eso, con perfil, `make ci` cierra con un resumen de qué se comprobó y qué no:
+
+```text
+Resumen de lo comprobado
+  formato    bien: api  ·  sin definir: panel
+  revisar    bien: api, panel
+  generar    sin definir en ninguna parte
+  probar     bien: api  ·  sin definir: panel
+  cobertura  sin definir en ninguna parte
+  auditar    bien: api  ·  sin definir: panel
+⚠ Pasó lo que se comprobó: 5 de 12 comprobaciones. Las otras 7 no existen todavía en este proyecto (arriba, «sin definir»): nadie las revisó.
+```
+
+Una "comprobación" es un verbo en una parte. Cuando algo falla, la línea del verbo lo dice (`FALLÓ: api`) y `make ci` termina con error. Cuando todo está definido y pasa, la última línea es `✓ Todo comprobado y sin fallos`.
+
+Con perfil, `make ci` ejecuta todos los verbos aunque uno falle, para que el resumen esté completo. Sin perfil se detiene en el primer error, como siempre.
+
 ## Qué cambia cuando hay perfil
 
 | Comando o control | Sin perfil | Con perfil |
@@ -164,6 +244,7 @@ make test PARTE=api
 | `make cobertura` | Cobertura de la capa de servicio de Go, mínimo 80 % | El verbo `cobertura` |
 | `make security` | `govulncheck` y `npm audit` | El verbo `auditar` |
 | `make generar`, `make verificar-generados` | sqlc y los tipos de la API | El verbo `generar` |
+| `make ci` | Los cinco comandos anteriores, uno tras otro; se detiene en el primer error | Todos los verbos, y al final [un resumen](#el-resumen-de-make-ci) |
 | Commit: formato | `gofmt` y `prettier` | El verbo `formato`, solo en las partes que el commit toca |
 | Commit: archivos que no se modifican | `backend/migrations/*.sql` | Los `inmutables` de cada parte |
 
@@ -190,9 +271,12 @@ Antes de confirmarlo, lee los comandos con `make profile`. Un agente nunca usa e
 | `la carpeta «x» no existe` | La parte apunta a una carpeta que no está, o se renombró | Corrige `carpeta` |
 | `verbo desconocido «x»` | Solo existen los seis verbos de la tabla | Usa uno de ellos. Un comando propio del proyecto va en `proyecto.mk` |
 | `el rol «x» no existe en equipo/agentes/` | El nombre del rol está mal escrito | Mira los disponibles en `equipo/agentes/` |
+| `usa "roles" (lista) o "rol" (uno solo), no los dos` | La parte tiene los dos campos | Deja solo `roles` |
+| `el rol «x» está dos veces` | El mismo rol aparece repetido en los `roles` de una parte | Déjalo una vez, con todas sus skills |
 | `la skill «x» no está en .agents/skills/` | Es un aviso: el agente trabajará sin esa skill | Quítala del perfil o agrega la skill al proyecto |
 | `La parte «x» no define el verbo «y»: se omite` | Es un aviso: esa parte todavía no tiene eso | Nada, si es cierto. Si ya lo tiene, agrega el comando al perfil |
 | `Ninguna parte define «y»` | Es un aviso: el comando no ejecutó nada | Lo mismo |
+| `Pasó lo que se comprobó: N de M comprobaciones` | Es un aviso de `make ci`: no hubo fallos, pero hay verbos sin definir | Lee el resumen: lo que dice «sin definir» no lo revisó nadie |
 | `y falló en la parte «x» (código N)` | El comando del verbo terminó con error | El error real está justo encima: es la salida del comando |
 | `Estos archivos de la parte «x» no se modifican una vez versionados` | El commit cambia, renombra o borra un archivo `inmutable` | Deja el archivo como estaba y crea uno nuevo |
 | `La parte «x» no pasa la revisión de formato` | El verbo `formato` falló en una parte que el commit toca | Formatea el código de esa parte y repite el commit |
@@ -202,7 +286,7 @@ Con un perfil inválido el kit no ejecuta ningún verbo y bloquea los commits ha
 ## Límites
 
 - **La integración continua todavía no lee el perfil.** El `ci.yml` que trae el kit sigue buscando `backend/go.mod` y `frontend/package.json`. Un proyecto con otra forma necesita por ahora su propio workflow. Se resuelve en una entrega posterior.
-- **Los roles y `make doctor` todavía hablan de Go, React y PostgreSQL.** El campo `skills` del perfil se valida y se muestra, pero los roles siguen llevando las suyas escritas. También es de una entrega posterior.
+- **Los roles y `make doctor` todavía hablan de Go, React y PostgreSQL.** Los `roles` y las `skills` del perfil se validan y se muestran, pero los agentes todavía no las reciben de ahí: siguen llevando las suyas escritas. También es de una entrega posterior.
 - **El hook de Claude Code sigue protegiendo `backend/migrations/`**, no los `inmutables` del perfil. El control del commit sí usa el perfil, y es el que vale para las tres herramientas.
 - **`make verificar-generados` revisa toda la carpeta de la parte.** Si tienes otros cambios sin commit en ella, los toma por código generado desactualizado.
 - **La detección describe, no decide.** Reconoce las tecnologías más comunes por sus archivos; una que no conozca aparece solo como carpetas con archivos. Y no sabe cómo se prueba ni cómo se levanta el proyecto: eso se pregunta.

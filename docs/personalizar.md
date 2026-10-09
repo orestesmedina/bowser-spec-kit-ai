@@ -22,6 +22,7 @@ La idea central: **lo que tú agregas es tuyo, y el kit nunca lo toca**. Solo ha
 | Quieres… | Dónde | ¿Lo afecta una actualización? |
 |---|---|---|
 | Comandos `make` propios | `proyecto.mk` | No |
+| Scripts propios para probar, revisar o formatear | La carpeta `tools/`. Ver [Scripts propios del proyecto](perfil-del-proyecto.md#scripts-propios-del-proyecto) | No |
 | Un rol adicional | Un archivo nuevo en `equipo/agentes/` | No |
 | Una skill adicional | Una carpeta nueva en `.agents/skills/` | No |
 | Un comando del chat adicional | Un archivo nuevo en `equipo/comandos/` | No |

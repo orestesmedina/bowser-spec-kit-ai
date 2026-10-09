@@ -15,7 +15,7 @@ description: Cómo redactar o corregir el perfil del proyecto (equipo/perfil.jso
       "nombre": "api",
       "carpeta": "backend",
       "descripcion": "API REST del producto",
-      "rol": "dev-backend",
+      "roles": ["dev-backend"],
       "skills": ["go-backend", "postgres-db"],
       "terceros": ["vendor"],
       "inmutables": ["migrations/*.sql"],
@@ -36,8 +36,8 @@ description: Cómo redactar o corregir el perfil del proyecto (equipo/perfil.jso
 |---|---|
 | `nombre` | Minúsculas, números y guiones. Único |
 | `carpeta` | Relativa a la raíz. `"."` si el proyecto es una sola parte |
-| `rol` | El agente de `equipo/agentes/` que trabaja esa parte |
-| `skills` | Skills de `.agents/skills/` con las convenciones de su tecnología |
+| `roles` | Los agentes de `equipo/agentes/` que trabajan esa parte. Cada elemento es un nombre (`"dev-backend"`) o un objeto con las skills que son solo de ese rol (`{"rol": "dev-frontend", "skills": ["react-frontend"]}`) |
+| `skills` | Skills de `.agents/skills/` con las convenciones de su tecnología. Las reciben todos los roles de la parte, además de las propias de cada uno |
 | `terceros` | Carpetas con código ajeno copiado dentro de la parte (relativas a ella). No se revisan ni se formatean |
 | `inmutables` | Patrones de archivos que no se modifican una vez versionados (relativos a la parte). Ej.: migraciones |
 | `verbos` | El comando de cada verbo. Se ejecuta con `bash` **dentro de la carpeta de la parte** |
@@ -55,10 +55,14 @@ description: Cómo redactar o corregir el perfil del proyecto (equipo/perfil.jso
 
 Todo comando termina con código 0 si está bien y distinto de 0 si no.
 
+Cada comando recibe dos variables de entorno: `PERFIL_RAIZ` (ruta completa de la raíz del proyecto) y `PERFIL_TERCEROS` (las carpetas de `terceros` de esa parte, una por línea). Úsalas en vez de repetir la lista de terceros dentro del comando.
+
+Si un verbo necesita un script propio del proyecto, va en `tools/`, en la raíz, y el comando lo llama con `bash "$PERFIL_RAIZ/tools/<script>.sh"`. Nunca en `scripts/`: es del kit. `tools/` no es una parte del proyecto, aunque la detección la liste como carpeta con código.
+
 ## Cómo redactarlo
 
 1. Parte de los hechos: la salida de `make profile DETECTAR=1` y lo que leas en el código (archivos de configuración, `README`, scripts existentes). Un archivo de tecnología que trae `dentro_de_carpeta_a_confirmar` suele ser de una biblioteca copiada dentro del proyecto: no lo tomes por la tecnología del proyecto sin mirar la carpeta.
-2. **Una parte es algo que se construye, se prueba o se despliega por separado.** No dividas por dividir: un proyecto pequeño puede ser una sola parte con `"carpeta": "."`.
+2. **Una parte es algo que se construye, se prueba o se despliega por separado.** No dividas por dividir: un proyecto pequeño puede ser una sola parte con `"carpeta": "."`. Si una parte mezcla oficios (por ejemplo, PHP que genera HTML junto a su CSS y su JavaScript), no la partas en carpetas artificiales: dale varios `roles`, cada uno con sus skills.
 3. Usa solo comandos que el proyecto ya puede ejecutar: herramientas que ya usa o que están en sus archivos de configuración. Si propones una herramienta nueva, dilo aparte como recomendación; no la pongas en el perfil hasta que esté instalada.
 4. **Si el proyecto no tiene algo, el verbo va en `null`.** Un proyecto sin pruebas tiene `"probar": null`, no un comando inventado que siempre pasa. Lista los verbos sin definir como deuda, para que la persona decida.
 5. Lo que no puedas deducir, pregúntalo: cómo se levanta, qué versión del lenguaje usa, si una carpeta dudosa es de terceros.
@@ -68,7 +72,7 @@ Todo comando termina con código 0 si está bien y distinto de 0 si no.
 ## Entrega
 
 - El JSON propuesto.
-- Un resumen en lenguaje simple: partes, tecnología de cada una, verbos definidos y verbos sin definir.
+- Un resumen en lenguaje simple: partes, tecnología de cada una, roles que la trabajan, verbos definidos y verbos sin definir.
 - Las preguntas abiertas.
 
 Después de escribirlo, `make profile` lo valida. El commit lo confirma una persona con `APROBADO_PERFIL=1`; un agente nunca usa esa variable.
