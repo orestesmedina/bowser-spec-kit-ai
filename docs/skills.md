@@ -11,6 +11,10 @@
     - [go-backend](#go-backend)
     - [react-frontend](#react-frontend)
     - [postgres-db](#postgres-db)
+    - [php](#php)
+    - [mysql](#mysql)
+    - [web-sin-framework](#web-sin-framework)
+    - [De dónde sale cada skill](#de-dónde-sale-cada-skill)
 - [Las skills de flujo](#las-skills-de-flujo)
 - [El formato de una skill](#el-formato-de-una-skill)
 - [Cuándo cambiar una skill](#cuándo-cambiar-una-skill)
@@ -21,8 +25,8 @@
 
 Una skill es un conjunto de instrucciones reutilizables que un agente carga **cuando la tarea lo requiere**. El kit trae dos grupos:
 
-- **Las que usa todo proyecto:** cuatro con el paso a paso de cada flujo de trabajo y una para redactar el perfil del proyecto.
-- **Las de tecnología:** cómo se escribe código en Go, en React, en PostgreSQL. Están en un [catálogo](#el-catálogo-de-skills-de-tecnología) dentro del kit, y a cada proyecto llegan solo las que usa.
+- **Las que usa todo proyecto:** cuatro con el paso a paso de cada flujo de trabajo, una para redactar el perfil del proyecto y una para redactar sus convenciones.
+- **Las de tecnología:** el estándar de cada una, según su documentación oficial: Go, React, PostgreSQL, PHP, MySQL. Están en un [catálogo](#el-catálogo-de-skills-de-tecnología) dentro del kit, y a cada proyecto llegan solo las que usa.
 
 En el proyecto, todas viven en `.agents/skills/`, una carpeta por skill, cada una con un archivo `SKILL.md`.
 
@@ -57,14 +61,20 @@ make skills
 ```
 
 ```text
-Catálogo de skills del kit (.bowser-spec-kit-ai/catalogo/skills/): 3
+Catálogo de skills del kit (.bowser-spec-kit-ai/catalogo/skills/): 6
 
-  go-backend      probada    en el proyecto
-                  Convenciones de la empresa para escribir backend en Go (estructura, capas, errores, HTTP, pruebas). Usar siempre que se cree o modifique código en backend/.
-  postgres-db     probada    en el proyecto
-                  Convenciones de la empresa para diseñar esquemas, migraciones y consultas en PostgreSQL. Usar al crear tablas, migraciones, índices o consultas SQL.
-  react-frontend  probada    —
-                  Convenciones de la empresa para escribir frontend en React + TypeScript + Vite (estructura, estado, llamadas a la API, estilos, pruebas). Usar siempre que se cree o modifique código en frontend/.
+  go-backend         redactada  en el proyecto
+                     Convenciones para escribir servicios en Go según la documentación oficial (Effective Go, Go Code Review Comments, la guía de organización de módulos y las buenas prácticas de seguridad de go.dev). Usar siempre que se cree o modifique un archivo .go.
+  mysql              redactada  —
+                     Convenciones para diseñar tablas, índices, consultas, cambios de esquema y procedimientos almacenados en MySQL, según las recomendaciones del manual de referencia de MySQL. Usar al crear o modificar tablas, índices, consultas SQL o procedimientos almacenados.
+  php                redactada  —
+                     Convenciones para escribir PHP sin framework según los estándares de PHP-FIG (PSR-1, PSR-4, PER Coding Style) y las recomendaciones del manual de PHP (tipos, errores, base de datos, seguridad, pruebas). Usar siempre que se cree o modifique un archivo .php.
+  postgres-db        redactada  en el proyecto
+                     Convenciones para diseñar tablas, índices, consultas, cambios de esquema y funciones en PostgreSQL, según el manual oficial y la lista "Don't Do This" de la wiki de PostgreSQL. Usar al crear o modificar tablas, índices, consultas SQL o funciones.
+  react-frontend     redactada  —
+                     Convenciones para escribir interfaces en React con TypeScript según la documentación oficial (react.dev: las Reglas de React, cómo estructurar el estado y cuándo usar efectos). Usar siempre que se cree o modifique un componente, un hook o cualquier archivo .tsx o .jsx.
+  web-sin-framework  redactada  —
+                     Convenciones para interfaces web con HTML, CSS y JavaScript estándar, sin framework ni paso de compilación, según el estándar HTML, las pautas de accesibilidad WCAG y las guías de MDN y OWASP. Usar al crear o modificar páginas, plantillas, hojas de estilo o archivos JavaScript de una interfaz así.
 
   probada: usada en un proyecto real
   redactada: solo redactada: todavía no se usó en un proyecto real
@@ -96,7 +106,7 @@ Cada skill del catálogo lleva una etiqueta:
 | `probada` | Se usó en un proyecto real y se corrigió con lo que salió ahí | Nada especial |
 | `redactada` | Se escribió a partir de la documentación oficial, pero todavía no se hizo ningún cambio real con ella | Revisa con más cuidado lo que los agentes hagan con ella, y corrígela cuando contradiga lo que el proyecto necesita |
 
-`make instalar-kit` avisa la primera vez que trae una skill `redactada`. Hoy las tres del catálogo son `probada`.
+`make instalar-kit` avisa la primera vez que trae una skill `redactada`. Hoy las seis son `redactada`: `php`, `mysql` y `web-sin-framework` son nuevas, y `go-backend`, `react-frontend` y `postgres-db` se reescribieron en la versión 1.16.0 a partir de la documentación oficial, así que el texto actual tampoco se ha usado todavía en un proyecto.
 
 ### Cuando algo falla
 
@@ -111,43 +121,121 @@ Cada skill del catálogo lleva una etiqueta:
 
 ## Las skills del stack
 
-Son las del catálogo. Dicen cómo se escribe el código en cada tecnología, y son la razón por la que el código de distintas funcionalidades, escritas en distintos días, se parece.
+Son las del catálogo. Cada una recoge **el estándar de su tecnología**: lo que recomienda su documentación oficial sobre cómo escribir código, qué patrones seguir y qué no hacer. No dicen qué bibliotecas usar ni cómo nombrar las cosas en tu proyecto: eso son las [convenciones del proyecto](convenciones-del-proyecto.md).
 
 ### go-backend
 
-Se usa siempre que se crea o modifica código en `backend/`.
+Se usa siempre que se crea o modifica un archivo `.go`. Fuentes: Effective Go, Go Code Review Comments y las guías de go.dev.
 
 | Tema | Lo que establece |
 |---|---|
-| Herramientas | Go 1.26 o superior, `pgx/v5` con `sqlc`, `golang-migrate`, `log/slog`, `golangci-lint`, `govulncheck` |
-| Estructura | Una carpeta por dominio en `internal/`, con `handler.go`, `service.go`, `repository.go` y `model.go` |
-| Capas | El handler depende de una interfaz del service, y el service de una interfaz del repository. Así cada capa se prueba aislada |
-| Errores | Envueltos con contexto, errores de dominio propios, y traducidos a HTTP solo en el handler. Nunca se exponen errores internos al cliente |
-| Pruebas | Tabla de casos. El service con un repositorio falso; el repository contra PostgreSQL real. Cobertura mínima de 80 % en la capa de servicio |
+| Estructura | La que go.dev recomienda para un servidor: `cmd/` para los ejecutables e `internal/` para la lógica |
+| Formato y nombres | `gofmt`, `MixedCaps`, siglas en mayúsculas, paquetes cortos, receptores de una o dos letras |
+| Errores | Se revisan todos, se envuelven con `%w`, el camino normal va sin sangría, `panic` no es manejo de errores |
+| Interfaces | Pequeñas, declaradas por quien las usa |
+| Concurrencia | `context.Context` como primer parámetro, goroutines con final claro, pruebas con `-race` |
+| Base de datos | Valores siempre como parámetros, filas cerradas, transacción con `defer tx.Rollback()` |
+| Seguridad | `govulncheck`, `crypto/rand`, `html/template`, tiempos límite en el servidor |
+| Pruebas | Paquete `testing`, tabla de casos, junto al código |
 
 ### react-frontend
 
-Se usa siempre que se crea o modifica código en `frontend/`.
+Se usa siempre que se crea o modifica un componente o un hook. Fuente: react.dev.
 
 | Tema | Lo que establece |
 |---|---|
-| Herramientas | React 19, TypeScript estricto, Vite, React Router, TanStack Query, React Hook Form con Zod, Tailwind CSS |
-| Estructura | `app/`, `api/`, `components/` y una carpeta por funcionalidad en `features/` |
-| Datos | Nunca se llama a `fetch` desde un componente: se usa un hook. Los tipos de la API se generan desde el contrato |
-| Interfaz | Cada vista con datos implementa los estados cargando, vacío, error y éxito. Elementos semánticos y navegación por teclado |
-| Seguridad | Nada de `dangerouslySetInnerHTML`, nada de tokens en `localStorage` |
-| Pruebas | Vitest y Testing Library, probando lo que ve el usuario. Playwright para flujos completos |
+| Componentes | Funciones puras, declaradas en el nivel superior, con props tipadas y `key` estable en las listas |
+| Reglas de React | Pureza, props y estado sin modificar, hooks solo en el nivel superior. Las comprueba el complemento oficial de ESLint |
+| Estado | El mínimo, sin duplicar; lo que se puede calcular no es estado |
+| Efectos | Solo para sincronizar con algo de fuera de React, siempre con su limpieza |
+| Interfaz | Los estados cargando, vacío, error y éxito; HTML por lo que significa; accesibilidad |
+| Seguridad | Sin `dangerouslySetInnerHTML` con datos, ningún secreto en el navegador |
+| Pruebas | Junto al componente, probando lo que la persona ve y hace |
+
+Qué herramienta de compilación, de rutas, de datos o de estilos se usa no lo dice esta skill: es del proyecto.
 
 ### postgres-db
 
-Se usa al crear tablas, migraciones, índices o consultas.
+Se usa al crear o modificar tablas, índices, consultas o funciones. Fuentes: el manual de PostgreSQL y la lista "Don't Do This" de su wiki.
 
 | Tema | Lo que establece |
 |---|---|
-| Migraciones | Numeradas, cada `up` con su `down`. Una migración aplicada nunca se edita. Los cambios peligrosos en tablas grandes, en varios pasos |
-| Tablas | Nombres en inglés, en plural y `snake_case`. Siempre `id`, `created_at` y `updated_at`. Fechas con zona horaria. Dinero nunca en `FLOAT` |
-| Integridad | Claves foráneas explícitas, `NOT NULL` por defecto, restricciones `UNIQUE` y `CHECK` en la base de datos y no solo en el código |
-| Consultas | Siempre parametrizadas, sin `SELECT *`, paginación por cursor para listas grandes |
+| Nombres | En minúsculas y con guion bajo, sin comillas ni palabras reservadas |
+| Tipos | `text`, `timestamptz`, `numeric` para dinero, columnas de identidad en vez de `serial`, `jsonb` |
+| Tablas | Clave primaria, claves foráneas con su índice, `NOT NULL` por defecto, reglas declaradas en la tabla |
+| Consultas | Con parámetros, `NOT EXISTS` en vez de `NOT IN`, rangos de fechas con `>=` y `<` |
+| Cambios de esquema | Un archivo nuevo por cambio, con el que lo revierte, dentro de una transacción. En tablas con datos: `lock_timeout`, `NOT VALID`, índices con `CONCURRENTLY` |
+| Funciones | Sin SQL dinámico armado con texto recibido; `SECURITY DEFINER` solo con `search_path` fijo |
+| Seguridad | Rol de la aplicación sin `SUPERUSER`, contraseñas con `scram-sha-256` |
+
+### php
+
+Se usa siempre que se crea o modifica un archivo `.php` en un proyecto sin framework. Solo redactada. Fuentes: el manual de PHP y los estándares de PHP-FIG.
+
+| Tema | Lo que establece |
+|---|---|
+| Versión | Una con soporte activo, declarada en `composer.json` |
+| Estructura | Composer y carga de clases PSR-4: `public/` como único punto de entrada, `src/`, `tests/` |
+| Estilo y nombres | PER Coding Style (el sucesor de PSR-12) y PSR-1, aplicados con `php-cs-fixer` |
+| Tipos | `declare(strict_types=1)` y tipos declarados en parámetros, retornos y propiedades |
+| Errores | Excepciones, un único manejador, y la configuración de errores que recomienda el manual para desarrollo y producción |
+| Base de datos | Sentencias preparadas siempre, con PDO o `mysqli`; usuario con permisos mínimos |
+| Seguridad | Escapar la salida, `password_hash`, sesiones estrictas, token contra CSRF, sin `eval` ni `unserialize` sobre datos recibidos |
+| Pruebas | PHPUnit en `tests/`, con la misma estructura que `src/`; PHPStan para el análisis estático |
+
+### mysql
+
+Se usa al crear o modificar tablas, índices, consultas o procedimientos almacenados. Solo redactada. Fuente: el manual de referencia de MySQL.
+
+| Tema | Lo que establece |
+|---|---|
+| Nombres | Bases de datos y tablas en minúsculas, como recomienda el manual; `snake_case`, sin palabras reservadas |
+| Tablas | `InnoDB`, clave primaria en toda tabla, claves foráneas declaradas, `utf8mb4`, `NOT NULL` siempre que se pueda, dinero en `DECIMAL` |
+| Índices | Según las consultas, con el orden de las columnas pensado, y revisados con `EXPLAIN` |
+| Transacciones | Las operaciones relacionadas, juntas. `SELECT … FOR UPDATE` en vez de `LOCK TABLES` |
+| Cambios de esquema | Un archivo nuevo por cambio, con el que lo revierte. Un solo cambio de estructura por archivo, porque MySQL no los deshace con `ROLLBACK` |
+| Procedimientos | Prefijos en parámetros y variables, `SQL SECURITY INVOKER`, sin SQL dinámico armado con texto recibido |
+| Seguridad | Cuenta de la aplicación con permisos mínimos; nunca `root` |
+
+### web-sin-framework
+
+Se usa al crear o modificar páginas, plantillas, hojas de estilo o JavaScript de una interfaz que no tiene framework ni paso de compilación. Solo redactada. Fuentes: el estándar HTML, MDN, WCAG 2.2 y OWASP.
+
+| Tema | Lo que establece |
+|---|---|
+| Estructura | Contenido en el HTML, apariencia en `css/`, comportamiento en `js/` como módulos. El código de terceros no se edita |
+| HTML | Documento válido, elementos por lo que significan, `label` en cada campo |
+| Accesibilidad | WCAG 2.2 nivel AA: teclado, foco visible, contraste, mensajes anunciados |
+| CSS | Clases, propiedades personalizadas, diseño que parte de la pantalla angosta |
+| JavaScript | Estándar y disponible en los navegadores vigentes. `fetch` comprobando `response.ok`, y los cuatro estados de toda llamada: cargando, vacío, error y éxito |
+| Seguridad | Todo dato se escapa al ponerlo en la página; nunca `innerHTML` con datos; ningún secreto en lo que llega al navegador |
+| Pruebas | En `tests/`, con la herramienta que defina el plan |
+
+### De dónde sale cada skill
+
+Una skill del catálogo no describe cómo está hecho un proyecto en particular ni las preferencias de un equipo: recoge lo que recomienda quien mantiene la tecnología. Cada una nombra sus fuentes al inicio, con la fecha en que se revisaron, y a ellas se va cuando la skill no resuelve una duda. Donde la fuente oficial no fija nada (por ejemplo, el formato de los archivos de cambio de una base de datos), la skill lo dice.
+
+Así una skill sirve igual para cualquier proyecto que use esa tecnología.
+
+Lo propio de cada proyecto (cómo nombra variables, tablas y columnas, qué patrones de diseño sigue, qué bibliotecas eligió) va aparte, en una skill del proyecto que redacta `/bowser-conventions`. Ver [Convenciones del proyecto](convenciones-del-proyecto.md). Cuando las dos dicen cosas distintas:
+
+1. En seguridad, siempre el estándar.
+2. En nombres, estructura, patrones y bibliotecas, el proyecto.
+3. En lo que el proyecto no define, el estándar.
+
+Un perfil que combina las dos, para un proyecto con una API, su base de datos y un panel web hecho con PHP que genera HTML:
+
+```json
+{
+  "partes": [
+    { "nombre": "api", "carpeta": "api", "roles": ["dev-backend"], "skills": ["php", "convenciones-de-api"] },
+    { "nombre": "base-de-datos", "carpeta": "api/database", "roles": ["dev-dba"], "skills": ["mysql", "convenciones-de-base-de-datos"] },
+    { "nombre": "panel", "carpeta": "panel", "roles": ["dev-frontend"], "skills": ["php", "web-sin-framework", "convenciones-de-panel"] }
+  ]
+}
+```
+
+El panel lleva las dos del catálogo: `php` para la parte de la página que se arma en el servidor y `web-sin-framework` para lo que llega al navegador.
 
 ## Las skills de flujo
 
@@ -162,7 +250,7 @@ Describen el paso a paso de cada tipo de trabajo. Las ejecuta el orquestador.
 
 Estas skills son las que hacen que el proceso sea el mismo cada vez. El orquestador no improvisa el orden de las fases: lo lee.
 
-Hay una skill más, `perfil-proyecto`, que no es de una tecnología ni de un flujo: explica el formato del [perfil del proyecto](perfil-del-proyecto.md) y cómo redactarlo. La usa el `arquitecto` cuando alguien escribe `/bowser-profile`.
+Hay dos skills más, que no son de una tecnología ni de un flujo. `perfil-proyecto` explica el formato del [perfil del proyecto](perfil-del-proyecto.md) y cómo redactarlo; la usa el `arquitecto` cuando alguien escribe `/bowser-profile`. `convenciones-proyecto` explica cómo redactar las [convenciones propias del proyecto](convenciones-del-proyecto.md) leyendo su código; la usa con `/bowser-conventions`.
 
 ## El formato de una skill
 
@@ -197,8 +285,8 @@ La señal más clara: **un mismo error aparece en varias funcionalidades**. Si e
 
 | Situación | Qué hacer |
 |---|---|
-| Los agentes repiten un error de código | Agrega la regla a la skill del stack |
-| El proyecto adopta una librería nueva | Agrégala a la skill, con su forma de uso |
+| Los agentes repiten un error de código | Si es una costumbre del proyecto, agrégala a sus [convenciones](convenciones-del-proyecto.md). Si es algo que la documentación oficial de la tecnología recomienda y la skill no dice, va en la skill del catálogo |
+| El proyecto adopta una librería nueva | Agrégala a las convenciones del proyecto, con su forma de uso. No a la skill del catálogo: esa elección es del proyecto |
 | Un flujo siempre se atasca en el mismo paso | Ajusta la skill de flujo correspondiente |
 | La regla debe cumplirse sin excepción | Va en la constitución, no en una skill |
 
@@ -226,6 +314,7 @@ Buenos candidatos para una skill propia: las convenciones de una integración ex
 
 ## Siguientes pasos
 
+- [Convenciones del proyecto](convenciones-del-proyecto.md): lo propio de cada proyecto, junto al estándar.
 - [Roles](roles.md): quién usa cada skill.
 - [La constitución](la-constitucion.md): las reglas que están por encima de las skills.
 - [Personalizar un proyecto](personalizar.md): skills y roles propios.

@@ -23,7 +23,7 @@ def perfil_con(p, skills: list, roles: list | None = None) -> None:
 
 def instaladas(p) -> list[str]:
     return sorted(x.name for x in p.archivo(".agents/skills").iterdir()
-                  if not x.name.startswith(("bowser-", "equipo-", "perfil-")))
+                  if not x.name.startswith(("bowser-", "equipo-", "perfil-")) and x.name != "convenciones-proyecto")
 
 
 @prueba("el catálogo del kit está bien escrito, y una skill sin madurez o con otro nombre se rechaza")
@@ -34,12 +34,21 @@ def catalogo_valido(e):
         afirmar((kit / "catalogo/skills" / nombre / "SKILL.md").is_file(), f"falta {nombre} en el catálogo")
         afirmar(not (kit / ".agents/skills" / nombre).exists(), f"{nombre} sigue en .agents/skills/ del kit")
     r = correr(["make", "--no-print-directory", "skills"], kit, e.entorno)
-    contiene(r.salida, "go-backend      probada")
+    # Una skill del catálogo es el estándar de su tecnología: nombra sus fuentes, dice cómo se prueba (el rol ya no lo
+    # sabe) y qué pasa con las convenciones propias del proyecto. Ninguna habla de "la empresa" ni de un proyecto.
+    for nombre in DE_SIEMPRE + ("php", "mysql", "web-sin-framework"):
+        contiene(r.salida, f"{nombre:<17}  redactada")
+        texto = (kit / "catalogo/skills" / nombre / "SKILL.md").read_text(encoding="utf-8")
+        afirmar("\nFuente" in texto and "Revisado el " in texto, f"la skill {nombre} no nombra sus fuentes con la fecha")
+        afirmar("\n## Pruebas\n" in texto or "\n## Cómo probar" in texto, f"la skill {nombre} no dice cómo se prueba")
+        afirmar("\n## Si el proyecto tiene sus propias convenciones\n" in texto,
+                f"la skill {nombre} no dice qué manda cuando el proyecto tiene sus convenciones")
+        afirmar("la empresa" not in texto, f"la skill {nombre} habla de «la empresa»: el catálogo es general")
 
     for carpeta, texto, mensaje in (
         ("sin-madurez", skill("sin-madurez", None), "falta la madurez en los metadatos"),
         ("madurez-rara", skill("madurez-rara", "excelente"), "falta la madurez en los metadatos"),
-        ("otro-nombre", skill("php"), "«name» debe ser igual al nombre de la carpeta (otro-nombre)"),
+        ("otro-nombre", skill("pascal"), "«name» debe ser igual al nombre de la carpeta (otro-nombre)"),
         ("Con Mayusculas", skill("Con Mayusculas"), "solo admite minúsculas, números y guiones"),
         ("sin-cabecera", "# solo texto\n", "falta el bloque de metadatos"),
     ):
@@ -64,7 +73,7 @@ def solo_las_del_perfil(e):
     afirmar(not p.existe("catalogo"), "el catálogo se copió a la raíz del proyecto")
     contiene(p.leer(".claude/agents/dev-backend.md"), "skills: go-backend, postgres-db\n", "el rol dev-backend sin perfil")
     r = p.make("skills")
-    contiene(r.salida, "go-backend      probada    en el proyecto")
+    contiene(r.salida, "go-backend         redactada  en el proyecto")
     contiene(r.salida, "sin perfil, las de siempre")
 
     # El proyecto tiene además una skill propia, que el perfil también nombra.
@@ -86,7 +95,7 @@ def solo_las_del_perfil(e):
     p.commit("chore: perfil del proyecto", extra=APROBADO)
     afirmar(not p.pendientes(), f"quedaron archivos sin commit: {p.pendientes()}")
     contiene(p.make("instalar-kit").salida, "Sin cambios: el proyecto ya estaba al día.")
-    contiene(p.make("skills").salida, "react-frontend  probada    —")
+    contiene(p.make("skills").salida, "react-frontend     redactada  —")
 
     # Skills en un rol, y un perfil sin ninguna skill.
     perfil_con(p, [], roles=[{"rol": "dev-frontend", "skills": ["react-frontend"]}])
@@ -129,47 +138,47 @@ def perfil_cambia_las_skills(e):
 @prueba("una skill que no existe se avisa, una solo redactada se advierte al llegar, y un perfil ilegible no retira nada")
 def avisos_del_catalogo(e):
     kit = e.kit()
-    (kit / "catalogo/skills/php").mkdir()
-    (kit / "catalogo/skills/php/SKILL.md").write_text(skill("php"), encoding="utf-8")
-    (kit / "catalogo/skills/php/referencias").mkdir()
-    (kit / "catalogo/skills/php/referencias/errores.md").write_text("# Errores\n", encoding="utf-8")
-    e.commit_kit(kit, "skill php, solo redactada")
+    (kit / "catalogo/skills/pascal").mkdir()
+    (kit / "catalogo/skills/pascal/SKILL.md").write_text(skill("pascal"), encoding="utf-8")
+    (kit / "catalogo/skills/pascal/referencias").mkdir()
+    (kit / "catalogo/skills/pascal/referencias/errores.md").write_text("# Errores\n", encoding="utf-8")
+    e.commit_kit(kit, "skill pascal, solo redactada")
     p = e.proyecto(kit)
-    afirmar(not p.existe(".agents/skills/php"), "llegó una skill del catálogo que nadie pidió")
+    afirmar(not p.existe(".agents/skills/pascal"), "llegó una skill del catálogo que nadie pidió")
 
-    perfil_con(p, ["php", "cobol"])
+    perfil_con(p, ["pascal", "cobol"])
     d = json.loads(p.make("profile", "DETECTAR=1").salida)
-    afirmar({"php", "go-backend"} <= set(d["skills_disponibles"]), f"la detección no ofrece el catálogo: {d['skills_disponibles']}")
-    afirmar(d["madurez_de_las_skills_del_catalogo"].get("php") == "redactada", "la detección no informa la madurez")
+    afirmar({"pascal", "go-backend"} <= set(d["skills_disponibles"]), f"la detección no ofrece el catálogo: {d['skills_disponibles']}")
+    afirmar(d["madurez_de_las_skills_del_catalogo"].get("pascal") == "redactada", "la detección no informa la madurez")
     contiene(p.make("profile").salida, "la skill «cobol» no está en .agents/skills/ ni en el catálogo del kit")
     r = p.make("instalar-kit")
     contiene(r.salida, "El perfil pide la skill «cobol», que no está en el catálogo del kit")
-    contiene(r.salida, "La skill «php» está solo redactada")
-    afirmar("«go-backend» está" not in r.salida and "«php», que no está" not in r.salida, "avisos de más")
-    afirmar(p.existe(".agents/skills/php/referencias/errores.md"), "no llegaron los archivos de apoyo de la skill")
-    afirmar(instaladas(p) == ["php"], f"skills inesperadas: {instaladas(p)}")
-    contiene(p.make("skills").salida, "php             redactada  en el proyecto")
+    contiene(r.salida, "La skill «pascal» está solo redactada")
+    afirmar("«go-backend» está" not in r.salida and "«pascal», que no está" not in r.salida, "avisos de más")
+    afirmar(p.existe(".agents/skills/pascal/referencias/errores.md"), "no llegaron los archivos de apoyo de la skill")
+    afirmar(instaladas(p) == ["pascal"], f"skills inesperadas: {instaladas(p)}")
+    contiene(p.make("skills").salida, "pascal             redactada  en el proyecto")
     contiene(p.make("skills").salida, "el perfil pide la skill «cobol»")
     r = p.make("instalar-kit")
     afirmar("solo redactada" not in r.salida, "repite la advertencia de madurez en cada instalación")
     contiene(r.salida, "«cobol»")
-    p.commit("chore: perfil con php", extra=APROBADO)
+    p.commit("chore: perfil con pascal", extra=APROBADO)
 
     # Con un perfil que no se puede leer no se sabe qué pide el proyecto: todo queda como estaba.
     p.escribir(PERFIL, "{ esto no es json")
     r = p.make("instalar-kit")
     contiene(r.salida, f"{PERFIL} no se puede leer: las skills del catálogo se dejan como estaban")
-    afirmar(instaladas(p) == ["php"], f"un perfil ilegible cambió las skills: {instaladas(p)}")
+    afirmar(instaladas(p) == ["pascal"], f"un perfil ilegible cambió las skills: {instaladas(p)}")
 
     # El proyecto se queda con su versión de una skill del catálogo.
-    perfil_con(p, ["php"])
+    perfil_con(p, ["pascal"])
     config = json.loads(p.leer("equipo/config.json"))
-    config.setdefault("kit", {})["excluir"] = [".agents/skills/php/"]
+    config.setdefault("kit", {})["excluir"] = [".agents/skills/pascal/"]
     p.escribir("equipo/config.json", json.dumps(config, indent=2, ensure_ascii=False) + "\n")
-    p.agregar(".agents/skills/php/SKILL.md", "\nRegla propia del proyecto.\n")
+    p.agregar(".agents/skills/pascal/SKILL.md", "\nRegla propia del proyecto.\n")
     p.make("instalar-kit")
     p.verificar_kit()
-    contiene(p.leer(".agents/skills/php/SKILL.md"), "Regla propia del proyecto.", "la skill excluida")
-    afirmar(p.existe(f"{SUBMODULO}/catalogo/skills/php/SKILL.md"), "el catálogo debe leerse desde el submódulo")
-    afirmar(".agents/skills/php/SKILL.md" not in json.loads(p.leer(".kit-manifest.json"))["archivos"],
+    contiene(p.leer(".agents/skills/pascal/SKILL.md"), "Regla propia del proyecto.", "la skill excluida")
+    afirmar(p.existe(f"{SUBMODULO}/catalogo/skills/pascal/SKILL.md"), "el catálogo debe leerse desde el submódulo")
+    afirmar(".agents/skills/pascal/SKILL.md" not in json.loads(p.leer(".kit-manifest.json"))["archivos"],
             "la skill excluida sigue registrada como del kit")

@@ -10,7 +10,7 @@ Eres el **administrador de base de datos (DBA)** del equipo: el esquema, los dat
 
 ## Antes de tocar nada
 1. Lee la tarea en `tasks.md`, `data-model.md` y la sección relevante de `plan.md`.
-2. Lee las skills de la parte que vas a tocar: son las convenciones del proyecto para su motor y mandan sobre tu costumbre.
+2. Lee las skills de la parte que vas a tocar: mandan sobre tu costumbre. Las del catálogo del kit son el estándar de su motor; si la parte tiene además sus convenciones propias (`convenciones-de-<parte>`), esas mandan sobre el estándar en nombres, estructura y patrones, y nunca en seguridad.
 3. Revisa el esquema actual y los cambios anteriores para seguir sus nombres y patrones.
 
 ## Cómo trabajas

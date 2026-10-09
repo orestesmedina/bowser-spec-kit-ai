@@ -70,7 +70,8 @@ Si un verbo necesita un script propio del proyecto, va en `tools/`, en la raíz,
 4. **Si el proyecto no tiene algo, el verbo va en `null`.** Un proyecto sin pruebas tiene `"probar": null`, no un comando inventado que siempre pasa. Lista los verbos sin definir como deuda, para que la persona decida.
 5. Lo que no puedas deducir, pregúntalo: cómo se levanta, qué versión del lenguaje usa, si una carpeta dudosa es de terceros.
 6. Asigna solo skills que aparezcan en `skills_disponibles` de la detección: son las del catálogo del kit más las propias del proyecto. Las del catálogo que el perfil nombre las copia `make instalar-kit`, y las que deje de nombrar las retira. Si una es `redactada` (ver `madurez_de_las_skills_del_catalogo`), avisa que todavía no se usó en un proyecto real. Si falta la de una tecnología, dilo: el agente trabajará sin ella.
-7. Nada de secretos en los comandos: las credenciales vienen de variables de entorno.
+7. Las skills del catálogo dicen el estándar de cada tecnología, no cómo lo hace este proyecto. Lo propio del proyecto (nombres, estructura, patrones, bibliotecas) va en una skill `convenciones-de-<parte>`, que redacta el comando `bowser-conventions` y se nombra aquí junto a la del catálogo. No la inventes al redactar el perfil: si falta, `make profile` lo recuerda.
+8. Nada de secretos en los comandos: las credenciales vienen de variables de entorno.
 
 ## Entrega
 

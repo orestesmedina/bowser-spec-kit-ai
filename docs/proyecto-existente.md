@@ -143,10 +143,11 @@ El kit nació para React, Go y PostgreSQL y está dejando de depender de ellas. 
 
 - **Los roles ya no nombran ninguna tecnología.** Cada uno recibe del [perfil del proyecto](perfil-del-proyecto.md) sus carpetas, sus skills y sus comandos. Ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto).
 - **Los comandos (`make test`, `make lint`…) ejecutan lo que el perfil declara.**
-- **Las skills de tecnología** llegan del [catálogo del kit](skills.md#el-catálogo-de-skills-de-tecnología). Hoy tiene las de Go, React y PostgreSQL; para otra tecnología, el proyecto escribe su propia skill en `.agents/skills/` y el perfil la nombra.
+- **Las skills de tecnología** llegan del [catálogo del kit](skills.md#el-catálogo-de-skills-de-tecnología) y traen el estándar de cada una, según su documentación oficial. Hoy tiene las de Go, React, PostgreSQL, PHP, MySQL y web sin framework; para otra tecnología, el proyecto escribe su propia skill en `.agents/skills/` y el perfil la nombra.
+- **Lo propio de tu proyecto** (cómo nombra las cosas, cómo se organiza, qué patrones y bibliotecas usa) lo redacta un agente leyendo el código, con `/bowser-conventions`. Ver [Convenciones del proyecto](convenciones-del-proyecto.md).
 - **La constitución, la integración continua y los archivos iniciales** (`docker-compose.yml`, `.env.example`) todavía suponen React, Go y PostgreSQL. Mientras eso cambia, un proyecto con otras tecnologías mantiene su versión de esos archivos mediante `kit.excluir`.
 
-Así que el primer paso con otro stack es crear el perfil: `/bowser-profile`. El proceso, el estado, los costos y la instalación no dependen del stack. La página [Cómo contribuir](contribuir.md) explica cómo está organizado el kit por dentro.
+Así que el primer paso con otro stack es crear el perfil, `/bowser-profile`, y el segundo, las convenciones, `/bowser-conventions`. El proceso, el estado, los costos y la instalación no dependen del stack. La página [Cómo contribuir](contribuir.md) explica cómo está organizado el kit por dentro.
 
 ## Adoptar el proceso con código ya escrito
 

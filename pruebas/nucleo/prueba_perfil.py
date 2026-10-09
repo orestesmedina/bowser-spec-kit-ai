@@ -111,10 +111,15 @@ def perfil_invalido(e):
 
     # Una skill que falta es un aviso, no un error: el agente trabaja sin ella.
     p.escribir(".agents/skills/propia/SKILL.md", "---\nname: propia\ndescription: Del proyecto.\n---\n")
-    escribir_perfil(p, cambiar(skills=["php", "propia"]))
+    escribir_perfil(p, cambiar(skills=["pascal", "propia"]))
     r = p.make("profile")
-    contiene(r.salida, "la skill «php» no está en .agents/skills/")
+    contiene(r.salida, "la skill «pascal» no está en .agents/skills/")
     afirmar("«propia»" not in r.salida, "avisó de una skill que sí existe")
+    # Mientras una parte no tenga sus convenciones propias, make profile lo recuerda.
+    contiene(r.salida, "Sin convenciones propias: api")
+    p.escribir(".agents/skills/convenciones-de-api/SKILL.md", "---\nname: convenciones-de-api\ndescription: Del proyecto.\n---\n")
+    escribir_perfil(p, cambiar(skills=["propia", "convenciones-de-api"]))
+    afirmar("Sin convenciones propias" not in p.make("profile").salida, "sigue pidiendo convenciones que la parte ya tiene")
 
 
 @prueba("una parte puede tener varios roles, cada uno con las skills de la parte más las suyas; el «rol» único sigue valiendo")
@@ -142,8 +147,8 @@ def roles_de_la_parte(e):
     contiene(p.make("profile").salida, "skills:     go-backend (ningún rol las recibe")
 
     # La skill que falta también se avisa cuando es de un solo rol.
-    escribir_perfil(p, con_roles([{"rol": "dev-backend", "skills": ["php"]}]))
-    contiene(p.make("profile").salida, "la skill «php» no está en .agents/skills/")
+    escribir_perfil(p, con_roles([{"rol": "dev-backend", "skills": ["pascal"]}]))
+    contiene(p.make("profile").salida, "la skill «pascal» no está en .agents/skills/")
 
     ambos = base()
     ambos["partes"][0]["roles"] = ["dev-backend"]

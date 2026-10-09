@@ -278,6 +278,10 @@ def perfil_valido(raiz: Path = RAIZ) -> dict | None:
 
 # ---------------------------------------------------------------- mostrar
 
+# Prefijo de la skill con las convenciones propias de una parte (la redacta el comando bowser-conventions).
+CONVENCIONES = "convenciones-de-"
+
+
 def mostrar(perfil: dict) -> None:
     partes = perfil["partes"]
     print(f"Perfil del proyecto ({RUTA}): {len(partes)} parte{'s' if len(partes) != 1 else ''}\n")
@@ -298,6 +302,11 @@ def mostrar(perfil: dict) -> None:
         if parte.get("inmutables"):
             print(f"    inmutables: {', '.join(parte['inmutables'])}")
         print()
+    sin_convenciones = [p["nombre"] for p in partes
+                        if roles_de(p) and CONVENCIONES + p["nombre"] not in {s for r in roles_de(p) for s in r["skills"]}]
+    if sin_convenciones:
+        print(f"Sin convenciones propias: {', '.join(sin_convenciones)}. Las skills del catálogo dicen el estándar de cada "
+              "tecnología; lo propio del proyecto se redacta con /bowser-conventions.")
 
 
 # ---------------------------------------------------------------- detección

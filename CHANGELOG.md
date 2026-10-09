@@ -13,6 +13,40 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.16.0] - 2026-10-09
+
+Cuarto paso (B4) de la entrega B de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.
+
+Desde esta versión el kit separa dos cosas que antes mezclaba: **el estándar de cada tecnología**, que viene en las skills del catálogo, y **las convenciones de cada proyecto**, que redacta un agente leyendo su código.
+
+### Agregado
+- **`/bowser-conventions`**: redacta las convenciones propias del proyecto (cómo nombra variables, tablas y columnas, cómo se organiza, qué patrones de diseño y qué bibliotecas usa) leyendo su código. Cada regla lleva un ejemplo real y su archivo. Las compara con el estándar, lista las diferencias y las propone para aprobación. Quedan en una skill del proyecto por cada parte, `.agents/skills/convenciones-de-<parte>/`, que el perfil nombra junto a la del catálogo. Ver `docs/convenciones-del-proyecto.md`.
+- **Qué manda cuando el estándar y el proyecto dicen cosas distintas:** en seguridad, siempre el estándar; en nombres, estructura, patrones y bibliotecas, el proyecto; en lo que el proyecto no define, el estándar. Lo dicen los roles de desarrollo, el revisor y cada skill del catálogo. Lo que el proyecto incumple en seguridad no se escribe como convención: queda listado como deuda.
+- Skill `convenciones-proyecto`, con el método para redactarlas.
+- `make profile` recuerda qué partes todavía no tienen convenciones propias.
+- **Tres skills nuevas en el catálogo:**
+  - `php`: PHP sin framework, según el manual de PHP y los estándares de PHP-FIG (PSR-1, PSR-4 y PER Coding Style, el sucesor de PSR-12).
+  - `mysql`: según el manual de referencia de MySQL.
+  - `web-sin-framework`: HTML, CSS y JavaScript estándar, según el estándar HTML, MDN, las pautas de accesibilidad WCAG 2.2 y las guías de OWASP.
+
+### Cambiado
+- **`go-backend`, `react-frontend` y `postgres-db` se reescribieron desde la documentación oficial** (Effective Go, Go Code Review Comments y las guías de go.dev; react.dev; el manual de PostgreSQL y la lista "Don't Do This" de su wiki). Ya no traen elecciones que eran de un proyecto y no del estándar: `sqlc`, `pgx`, `golang-migrate`, `chi`, Vite, React Router, TanStack Query, React Hook Form, Zod, Tailwind, shadcn/ui, Vitest, Playwright, MSW, las carpetas `backend/` y `frontend/`, el formato de error de la API y el 80 % de cobertura. Lo que un proyecto use de eso va en sus convenciones.
+- Las seis skills del catálogo tienen la misma forma: nombran sus fuentes con la fecha en que se revisaron, dicen cómo se prueba y cierran con qué manda cuando el proyecto tiene sus propias convenciones. Ninguna habla de "la empresa".
+- **Las seis quedan `redactada`.** Las tres originales estaban `probada`, pero su texto actual es nuevo y todavía no se usó en un proyecto. Vuelven a `probada` en el paso B6.
+- `/bowser-profile` termina sugiriendo `/bowser-conventions` cuando el proyecto ya tiene código.
+
+### Límites
+- `/bowser-conventions` no se probó dentro de una herramienta real ni contra un proyecto real: `make test-kit` comprueba que el comando y su skill se generan para las tres herramientas y que `make profile` avisa. Llega en el paso B6.
+- Las convenciones las redacta un agente leyendo una muestra del código: pueden tener errores, y por eso las aprueba una persona. Ningún control verifica que el código nuevo las cumpla.
+- Versiones con soporte anotadas en las skills al 2026-10-09: Go 1.26 y 1.27; PostgreSQL 14 a 18; PHP 8.4 y 8.5 (8.3, solo seguridad); MySQL 8.4 LTS y 9.7 LTS. Hay que revisarlas cuando salga una versión nueva.
+- `php` es para proyectos sin framework; Laravel, Symfony o WordPress necesitan su propia skill. `mysql` no dice en qué se diferencia MariaDB.
+- La constitución todavía fija elecciones de tecnología (entrega C).
+
+### Al actualizar
+- **Si tu proyecto usa `go-backend`, `react-frontend` o `postgres-db`, sus agentes dejan de recibir las elecciones de bibliotecas y de estructura que esas skills traían.** Ejecuta `/bowser-conventions` para que queden escritas como convenciones del proyecto (necesita el perfil: `/bowser-profile`). Hasta entonces, los agentes siguen el estándar y lo que ven en el código.
+- `make instalar-kit` avisará que esas tres skills están "solo redactadas": es por la reescritura.
+- Si tu proyecto tiene una skill propia llamada `php`, `mysql` o `web-sin-framework` y el perfil la nombra, `make instalar-kit` la reemplaza por la del kit y deja la tuya en `.kit-respaldo/`. Para conservar la tuya, cámbiale el nombre o exclúyela (`kit.excluir` en `equipo/config.json`).
+
 ## [1.15.0] - 2026-10-09
 
 Tercer paso (B3) de la entrega B de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.

@@ -48,6 +48,7 @@ Los comandos que más usa una persona tienen un equivalente que se escribe en el
 | `/bowser-news` | `make novedades` | Qué cambió en el kit, versión por versión |
 | `/bowser-models` | `make modelos` | Qué modelo usa cada agente |
 | `/bowser-profile` | `make profile` | Crea o actualiza el [perfil del proyecto](perfil-del-proyecto.md) mirando el código, y lo propone para que lo apruebes |
+| `/bowser-conventions` | — | Redacta las [convenciones propias del proyecto](convenciones-del-proyecto.md) leyendo su código, las compara con el estándar y las propone para que las apruebes |
 
 Cómo se escriben en cada herramienta:
 
@@ -57,7 +58,7 @@ Cómo se escriben en cada herramienta:
 | OpenCode | `/bowser-status` | `/bowser-status todo` |
 | Codex | `$bowser-status` | `$bowser-status` y la opción en la misma frase: "con todo" |
 
-Opciones: `/bowser-status todo` incluye lo terminado; `/bowser-costs todo` resume el proyecto y `/bowser-costs hoy` cotiza a precios actuales; `/bowser-news 1.9.0` muestra desde esa versión; `/bowser-profile ver` solo muestra el perfil, sin proponer cambios.
+Opciones: `/bowser-status todo` incluye lo terminado; `/bowser-costs todo` resume el proyecto y `/bowser-costs hoy` cotiza a precios actuales; `/bowser-news 1.9.0` muestra desde esa versión; `/bowser-profile ver` solo muestra el perfil, sin proponer cambios; `/bowser-conventions api` redacta solo las de esa parte.
 
 Lo que estos comandos **no** hacen por su cuenta, porque son decisión de una persona: cerrar el costo (`make costos CERRAR=1`), forzar una instalación (`FORZAR=1`), cambiar modelos, hacer el commit de una actualización del kit y confirmar un cambio del perfil (`APROBADO_PERFIL=1`). Los proponen y esperan.
 
