@@ -33,9 +33,10 @@ Separar el trabajo en roles resuelve los tres: cada especialista recibe solo lo 
 | `analista-producto` | Convierte la necesidad en la especificación | Al inicio de cada funcionalidad |
 | `arquitecto` | Diseña el plan, el modelo de datos y la API; divide el trabajo en tareas | Después de aprobar la especificación |
 | `disenador-ux` | Define pantallas, flujos y estados | Durante el plan, si hay interfaz |
-| `dev-backend` | Implementa en Go y PostgreSQL | En las tareas de backend y base de datos |
-| `dev-frontend` | Implementa en React + TypeScript | En las tareas de frontend |
-| `devops` | Docker, integración continua y despliegues | En las tareas de infraestructura y al entregar |
+| `dev-backend` | Implementa el lado del servidor: reglas de negocio, API y procesos | En las tareas de las partes que el perfil le asigna |
+| `dev-frontend` | Implementa la interfaz de usuario | En las tareas de las partes que el perfil le asigna |
+| `dev-dba` | Trabaja la base de datos: esquema, migraciones, consultas y procedimientos | En las tareas de las partes que el perfil le asigna |
+| `devops` | Entorno local, integración continua y despliegues | En las tareas de infraestructura y al entregar |
 | `qa-tester` | Prueba el código contra los criterios de aceptación | Después de cada implementación |
 | `revisor-codigo` | Revisa la calidad y el apego al plan y a la constitución | Después de las tareas y de cada implementación |
 | `seguridad` | Audita vulnerabilidades, secretos y dependencias | Después de cada implementación y antes de desplegar |
@@ -49,9 +50,11 @@ Cada rol tiene un nivel de acceso, y la herramienta lo hace cumplir: un rol de s
 |---|---|---|
 | **Solo lectura** | Lee y ejecuta comandos; no modifica nada | `revisor-codigo`, `seguridad` |
 | **Documentos** | Escribe archivos, sin usar la terminal | `analista-producto`, `arquitecto`, `disenador-ux`, `documentador` |
-| **Completo** | Escribe y ejecuta | `dev-backend`, `dev-frontend`, `devops`, `qa-tester` |
+| **Completo** | Escribe y ejecuta | `dev-backend`, `dev-frontend`, `dev-dba`, `devops`, `qa-tester` |
 
-Además, cada rol tiene límites escritos en sus instrucciones: `qa-tester` solo escribe archivos de pruebas y nunca toca el código de producción; `dev-backend` no toca `frontend/` y `dev-frontend` no toca `backend/`.
+Además, cada rol tiene límites escritos en sus instrucciones: `qa-tester` solo escribe archivos de pruebas y nunca toca el código de producción; cada desarrollador trabaja solo las partes del proyecto que el [perfil](perfil-del-proyecto.md) le asigna.
+
+Los roles son oficios, no tecnologías: ninguno dice "Go" ni "React". El lenguaje, las carpetas y los comandos de cada proyecto salen de su perfil, y cada rol los recibe al generarse. Ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto).
 
 ## Quién escribe no aprueba
 
@@ -69,14 +72,16 @@ El principio se extiende a los modelos: el kit recomienda que quien revisa use u
 
 ## Cómo se reparte el trabajo
 
-El arquitecto marca cada tarea de `tasks.md` con su capa, y el orquestador la delega según esa marca:
+El arquitecto marca cada tarea de `tasks.md` con la parte del proyecto que toca, usando el nombre que esa parte tiene en el perfil, y el orquestador la delega en el rol que el perfil le asigna:
 
 | Marca en la tarea | La hace |
 |---|---|
-| `[backend]` o `[db]` | `dev-backend` |
-| `[frontend]` | `dev-frontend` |
+| `[api]` (el nombre de una parte) | El rol de esa parte, según el perfil |
+| `[api:dev-dba]` | Ese rol. Se usa cuando a la parte la trabajan varios |
 | `[infra]` | `devops` |
 | `[P]` | Puede ir en paralelo con otras tareas `[P]` que no dependan entre sí |
+
+Sin perfil, las partes son `backend` (la trabaja `dev-backend`, con la base de datos) y `frontend` (`dev-frontend`). Las tareas marcadas `[db]` en un `tasks.md` escrito antes de este cambio las sigue haciendo `dev-backend`.
 
 Cada tarea terminada es un commit, y queda marcada con `[X]` en `tasks.md`.
 

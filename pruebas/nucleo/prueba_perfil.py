@@ -66,6 +66,7 @@ def verbos_del_perfil(e):
     contiene(r.salida, "revisar-panel")
 
     # El perfil es del proyecto: instalar el kit otra vez no lo toca.
+    p.make("sincronizar")       # los roles llevan escrito qué verbos tiene cada parte
     p.commit("chore: verbos de revisión", extra=APROBADO)
     p.make("instalar-kit")
     p.verificar_kit()
@@ -221,6 +222,7 @@ def resumen_de_ci(e):
     completo = {"partes": [{"nombre": "todo", "carpeta": "servidor", "verbos": {v: f"echo {v}-ok" for v in
                                                                                  ("formato", "revisar", "probar", "cobertura", "auditar", "generar")}}]}
     escribir_perfil(p, completo)
+    p.make("sincronizar")
     p.commit("chore: perfil completo", extra=APROBADO)
     contiene(p.make("ci").salida, "✓ Todo comprobado y sin fallos (6 comprobaciones).")
     escribir_perfil(p, base())

@@ -13,6 +13,38 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.15.0] - 2026-10-09
+
+Tercer paso (B3) de la entrega B de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.
+
+### Agregado
+- **Rol `dev-dba`**: trabaja la base de datos (tablas, migraciones, índices, consultas, procedimientos almacenados). Existe para que el desarrollador del servidor no sea también quien decide el esquema. Un proyecto lo incorpora asignándole una parte en su perfil; sin perfil no se usa.
+- **Sección "Este proyecto" en cada rol generado.** `make sincronizar` le escribe a cada agente lo que el perfil dice del proyecto: sus partes, la carpeta de cada una, las skills que debe aplicar, los comandos (`make lint PARTE=api`), los verbos que el proyecto todavía no tiene, el código de terceros y los archivos que no se modifican. Los roles de desarrollo (`dev-backend`, `dev-frontend`, `dev-dba`) ven solo sus partes; los demás, todas; el analista de producto, ninguna.
+- Campo `proyecto` en la definición de un rol (`partes`, `mapa` o ausente), que decide qué recibe del perfil.
+- Pruebas: `pruebas/nucleo/prueba_roles.py`.
+
+### Cambiado
+- **Los roles ya no nombran ninguna tecnología.** `dev-backend`, `dev-frontend`, `arquitecto`, `qa-tester`, `devops`, `disenador-ux`, `revisor-codigo`, `seguridad` y `documentador` describen un oficio; Go, React, PostgreSQL, las carpetas `backend/` y `frontend/` y comandos como `go test` salieron de sus instrucciones. Las convenciones de cada tecnología siguen en sus skills.
+- **Las skills de cada rol las asigna el perfil**, no el rol: un rol recibe las de las partes que trabaja. Los roles del kit ya no traen `skills:` en su definición (el campo sigue valiendo para roles propios de un proyecto).
+- **Las tareas se marcan con la parte del proyecto** (`[api]`, con el nombre del perfil) en lugar de las capas fijas `[backend]`, `[frontend]` y `[db]`. Si a la parte la trabajan varios roles, la tarea dice cuál: `[api:dev-dba]`. `[infra]` no cambia. El orquestador delega en el rol que el perfil asigna a esa parte.
+- **Cambiar el perfil exige regenerar los roles** (`make instalar-kit`, o `make sincronizar` si las skills no cambiaron). Hasta entonces el commit se rechaza con `La configuración de agentes está desactualizada`.
+- `AGENTS.md` ya no tiene la sección "Stack oficial": remite al perfil.
+- Con un perfil mal escrito, `make sincronizar` avisa y genera los roles sin datos del proyecto, diciéndole a cada agente que no suponga nada.
+
+### Sin perfil
+- Un proyecto sin perfil recibe lo mismo que antes, escrito de otra forma: `dev-backend` trabaja `backend/` con `go-backend` y `postgres-db` (y sigue llevando la base de datos), y `dev-frontend`, `frontend/` con `react-frontend`, con los comandos de siempre. Las tareas `[db]` de un `tasks.md` anterior las sigue haciendo `dev-backend`.
+
+### Límites
+- La constitución, `make doctor`, la integración continua y los archivos iniciales (`docker-compose.yml`, `.env.example`) todavía nombran Go, React y PostgreSQL. Son de los pasos B5 y de la entrega C.
+- `dev-dba` usa el modelo del nivel medio. En OpenCode, `dev-backend` y `dev-frontend` tienen un modelo propio en `equipo/config.json`; si quieres el mismo para `dev-dba`, agrégalo en `modelos.opencode.agentes`.
+- No se probó dentro de una herramienta real que un agente trabaje bien con los roles nuevos: llega en el paso B6.
+
+### Al actualizar
+- Si tu proyecto tiene perfil, comprueba con `make profile` que cada parte tenga `roles`: una parte sin rol ya no tiene quién la trabaje, y sus skills no las recibe nadie.
+- Para que la base de datos la lleve `dev-dba`, agrégalo a los `roles` de la parte y pásale la skill del motor. Ejemplo en `docs/roles.md`.
+- Las tareas de un `tasks.md` en curso siguen valiendo; las nuevas se marcan con el nombre de la parte.
+
+
 ## [1.14.0] - 2026-10-09
 
 Segundo paso (B2) de la entrega B de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0. Un proyecto sin perfil recibe lo mismo que antes.

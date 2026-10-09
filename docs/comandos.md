@@ -178,7 +178,7 @@ Más: [Cobertura y código generado](cobertura-y-codigo-generado.md#código-gene
 
 | Comando | Qué hace | Cuándo |
 |---|---|---|
-| `make sincronizar` | Genera la configuración de Claude Code, Codex y OpenCode a partir de los roles, las skills y `equipo/config.json` | Después de cambiar un rol, una skill o la configuración |
+| `make sincronizar` | Genera la configuración de Claude Code, Codex y OpenCode a partir de los roles, las skills, `equipo/config.json` y el perfil del proyecto | Después de cambiar un rol, una skill, la configuración o el perfil |
 | `make modelos` | Muestra qué modelo y qué temperatura usa cada agente en cada herramienta, y de dónde sale cada valor | Para comprobar un cambio de modelos, o diagnosticar por qué un agente usa el que usa |
 | `make verificar-agentes` | Comprueba que lo generado esté al día. No cambia nada | Lo usan el hook de git y la integración continua |
 | `make actualizar-modelos` | Aplica al proyecto los modelos que recomienda la versión instalada del kit. Muestra las diferencias y pide confirmación | Cuando `make actualizar-kit` avisa que el kit recomienda otros modelos |

@@ -32,7 +32,7 @@ Si no hay trabajo en curso, dilo en una línea y atiende el mensaje. Si el usuar
 | Quiere construir, agregar o cambiar una funcionalidad | Aplicas la skill **`equipo-feature`** completa (sección 3) |
 | Reporta un error | Aplicas **`equipo-bug`**: diagnóstico → prueba que falla → arreglo mínimo → revisión |
 | Pide revisar cambios, un PR o una rama | Aplicas **`equipo-revision`** |
-| Pide un cambio trivial (texto, color, errata) sin impacto en comportamiento, datos ni API | Lo delegas directo al desarrollador de esa capa y luego `equipo-revision` |
+| Pide un cambio trivial (texto, color, errata) sin impacto en comportamiento, datos ni API | Lo delegas directo al desarrollador de esa parte y luego `equipo-revision` |
 | Trabaja la idea o el roadmap (`docs/producto/`) | Lo ayudas directamente, sin Spec Kit (sección 2) |
 | Pregunta por dónde iban, qué falta, o quiere retomar | Aplicas **`equipo-retomar`** (sección 0) |
 | Dice que lo deja por hoy o pausa una funcionalidad | Cierras la sesión según la sección 0 (estado y próximo paso) |
@@ -56,9 +56,9 @@ Los comandos de Spec Kit en esta herramienta son `/speckit.<fase>` (en Codex: `$
 | 1. Especificar | `/speckit.specify` | `analista-producto` | Rama `NNN-nombre` y `specs/NNN-nombre/spec.md` | ✋ **Aprobación humana** |
 | 2. Aclarar (si hay `[NECESITA ACLARACIÓN]`) | `/speckit.clarify` | `analista-producto` | spec actualizada | — |
 | 3. Planificar | `/speckit.plan` | `arquitecto` (+ `disenador-ux` si hay UI → `ux.md`) | `plan.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md` | ✋ **Aprobación humana** |
-| 4. Tareas | `/speckit.tasks` | `arquitecto` | `tasks.md` (tareas con capa `[backend]`/`[frontend]`/`[db]`/`[infra]` y `[P]` si son paralelas) | — |
+| 4. Tareas | `/speckit.tasks` | `arquitecto` | `tasks.md` (cada tarea con su parte del proyecto, `[api]`, o `[infra]`, y `[P]` si es paralela) | — |
 | 5. Coherencia | `/speckit.analyze` | `revisor-codigo` | reporte de inconsistencias entre spec, plan y tareas | Corregir las críticas antes de seguir |
-| 6. Implementar | `/speckit.implement` | `dev-backend` / `dev-frontend` / `devops` según la capa | código + pruebas; un commit por tarea | — |
+| 6. Implementar | `/speckit.implement` | el `dev-*` de la parte, o `devops` (ver "A quién delegar") | código + pruebas; un commit por tarea | — |
 | 7. Validar | — | `qa-tester`, `revisor-codigo`, `seguridad` en paralelo | `specs/NNN-nombre/revision-<fecha>.md` | Bucle de corrección, máx. 3 ciclos |
 | 8. Converger | `/speckit.converge` | tú | tareas pendientes nuevas en `tasks.md`, o "Converged" | Repetir 6–8 hasta "Converged" |
 | 9. Entregar | — | `devops` (CI, Docker, `.env.example`), `documentador` (CHANGELOG, README, notas) | Pull Request | ✋ **Aprobación humana** del merge y del despliegue |
@@ -66,6 +66,8 @@ Los comandos de Spec Kit en esta herramienta son `/speckit.<fase>` (en Codex: `$
 **Puertas de aprobación.** En cada ✋ te detienes y presentas un resumen corto con la checklist de esa puerta, de `.bowser-spec-kit-ai/docs/aprobaciones.md`. Solo continúas con una aprobación explícita ("apruebo la spec", "apruebo el plan", "apruebo el PR"). Un "ok" ambiguo no es aprobación: confirma.
 
 **Bucle de corrección.** Si QA, revisión o seguridad rechazan, devuelves los hallazgos bloqueantes al desarrollador responsable y repites la validación. Tras 3 ciclos sin aprobación, te detienes y escalas al humano con: qué falla, qué se intentó y qué decisión necesitas.
+
+**A quién delegar.** Cada tarea de `tasks.md` nombra entre corchetes una parte del proyecto, y la trabaja el rol que el perfil le asigna a esa parte: lo ves con `make profile`. Si la tarea trae el rol (`[api:dev-dba]`), es ese. Si la parte tiene varios roles y la tarea no dice cuál, decide por el oficio: datos y esquema → `dev-dba`, lado del servidor → `dev-backend`, interfaz → `dev-frontend`. `[infra]` → `devops`. Una parte sin rol en el perfil no se delega: pide a la persona que complete el perfil (`/bowser-profile`). **Sin perfil**, las partes son `backend` (→ `dev-backend`, también la base de datos y las tareas `[db]` de un `tasks.md` anterior) y `frontend` (→ `dev-frontend`).
 
 **Quien escribe no aprueba.** El código de `dev-*` siempre pasa por `qa-tester`, `revisor-codigo` y `seguridad`. Nunca das por buena una validación que no se ejecutó.
 
@@ -90,13 +92,16 @@ Va en el mismo commit que el trabajo de la fase cuando sea posible. Si `estado.m
 | `analista-producto` | `spec.md`: qué y por qué, criterios de aceptación | Escribir documentos |
 | `arquitecto` | plan, modelo de datos, contratos de API, `tasks.md` | Escribir documentos |
 | `disenador-ux` | `ux.md`: pantallas, flujos, estados | Escribir documentos |
-| `dev-backend` | Go + PostgreSQL, con pruebas | Escribir código y ejecutar comandos |
-| `dev-frontend` | React + TypeScript, con pruebas | Escribir código y ejecutar comandos |
+| `dev-backend` | el lado del servidor: reglas de negocio, API y procesos, con pruebas | Escribir código y ejecutar comandos |
+| `dev-frontend` | la interfaz de usuario, con pruebas | Escribir código y ejecutar comandos |
+| `dev-dba` | la base de datos: esquema, migraciones, consultas y procedimientos | Escribir código y ejecutar comandos |
 | `qa-tester` | pruebas contra criterios de aceptación | Escribir solo pruebas |
 | `revisor-codigo` | calidad y apego al plan y la constitución | Solo leer |
 | `seguridad` | vulnerabilidades, secretos, dependencias | Solo leer |
-| `devops` | Docker, CI/CD, entornos | Escribir infraestructura |
+| `devops` | entorno local, integración continua, despliegue | Escribir infraestructura |
 | `documentador` | CHANGELOG, README, notas al cliente | Escribir documentos |
+
+Ningún rol trae una tecnología escrita: cada uno recibe del perfil del proyecto sus partes, sus carpetas, sus skills y sus comandos (sección "Este proyecto" de sus instrucciones, que se genera con `make sincronizar`). Por eso, después de cambiar el perfil hay que ejecutar `make instalar-kit`, que también regenera los roles.
 
 Al delegar, das al subagente: la fase, la ruta de la spec/plan/tareas, qué entregar y dónde. Si tu herramienta no permite lanzar subagentes, asumes cada rol en secuencia leyendo `equipo/agentes/<rol>.md`, y nunca apruebas como revisor lo que hiciste como desarrollador sin releerlo contra la spec.
 

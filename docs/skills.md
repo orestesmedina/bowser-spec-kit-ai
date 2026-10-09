@@ -32,7 +32,7 @@ Los tres son instrucciones para los agentes, pero responden preguntas distintas:
 
 | | Responde | Ejemplo |
 |---|---|---|
-| **[Rol](roles.md)** | ¿Quién soy y qué me toca hacer? | "Eres el desarrollador backend. No tocas `frontend/`" |
+| **[Rol](roles.md)** | ¿Quién soy y qué me toca hacer? | "Eres el desarrollador backend. No tocas las partes que no son tuyas" |
 | **Skill** | ¿Cómo se hace esto aquí? | "Envuelve los errores con contexto. Las pruebas van en tabla de casos" |
 | **[Constitución](la-constitucion.md)** | ¿Qué no se negocia? | "El backend sigue la arquitectura por capas" |
 
@@ -43,7 +43,7 @@ La ventaja de separar el "cómo" en skills es que varios roles comparten el mism
 De tres maneras:
 
 - **Por su descripción.** Cada skill dice cuándo usarse. Cuando la tarea coincide, el agente la carga solo. Es lo normal.
-- **Porque el rol la declara.** `dev-backend` lleva `skills: go-backend, postgres-db` en su definición, así que siempre las aplica, si el proyecto las tiene: una skill que no llegó al proyecto no se le declara.
+- **Porque el perfil se la asigna al rol.** Si el [perfil](perfil-del-proyecto.md) dice que a la parte `api` la trabaja `dev-backend` con `go-backend`, ese rol la lleva escrita en sus instrucciones y siempre la aplica. Los demás roles (revisor, QA, seguridad…) ven en qué skill están las convenciones de cada parte y la cargan cuando revisan esa parte. Ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto).
 - **Nombrándola.** Puedes pedirla: "Usa la skill equipo-revision". En Claude Code también se invocan como `/equipo-feature`.
 
 ## El catálogo de skills de tecnología

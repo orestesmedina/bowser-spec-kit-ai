@@ -69,7 +69,7 @@ def solo_las_del_perfil(e):
 
     # El proyecto tiene además una skill propia, que el perfil también nombra.
     p.escribir(".agents/skills/pagos/SKILL.md", skill("pagos", None))
-    perfil_con(p, ["go-backend", "pagos"])
+    perfil_con(p, ["go-backend", "pagos"], roles=["dev-backend"])
     r = p.make("instalar-kit")
     afirmar(instaladas(p) == ["go-backend", "pagos"], f"con perfil deben quedar solo las que nombra: {instaladas(p)}")
     contiene(r.salida, ".agents/skills/react-frontend/SKILL.md")
@@ -77,8 +77,8 @@ def solo_las_del_perfil(e):
     for nombre in ("postgres-db", "react-frontend"):
         afirmar(not p.existe(f".claude/skills/{nombre}"), f"{nombre} sigue en Claude Code después de retirarla")
     afirmar(p.existe(".claude/skills/pagos/SKILL.md"), "la skill propia no llegó a Claude Code")
-    # Los roles no declaran una skill que el proyecto ya no tiene.
-    contiene(p.leer(".claude/agents/dev-backend.md"), "skills: go-backend\n", "el rol dev-backend")
+    # Cada rol recibe las skills de su parte, y ninguno conserva una que el proyecto ya no tiene.
+    contiene(p.leer(".claude/agents/dev-backend.md"), "skills: go-backend, pagos\n", "el rol dev-backend")
     afirmar("\nskills:" not in p.leer(".claude/agents/dev-frontend.md"), "dev-frontend declara una skill que se retiró")
     afirmar("react-frontend` (en" not in p.leer(".opencode/agents/dev-frontend.md"), "dev-frontend de OpenCode nombra la skill retirada")
     p.verificar_kit()

@@ -11,7 +11,7 @@ Un kit para que un equipo de agentes de IA construya software con **React + Type
 La IA escribe casi todo el código, pero una persona es responsable del resultado. Para que eso sea seguro, el kit aporta tres cosas:
 
 - **Un proceso.** Antes del código se escribe qué se construye (la especificación) y cómo (el plan). Una persona aprueba cada uno.
-- **Un equipo.** Un orquestador coordina a diez especialistas: analista, arquitecto, diseñador, dos desarrolladores, QA, revisor, seguridad, DevOps y documentador. Quien escribe el código nunca lo aprueba.
+- **Un equipo.** Un orquestador coordina a once especialistas: analista, arquitecto, diseñador, tres desarrolladores (servidor, interfaz y base de datos), QA, revisor, seguridad, DevOps y documentador. Quien escribe el código nunca lo aprueba.
 - **Controles automáticos.** Hooks de git e integración continua que revisan cada cambio, sin depender de que alguien se acuerde ni de que el agente obedezca.
 
 ```

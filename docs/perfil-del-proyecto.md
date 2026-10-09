@@ -42,8 +42,10 @@ Una lista de **partes**. Una parte es algo que se construye, se prueba o se desp
       "nombre": "api",
       "carpeta": "servidor",
       "descripcion": "API del inventario",
-      "roles": ["dev-backend"],
-      "skills": ["go-backend", "postgres-db"],
+      "roles": [
+        { "rol": "dev-backend", "skills": ["go-backend"] },
+        { "rol": "dev-dba", "skills": ["postgres-db"] }
+      ],
       "terceros": ["vendor"],
       "inmutables": ["migrations/*.sql"],
       "verbos": {
@@ -97,6 +99,10 @@ Hay partes que no son de un solo oficio. Un panel hecho en PHP que además lleva
 ```
 
 Cada elemento de `roles` es el nombre de un rol, o un objeto con `rol` y sus `skills`. Un rol recibe las `skills` de la parte más las suyas: en el ejemplo, `dev-backend` trabaja con `convenciones-del-panel` y `php`; `qa-tester`, solo con `convenciones-del-panel`.
+
+El caso más común es la base de datos. El esquema y las migraciones suelen vivir dentro de la carpeta del servidor, pero son otro oficio: la parte declara `dev-backend` con la skill del lenguaje y `dev-dba` con la del motor. Si la base de datos tiene su propia carpeta, es una parte aparte con `dev-dba` como único rol.
+
+Una parte sin `roles` no tiene quién la trabaje: el orquestador no delega sus tareas y te pide completar el perfil.
 
 `"rol": "dev-backend"`, el formato de la primera versión del perfil, sigue valiendo y significa lo mismo que `"roles": ["dev-backend"]`. Una parte usa uno de los dos, no ambos.
 
@@ -189,7 +195,7 @@ Perfil del proyecto (equipo/perfil.json): 2 partes
 
   api  ·  carpeta servidor
     API del inventario
-    roles:      dev-backend (go-backend, postgres-db)
+    roles:      dev-backend (go-backend)  ·  dev-dba (postgres-db)
     formato    test -z "$(gofmt -l .)"
     revisar    go vet ./...
     probar     go test ./...
@@ -251,6 +257,8 @@ Con perfil, `make ci` ejecuta todos los verbos aunque uno falle, para que el res
 | `make ci` | Los cinco comandos anteriores, uno tras otro; se detiene en el primer error | Todos los verbos, y al final [un resumen](#el-resumen-de-make-ci) |
 | Commit: formato | `gofmt` y `prettier` | El verbo `formato`, solo en las partes que el commit toca |
 | Commit: archivos que no se modifican | `backend/migrations/*.sql` | Los `inmutables` de cada parte |
+| Lo que cada agente sabe del proyecto | `backend/` es de `dev-backend` (con la base de datos) y `frontend/` de `dev-frontend`, con las tres skills de siempre | Las partes, skills y comandos que el perfil asigna a cada rol. Ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto) |
+| Las marcas de las tareas | `[backend]`, `[frontend]`, `[infra]` | El nombre de cada parte (`[api]`), o `[infra]` |
 
 Lo demás no cambia: estado, costos, instalación del kit, secretos, mensajes de commit y aprobaciones no dependen de la tecnología.
 
@@ -292,7 +300,8 @@ Con un perfil inválido el kit no ejecuta ningún verbo y bloquea los commits ha
 ## Límites
 
 - **La integración continua todavía no lee el perfil.** El `ci.yml` que trae el kit sigue buscando `backend/go.mod` y `frontend/package.json`. Un proyecto con otra forma necesita por ahora su propio workflow. Se resuelve en una entrega posterior.
-- **Los roles y `make doctor` todavía hablan de Go, React y PostgreSQL.** Las `skills` del perfil ya deciden cuáles llegan al proyecto, pero todavía no cuál recibe cada agente: cada rol sigue llevando las suyas escritas, y solo se le quitan las que el proyecto no tiene. También es de una entrega posterior.
+- **`make doctor`, la constitución y las semillas todavía hablan de Go, React y PostgreSQL.** Los roles ya no: cada uno recibe del perfil sus partes, skills y comandos (ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto)). Lo demás es de entregas posteriores.
+- **Cambiar el perfil obliga a regenerar los roles.** Lo que cada agente sabe del proyecto queda escrito en sus instrucciones al generarlas, así que un perfil nuevo sin `make instalar-kit` (o `make sincronizar`, si las skills no cambiaron) deja el commit bloqueado con `La configuración de agentes está desactualizada`.
 - **El hook de Claude Code sigue protegiendo `backend/migrations/`**, no los `inmutables` del perfil. El control del commit sí usa el perfil, y es el que vale para las tres herramientas.
 - **`make verificar-generados` revisa toda la carpeta de la parte.** Si tienes otros cambios sin commit en ella, los toma por código generado desactualizado.
 - **La detección describe, no decide.** Reconoce las tecnologías más comunes por sus archivos; una que no conozca aparece solo como carpetas con archivos. Y no sabe cómo se prueba ni cómo se levanta el proyecto: eso se pregunta.

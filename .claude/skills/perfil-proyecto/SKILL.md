@@ -15,8 +15,10 @@ description: Cómo redactar o corregir el perfil del proyecto (equipo/perfil.jso
       "nombre": "api",
       "carpeta": "backend",
       "descripcion": "API REST del producto",
-      "roles": ["dev-backend"],
-      "skills": ["go-backend", "postgres-db"],
+      "roles": [
+        {"rol": "dev-backend", "skills": ["go-backend"]},
+        {"rol": "dev-dba", "skills": ["postgres-db"]}
+      ],
       "terceros": ["vendor"],
       "inmutables": ["migrations/*.sql"],
       "verbos": {
@@ -63,6 +65,7 @@ Si un verbo necesita un script propio del proyecto, va en `tools/`, en la raíz,
 
 1. Parte de los hechos: la salida de `make profile DETECTAR=1` y lo que leas en el código (archivos de configuración, `README`, scripts existentes). Un archivo de tecnología que trae `dentro_de_carpeta_a_confirmar` suele ser de una biblioteca copiada dentro del proyecto: no lo tomes por la tecnología del proyecto sin mirar la carpeta.
 2. **Una parte es algo que se construye, se prueba o se despliega por separado.** No dividas por dividir: un proyecto pequeño puede ser una sola parte con `"carpeta": "."`. Si una parte mezcla oficios (por ejemplo, PHP que genera HTML junto a su CSS y su JavaScript), no la partas en carpetas artificiales: dale varios `roles`, cada uno con sus skills.
+   **Quién trabaja cada parte.** Los roles no traen tecnología: reciben del perfil sus carpetas, skills y comandos, y una parte sin `roles` no tiene quién la trabaje. `dev-backend`, el lado del servidor; `dev-frontend`, la interfaz; `dev-dba`, la base de datos (esquema, migraciones, consultas, procedimientos). **La base de datos es de `dev-dba`, no de `dev-backend`:** si vive en su propia carpeta, es una parte con ese rol; si sus archivos están dentro de la carpeta del servidor, esa parte lleva los dos roles y la skill del motor va en `dev-dba`. Cualquier otro rol de `roles_disponibles` puede trabajar una parte si el proyecto lo necesita (por ejemplo, `devops` en una carpeta de infraestructura).
 3. Usa solo comandos que el proyecto ya puede ejecutar: herramientas que ya usa o que están en sus archivos de configuración. Si propones una herramienta nueva, dilo aparte como recomendación; no la pongas en el perfil hasta que esté instalada.
 4. **Si el proyecto no tiene algo, el verbo va en `null`.** Un proyecto sin pruebas tiene `"probar": null`, no un comando inventado que siempre pasa. Lista los verbos sin definir como deuda, para que la persona decida.
 5. Lo que no puedas deducir, pregúntalo: cómo se levanta, qué versión del lenguaje usa, si una carpeta dudosa es de terceros.
@@ -75,4 +78,4 @@ Si un verbo necesita un script propio del proyecto, va en `tools/`, en la raíz,
 - Un resumen en lenguaje simple: partes, tecnología de cada una, roles que la trabajan, verbos definidos y verbos sin definir.
 - Las preguntas abiertas.
 
-Después de escribirlo, `make profile` lo valida. El commit lo confirma una persona con `APROBADO_PERFIL=1`; un agente nunca usa esa variable.
+Después de escribirlo, `make profile` lo valida y `make instalar-kit` trae sus skills y regenera los roles con lo que el perfil dice de cada parte (sin ese paso, el commit se rechaza porque los archivos generados no están al día). El commit lo confirma una persona con `APROBADO_PERFIL=1`; un agente nunca usa esa variable.

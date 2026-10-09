@@ -73,7 +73,7 @@ La explicación de fondo está en [Windows y WSL](windows-wsl.md).
 | "Estos archivos de la parte «…» no se modifican una vez versionados" | El commit cambia, renombra o borra un archivo que el perfil declara inmutable (por ejemplo, una migración) | Deja el archivo como estaba y crea uno nuevo |
 | "La parte «…» no pasa la revisión de formato" | El verbo `formato` del perfil falló en una parte que el commit toca | Formatea el código de esa parte y repite el commit |
 | `equipo/perfil.json:` seguido de un error | El perfil está mal escrito, y con un perfil inválido no entra ningún commit | `make profile` dice qué corregir. Ver [El perfil del proyecto](perfil-del-proyecto.md#cuando-algo-falla) |
-| "La configuración de agentes está desactualizada" | Alguien cambió `equipo/` o `.agents/` sin regenerar | `make sincronizar` y agrega el resultado al commit |
+| "La configuración de agentes está desactualizada" | Alguien cambió `equipo/` (los roles, la configuración o el perfil del proyecto) o `.agents/` sin regenerar | `make sincronizar` y agrega el resultado al commit |
 | "Los archivos del kit no coinciden con .bowser-spec-kit-ai/" | Se editó a mano un archivo del kit, o se actualizó el submódulo sin instalar | `make verificar-kit` para ver cuál. Revierte el cambio, o ejecuta `make instalar-kit` |
 | "El costo de … ya está cerrado" | Se modificó el `costos.json` de una funcionalidad terminada | Revierte el cambio: `git checkout -- <archivo>` |
 | ⚠ "sin actualizar estado.md" | Cambió la especificación, el plan o las tareas, y el estado no | Es un aviso, no bloquea. Actualiza `estado.md` y agrégalo al commit |
@@ -109,7 +109,7 @@ Más: [Integración continua](integracion-continua.md#cuando-falla).
 | Síntoma | Causa probable | Solución |
 |---|---|---|
 | El agente no usa los subagentes | La configuración no está generada, o la herramienta no los soporta | `make sincronizar` y reinicia el agente. Si no hay soporte, el orquestador asume los roles en secuencia |
-| "Configuración de agentes desactualizada" | Cambió una fuente sin regenerar | `make sincronizar` y commit |
+| "Configuración de agentes desactualizada" | Cambió una fuente sin regenerar (un rol, una skill, la configuración o el perfil del proyecto) | `make sincronizar` y commit |
 | El agente da vueltas sin terminar una tarea | La instrucción es ambigua, o la tarea es muy grande | Detenlo. Divide la tarea o da una instrucción concreta |
 | El agente quiere usar `--no-verify` o desactivar una prueba | Busca que el control pase, no resolver el problema | No lo permitas. Pídele que corrija la causa |
 | El presupuesto de la suscripción se agota muy rápido | Un modelo caro en un rol de mucho volumen, o el orquestador hace el trabajo en vez de delegar | `make costos` para ver qué agente consume. Ver [Modelos por agente](modelos.md) |

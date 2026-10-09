@@ -10,7 +10,7 @@ El bug es el que describió el usuario en su mensaje.
 
 1. **Diagnóstico:** investiga la causa raíz leyendo el código y los logs. Explica la causa antes de tocar nada.
 2. **Reproducción:** pide a `qa-tester` una prueba automatizada que falle por este bug.
-3. **Arreglo:** delega en `dev-backend` o `dev-frontend` según la capa. Cambio mínimo que haga pasar la prueba sin romper otras.
+3. **Arreglo:** delega en el rol que el perfil asigna a la parte afectada (`dev-backend`, `dev-frontend` o `dev-dba`; `make profile`). Cambio mínimo que haga pasar la prueba sin romper otras.
 4. **Validación:** aplica la skill `equipo-revision` sobre el cambio.
 5. **Registro:** `documentador` agrega la entrada en CHANGELOG (sección Corregido).
 

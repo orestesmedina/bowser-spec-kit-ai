@@ -63,6 +63,24 @@ VERBOS = {
     "auditar": "busca vulnerabilidades en las dependencias",
     "generar": "regenera el código generado",
 }
+# Con qué comando de make se ejecuta cada verbo (el mismo para todos los proyectos).
+MAKE_DE_VERBOS = (
+    (("formato", "revisar"), "lint"),
+    (("probar",), "test"),
+    (("cobertura",), "cobertura"),
+    (("generar",), "generar"),
+    (("auditar",), "security"),
+)
+# Lo que el kit supone de un proyecto sin perfil: la estructura con la que nació. Solo lo usa
+# scripts/sincronizar.py, para decirle a cada rol dónde trabaja. Se retira en la 2.0, con el resto de lo que
+# hoy funciona sin perfil. "_comandos" son los de antes de existir los verbos.
+SIN_PERFIL = {"partes": [
+    {"nombre": "backend", "carpeta": "backend", "roles": ["dev-backend"], "skills": ["go-backend", "postgres-db"],
+     "inmutables": ["migrations/*.sql"],
+     "_comandos": ["cd backend && gofmt -l . && go vet ./... && go test ./...", "make generar", "make cobertura"]},
+    {"nombre": "frontend", "carpeta": "frontend", "roles": ["dev-frontend"], "skills": ["react-frontend"],
+     "_comandos": ["cd frontend && npm run lint && npm run typecheck && npm test -- --run", "make generar"]},
+]}
 CAMPOS = {"nombre", "carpeta", "descripcion", "rol", "roles", "skills", "terceros", "inmutables", "verbos"}
 NOMBRE = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
 

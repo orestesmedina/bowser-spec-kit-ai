@@ -10,19 +10,18 @@ coordinas a los subagentes del equipo siguiendo el proceso de Spec Kit.
 
 **Al iniciar cada sesión, antes de responder**, ejecuta `make estado` y `make costos`, y dile al usuario en pocas líneas dónde quedó el trabajo (skill `equipo-retomar`).
 
-## Stack oficial
-- **Frontend:** React + TypeScript + Vite (carpeta `frontend/`)
-- **Backend:** Go (carpeta `backend/`)
-- **Base de datos:** PostgreSQL (migraciones en `backend/migrations/`)
-- **Local:** Docker Compose · **CI:** GitHub Actions
+## Las tecnologías del proyecto
+Las dice el perfil del proyecto, `equipo/perfil.json`: qué partes tiene, en qué carpeta está cada una, qué rol la trabaja, con qué skills y con qué comandos. Míralo con `make profile`. El kit no impone un lenguaje ni un framework.
+
+Sin perfil, se supone la estructura con la que nació el kit: `backend/` (Go y PostgreSQL) y `frontend/` (React). Esa suposición se retira en la versión 2.0: si el proyecto no tiene perfil, propón crearlo con `/bowser-profile`.
 
 Las reglas no negociables están en `.specify/memory/constitution.md`. Léela antes de cada fase.
 
 ## Dónde está cada cosa
-- `equipo/agentes/` — definición de cada subagente (fuente única; los formatos por herramienta se generan con `make sincronizar`).
-- `equipo/perfil.json` — perfil del proyecto, si existe: sus partes, la carpeta de cada una y el comando de cada verbo (probar, revisar, formato…). Con perfil, `make test`, `make lint` y los demás ejecutan lo que él declara, y manda sobre el stack oficial de arriba. Se crea con `/bowser-profile`; el commit que lo cambia lo confirma una persona.
+- `equipo/agentes/` — definición de cada subagente, sin tecnología (fuente única; los formatos por herramienta se generan con `make sincronizar`, que le agrega a cada uno lo que el perfil dice del proyecto).
+- `equipo/perfil.json` — perfil del proyecto, si existe: sus partes, la carpeta de cada una, sus roles y skills, y el comando de cada verbo (probar, revisar, formato…). Con perfil, `make test`, `make lint` y los demás ejecutan lo que él declara. Se crea con `/bowser-profile`; el commit que lo cambia lo confirma una persona.
 - `equipo/comandos/` — comandos que la persona escribe en el chat (`/bowser-status`, `/bowser-costs`…); también se generan.
-- `.agents/skills/` — conocimiento reutilizable: convenciones del stack (`go-backend`, `react-frontend`, `postgres-db`) y flujos del equipo (`equipo-feature`, `equipo-revision`, `equipo-bug`, `equipo-retomar`).
+- `.agents/skills/` — conocimiento reutilizable: las convenciones de cada tecnología que el proyecto usa (llegan del catálogo del kit según el perfil; `make skills`) y flujos del equipo (`equipo-feature`, `equipo-revision`, `equipo-bug`, `equipo-retomar`).
 - `specs/<feature>/` — spec, plan, tareas y reportes de cada funcionalidad.
 - `specs/<feature>/estado.md` — fase, aprobaciones, hallazgos abiertos, decisiones y próximo paso (lo mantiene el orquestador).
 - `specs/<feature>/costos.json` — tokens y costo de IA por agente y modelo (lo escribe solo `make costos`).
@@ -64,7 +63,7 @@ Si no está claro cuál aplica, pregunta antes de empezar. Nunca escribas códig
 ## Reglas de orquestación
 1. **Nunca saltes una aprobación humana.** Después de `spec.md` y de `plan.md`, detente y pide aprobación explícita.
 2. **Quien escribe no aprueba.** El código de `dev-*` siempre pasa por `qa-tester`, `revisor-codigo` y `seguridad`.
-3. **Delega por capa:** `[backend]`/`[db]` → `dev-backend`; `[frontend]` → `dev-frontend`; `[infra]` → `devops`. Tareas `[P]` independientes pueden ir en paralelo.
+3. **Delega por parte:** cada tarea nombra una parte del proyecto (`[api]`) y la trabaja el rol que el perfil le asigna (`dev-backend`, `dev-frontend`, `dev-dba`); `[infra]` → `devops`. Sin perfil: `[backend]` → `dev-backend`, `[frontend]` → `dev-frontend`. Detalle en `equipo/orquestador.md`. Tareas `[P]` independientes pueden ir en paralelo.
 4. **Bucle de corrección:** si la validación rechaza, devuelve los hallazgos al desarrollador. Máximo 3 ciclos; luego escala a un humano.
 5. **Si tu herramienta no puede lanzar subagentes**, asume tú cada rol en orden, leyendo su definición en `equipo/agentes/<rol>.md`, y nunca apruebes en rol de revisor algo que escribiste en rol de desarrollador sin releerlo desde cero contra la spec.
 6. **Nada de secretos** en el código ni en los prompts. `.env.example` documenta las variables.

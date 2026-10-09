@@ -2,17 +2,19 @@
 
 - [Introducción](#introducción)
 - [Qué define un rol](#qué-define-un-rol)
-- [Los diez roles](#los-diez-roles)
+- [Los once roles](#los-once-roles)
     - [analista-producto](#analista-producto)
     - [arquitecto](#arquitecto)
     - [disenador-ux](#disenador-ux)
     - [dev-backend](#dev-backend)
     - [dev-frontend](#dev-frontend)
+    - [dev-dba](#dev-dba)
     - [qa-tester](#qa-tester)
     - [revisor-codigo](#revisor-codigo)
     - [seguridad](#seguridad)
     - [devops](#devops)
     - [documentador](#documentador)
+- [Lo que cada rol recibe del proyecto](#lo-que-cada-rol-recibe-del-proyecto)
 - [El formato de un rol](#el-formato-de-un-rol)
 - [Cambiar un rol](#cambiar-un-rol)
 - [Agregar un rol](#agregar-un-rol)
@@ -35,7 +37,7 @@ Cuatro cosas distinguen a un rol de otro:
 | **Nivel** | Cuánta capacidad de razonamiento necesita | Decide qué modelo usa, y por lo tanto cuánto cuesta |
 | **Entrega** | El formato exacto de lo que devuelve | Permite que el orquestador y los demás roles trabajen con el resultado |
 
-## Los diez roles
+## Los once roles
 
 ### analista-producto
 
@@ -61,9 +63,11 @@ Decide **cómo** se construye lo que pide la especificación, respetando la cons
 | **Cuándo entra** | Después de aprobar la especificación, para el plan y para las tareas |
 | **Acceso** | Documentos, y puede buscar en internet |
 | **Nivel** | Alto |
-| **Entrega** | `plan.md`, `data-model.md`, `contracts/openapi.yaml` y `tasks.md` |
+| **Entrega** | `plan.md`, `data-model.md`, los contratos en `contracts/` y `tasks.md` |
 
-El plan incluye las decisiones técnicas con su justificación, las alternativas descartadas y los riesgos. Las tareas son pequeñas, están ordenadas por dependencia, y cada una indica su capa, los archivos que toca y la prueba esperada.
+El plan incluye las decisiones técnicas con su justificación, las alternativas descartadas y los riesgos. Las tareas son pequeñas, están ordenadas por dependencia, y cada una indica la parte del proyecto que toca (`[api]`, con el nombre que tiene en el [perfil](perfil-del-proyecto.md)), sus archivos y la prueba esperada.
+
+Diseña con las tecnologías que el proyecto ya usa. También es quien redacta el perfil del proyecto cuando se lo piden con `/bowser-profile`.
 
 Usa lo que ya existe en el repositorio antes de proponer algo nuevo, y justifica cada dependencia que agrega. No escribe código de producción.
 
@@ -80,39 +84,58 @@ Define cómo se ve y cómo se usa la funcionalidad.
 
 El documento cubre el flujo del usuario con sus caminos de error, cada pantalla, los estados de cada vista (vacío, cargando, error, éxito, sin permisos), los componentes a reutilizar o crear, la accesibilidad y los textos.
 
-Diseña primero para móvil y reutiliza componentes existentes. No escribe código: su diseño lo implementa `dev-frontend`.
+Diseña primero para móvil y reutiliza componentes existentes. No escribe código: su diseño lo implementa el desarrollador de la interfaz.
 
 ### dev-backend
 
-Implementa las tareas de backend y de base de datos, en Go y PostgreSQL.
+Implementa el lado del servidor: reglas de negocio, API y procesos. No está atado a un lenguaje.
 
 | | |
 |---|---|
-| **Cuándo entra** | En las tareas marcadas `[backend]` o `[db]` |
+| **Cuándo entra** | En las tareas de las partes que el perfil le asigna |
 | **Acceso** | Completo |
 | **Nivel** | Medio |
-| **Skills** | `go-backend`, `postgres-db` |
+| **Skills** | Las de sus partes, según el perfil (por ejemplo, `go-backend`) |
 | **Entrega** | Código con sus pruebas, y un resumen de lo cambiado y de cualquier desviación del plan |
 
-Escribe primero la prueba y después el código que la hace pasar. Marca la tarea como hecha solo si todas las pruebas pasan.
+Escribe primero la prueba y después el código que la hace pasar. Marca la tarea como hecha solo si los comandos de su parte pasan.
 
-No toca `frontend/`. Si una tarea exige cambiar el contrato de la API, se detiene y avisa al orquestador.
+No toca las partes que no son suyas. El esquema de la base de datos es de `dev-dba` cuando el proyecto lo tiene. Si una tarea exige cambiar el contrato de la API, se detiene y avisa al orquestador.
 
 ### dev-frontend
 
-Implementa las tareas de frontend, en React y TypeScript.
+Implementa la interfaz de usuario: lo que la persona ve y usa. No está atado a un framework.
 
 | | |
 |---|---|
-| **Cuándo entra** | En las tareas marcadas `[frontend]` |
+| **Cuándo entra** | En las tareas de las partes que el perfil le asigna |
 | **Acceso** | Completo |
 | **Nivel** | Medio |
-| **Skills** | `react-frontend` |
-| **Entrega** | Componentes con sus pruebas, y el resultado de lint, tipos y pruebas |
+| **Skills** | Las de sus partes, según el perfil (por ejemplo, `react-frontend`) |
+| **Entrega** | Pantallas y componentes con sus pruebas, y el resultado de los comandos de su parte |
 
-Implementa todos los estados definidos en `ux.md` y usa los tipos generados desde el contrato de la API, nunca escritos a mano.
+Implementa todos los estados definidos en `ux.md` y respeta el contrato de la API. Si el proyecto genera código a partir del contrato, lo regenera; nunca lo escribe a mano.
 
-No toca `backend/`. Si el contrato no alcanza para la pantalla, se detiene y avisa.
+No toca las partes que no son suyas. Si el contrato no alcanza para la pantalla, se detiene y avisa.
+
+### dev-dba
+
+Trabaja la base de datos: tablas, migraciones, índices, consultas y procedimientos almacenados. No está atado a un motor.
+
+| | |
+|---|---|
+| **Cuándo entra** | En las tareas de las partes que el perfil le asigna, o en las que lo nombran (`[api:dev-dba]`) |
+| **Acceso** | Completo |
+| **Nivel** | Medio |
+| **Skills** | Las de sus partes, según el perfil (por ejemplo, `postgres-db`) |
+| **Entrega** | Los archivos de cambio, cómo se revierten, cómo se probaron y qué debe saber quien use esas tablas |
+
+Existe para que el desarrollador del servidor no sea a la vez quien decide el esquema: son dos oficios. Todo cambio va en un archivo nuevo y trae cómo revertirlo; los cambios riesgosos en tablas con datos se hacen por pasos, y las reglas de los datos se hacen cumplir en la base de datos.
+
+No toca el código de la aplicación: deja escrito qué cambió para el desarrollador de esa parte. Nunca ejecuta nada contra una base de datos que no sea la local o la de pruebas.
+
+> [!NOTE]
+> Un proyecto sin [perfil](perfil-del-proyecto.md) no usa este rol: ahí la base de datos la sigue llevando `dev-backend`, como antes. Para incorporarlo, el perfil le asigna una parte. Ver [Lo que cada rol recibe del proyecto](#lo-que-cada-rol-recibe-del-proyecto).
 
 ### qa-tester
 
@@ -170,7 +193,7 @@ Mantiene la infraestructura del proyecto.
 | **Nivel** | Medio |
 | **Entrega** | Los archivos cambiados, cómo probarlos y qué secretos o variables debe configurar una persona |
 
-Se ocupa de los `Dockerfile`, de `docker-compose.yml`, de los workflows de integración y despliegue, de las migraciones automáticas y de mantener `.env.example` al día.
+Se ocupa del entorno local, del empaquetado de cada parte, de la integración continua y el despliegue, de aplicar los cambios de la base de datos de forma automática y de mantener `.env.example` al día, con las herramientas que el proyecto ya usa.
 
 Nunca pone secretos en archivos, fija las versiones de imágenes y herramientas, y **nunca despliega a producción** sin la aprobación explícita de una persona.
 
@@ -189,6 +212,52 @@ Las notas para el cliente van en `docs/entregas/`, en lenguaje no técnico: qué
 
 Documenta solo lo que existe en el código, y lo comprueba antes de escribir.
 
+## Lo que cada rol recibe del proyecto
+
+Ningún rol trae escrita una tecnología, una carpeta ni un comando. Un rol describe un oficio, y lo propio de cada proyecto sale de su [perfil](perfil-del-proyecto.md): al generar los subagentes, `make sincronizar` le agrega a cada rol una sección **"Este proyecto"**.
+
+Así queda `dev-dba` en un proyecto cuyo perfil le asigna la parte `datos`:
+
+```markdown
+## Este proyecto
+Sale del perfil del proyecto (`equipo/perfil.json`), que no editas tú. Tus partes:
+
+- **datos**, en `bd`.
+  - Skills que debes aplicar: `postgres-db` (en `.agents/skills/`).
+  - Comandos: `make lint PARTE=datos`.
+  - El proyecto todavía no tiene cómo: probar, cobertura, generar, auditar. No inventes un comando: dilo en tu entrega.
+  - No se modifican una vez versionados (se crea un archivo nuevo): `bd/cambios/*.sql`.
+
+Las demás partes no son tuyas: `api` (`servidor`, de `dev-backend`).
+```
+
+Qué recibe cada rol lo decide su campo `proyecto` (ver [El formato de un rol](#el-formato-de-un-rol)):
+
+| `proyecto` | Qué ve | Roles |
+|---|---|---|
+| `partes` | Solo las partes que el perfil le asigna, con sus skills | `dev-backend`, `dev-frontend`, `dev-dba` |
+| `mapa` | Todas las partes, con quién trabaja cada una y dónde están sus convenciones | `arquitecto`, `disenador-ux`, `qa-tester`, `revisor-codigo`, `seguridad`, `devops`, `documentador` |
+| (sin el campo) | Nada | `analista-producto`, que no habla de tecnología |
+
+Tres cosas a tener en cuenta:
+
+- **Después de cambiar el perfil hay que regenerar.** `make instalar-kit` lo hace (y además trae las skills nuevas); si las skills no cambiaron, alcanza con `make sincronizar`. Si no, el commit se rechaza con `La configuración de agentes está desactualizada`.
+- **Un rol de desarrollo sin ninguna parte lo sabe.** Sus instrucciones dicen "Hoy no te asigna ninguna parte", y si le llega una tarea avisa al orquestador en vez de suponer.
+- **Sin perfil se supone la estructura original del kit:** `backend/` para `dev-backend` (con la base de datos) y `frontend/` para `dev-frontend`. Esa suposición se retira en la versión 2.0.
+
+Para que `dev-dba` lleve la base de datos de un proyecto cuyo esquema vive dentro de la carpeta del servidor, la parte declara los dos roles y le da a cada uno su skill:
+
+```json
+{
+  "nombre": "backend",
+  "carpeta": "backend",
+  "roles": [
+    { "rol": "dev-backend", "skills": ["go-backend"] },
+    { "rol": "dev-dba", "skills": ["postgres-db"] }
+  ]
+}
+```
+
 ## El formato de un rol
 
 ```markdown
@@ -199,7 +268,7 @@ acceso: lectura
 nivel: alto
 temperatura: 0.1
 web: no
-skills: go-backend
+proyecto: mapa
 ---
 Eres el revisor de código del equipo…
 ```
@@ -212,11 +281,12 @@ Eres el revisor de código del equipo…
 | `nivel` | `alto`, `medio`, `bajo` | Qué modelo usa, según `equipo/config.json` |
 | `temperatura` | De 0 a 2. Opcional | Cuánta variación tienen sus respuestas |
 | `web` | `si`, `no` | Si puede buscar en internet |
-| `skills` | Lista. Opcional | Las skills que aplica siempre |
+| `proyecto` | `partes`, `mapa`. Opcional | Qué recibe del perfil: sus partes, o todas. Ver [Lo que cada rol recibe del proyecto](#lo-que-cada-rol-recibe-del-proyecto) |
+| `skills` | Lista. Opcional | Skills fijas, que aplica en cualquier parte. Los roles del kit no la usan: sus skills las asigna el perfil. Sirve para un rol propio del proyecto |
 
 Debajo del encabezado van las instrucciones, en lenguaje natural.
 
-El rol no nombra ninguna herramienta ni ningún modelo. Eso lo resuelve el generador. Ver [Una fuente, varias herramientas](una-fuente-varias-herramientas.md).
+El rol no nombra ninguna herramienta ni ningún modelo, y tampoco una tecnología. Lo primero lo resuelve el generador; lo segundo, el perfil. Ver [Una fuente, varias herramientas](una-fuente-varias-herramientas.md).
 
 ## Cambiar un rol
 
@@ -230,7 +300,8 @@ Antes de cambiar un rol, considera si lo que necesitas es otra cosa:
 | Quieres… | Lo que hay que cambiar |
 |---|---|
 | Que use otro modelo | `equipo/config.json`. No hace falta tocar el rol |
-| Que escriba el código de otra manera | La [skill](skills.md) del stack |
+| Que escriba el código de otra manera | La [skill](skills.md) de esa tecnología |
+| Que trabaje otra carpeta, con otra skill o con otros comandos | El [perfil del proyecto](perfil-del-proyecto.md) |
 | Que cumpla una regla nueva en todo el proyecto | La [constitución](la-constitucion.md) |
 | Que haga o deje de hacer algo propio de su trabajo | El rol |
 

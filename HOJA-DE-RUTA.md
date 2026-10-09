@@ -2,8 +2,8 @@
 
 Hacia dónde va el kit, por qué, y en qué punto estamos. Este archivo es la memoria del plan: cualquier persona o sesión de IA que retome el trabajo empieza por aquí.
 
-**Estado actual:** versión 1.14.0 en la rama `etapa-2` (en `main`, la 1.12.1). Etapa 0 hecha. Etapa 1: los seis comandos están hechos y probados en OpenCode; la prueba a mano en Claude Code y Codex queda aplazada. **Etapa 2 en curso** (núcleo sin tecnología): diseño aprobado; hecha la entrega A (perfil del proyecto y verbos), que no rompe los proyectos actuales, y validada sobre copias de los dos proyectos. La entrega B va en la rama `etapa-2`: hechos los pasos B1 y B2 (catálogo de skills), sigue el B3 (pasos en la [etapa 2](#etapa-2-núcleo-sin-tecnología-y-perfil-del-proyecto-versión-20)).
-**Última actualización:** 2026-10-08.
+**Estado actual:** versión 1.15.0 en la rama `etapa-2` (en `main`, la 1.12.1). Etapa 0 hecha. Etapa 1: los seis comandos están hechos y probados en OpenCode; la prueba a mano en Claude Code y Codex queda aplazada. **Etapa 2 en curso** (núcleo sin tecnología): diseño aprobado; hecha la entrega A (perfil del proyecto y verbos), que no rompe los proyectos actuales, y validada sobre copias de los dos proyectos. La entrega B va en la rama `etapa-2`: hechos los pasos B1, B2 (catálogo de skills) y B3 (roles sin tecnología y rol `dev-dba`), sigue el B4 (pasos en la [etapa 2](#etapa-2-núcleo-sin-tecnología-y-perfil-del-proyecto-versión-20)).
+**Última actualización:** 2026-10-09.
 
 - [El norte](#el-norte)
 - [Principios de diseño](#principios-de-diseño)
@@ -189,7 +189,7 @@ Pasos de la entrega B, en orden (rama `etapa-2`, que sale de `main` con la 1.12.
 |---|---|---|
 | B1 | Perfil: `roles` (lista) por parte, aceptando el `rol` de la entrega A; las skills de cada rol dentro de la parte; variables `PERFIL_RAIZ` y `PERFIL_TERCEROS` para los comandos de los verbos; carpeta del proyecto para sus propios scripts; resumen al final de `make ci` con lo comprobado y lo que quedó sin comprobar | Hecho (1.13.0, 2026-10-08) |
 | B2 | Catálogo: las skills de tecnología salen de `.agents/skills/` a una carpeta de catálogo del kit, con etiqueta de madurez; `make instalar-kit` copia solo las que el perfil nombra (sin perfil, las tres de siempre) y avisa si el perfil pide una que no existe | Hecho (1.14.0, 2026-10-09) |
-| B3 | Roles sin tecnología: `dev-backend`, `dev-frontend`, `arquitecto`, `qa-tester`, `devops` y el resto dejan de nombrar Go, React y PostgreSQL y leen el perfil (carpetas, skills y verbos); rol nuevo de base de datos; `sincronizar.py` ya no saca las skills del rol sino del perfil; orquestador y `AGENTS.md` al día | Pendiente |
+| B3 | Roles sin tecnología: `dev-backend`, `dev-frontend`, `arquitecto`, `qa-tester`, `devops` y el resto dejan de nombrar Go, React y PostgreSQL y leen el perfil (carpetas, skills y verbos); rol nuevo de base de datos; `sincronizar.py` ya no saca las skills del rol sino del perfil; orquestador y `AGENTS.md` al día | Hecho (1.15.0, 2026-10-09) |
 | B4 | Skills `php`, `mysql` y `web-sin-framework`, redactadas con la documentación oficial y el código de p2p Controller | Pendiente |
 | B5 | Semillas sin tecnología: `docker-compose.yml`, `.env.example` y el bloque de `.gitignore` dejan de traer PostgreSQL, Go y Node a quien no los usa | Pendiente |
 | B6 | Repetir la validación de las dos copias con la rama y un cambio pequeño de verdad en cada una | Pendiente |
@@ -212,6 +212,18 @@ Detalles que salieron al implementar el paso B2 (2026-10-09):
 - Puente hasta el B3: como los roles todavía llevan sus skills escritas, `sincronizar.py` les quita las que el proyecto no tiene. El texto del rol las sigue nombrando; eso se va en el B3.
 - Para B4: una skill nueva es una carpeta en `catalogo/skills/` con `madurez: redactada`; `make test-kit` comprueba el formato.
 - Para B6: en la copia de `simiente-santa-webside`, comprobar que el perfil nombra `go-backend`, `postgres-db` y `react-frontend`; si no, la actualización se las retira.
+
+Detalles que salieron al implementar el paso B3 (2026-10-09):
+
+- El rol de base de datos se llama `dev-dba` (decisión de Orestes). Y una regla suya que manda sobre los perfiles: **el backend no hace backend y base de datos; la base de datos es de `dev-dba`**. La skill `perfil-proyecto` ya lo recomienda así.
+- Los roles no leen el perfil al trabajar: `sincronizar.py` les escribe una sección "Este proyecto" al generarlos. Se eligió así porque no gasta tokens en cada tarea y no depende de que el agente obedezca. El costo: cambiar el perfil obliga a regenerar (`make instalar-kit` o `make sincronizar`), y el commit se rechaza si no se hizo.
+- Cada rol declara qué ve con el campo `proyecto`: `partes` (los tres `dev-*`), `mapa` (los demás) o nada (`analista-producto`).
+- Las tareas se marcan con el nombre de la parte (`[api]`), y con el rol si la parte tiene varios (`[api:dev-dba]`).
+- Sin perfil, el generador usa un perfil supuesto (`SIN_PERFIL` en `scripts/perfil.py`): `backend/` con `dev-backend`, que ahí sigue llevando la base de datos, y `frontend/` con `dev-frontend`. Es el único lugar fuera del catálogo y de la rama vieja del `Makefile` donde quedan nombres de tecnología ligados a los roles; se retira en la 2.0.
+- Medida del "Hecho cuando": los roles pasaron de 40 menciones de tecnología a 0, y una prueba lo vigila. Quedan: constitución (13, entrega C), `AGENTS.md` (1, la nota de "sin perfil"), orquestador (`make up`, `make generar`, el texto de la CI: B5 y C).
+- `dev-dba` usa el modelo del nivel medio. En `equipo/config.json`, `dev-backend` y `dev-frontend` tienen un modelo propio para OpenCode: falta que Orestes decida si `dev-dba` lleva el mismo.
+- Para B4: las skills `php`, `mysql` y `web-sin-framework` deben decir dónde van las pruebas y los archivos de cambio, porque los roles ya no lo dicen.
+- Para B6: en la copia de `simiente-santa-webside`, darle a `backend` los roles `dev-backend` (`go-backend`) y `dev-dba` (`postgres-db`); en la de p2p Controller, `dev-dba` en la parte `base-de-datos`. Y probar ahí lo que las pruebas automáticas no ven: que un agente real trabaje bien con el rol nuevo y que el orquestador delegue por parte.
 
 **Validación:** un proyecto existente de Orestes en **PHP puro, con HTML, CSS y JavaScript puros, y MySQL** (decidido el 2026-10-04): **p2p Controller**, en `D:\IA\environment\wsl\code\p2p Controller` (en WSL, `/mnt/d/IA/environment/wsl/code/p2p Controller`), con el script de MySQL en `api.p2pcontroller/@database/p2pcontroller.sql`. No es para meter esa combinación en el kit, sino para comprobar que el núcleo funciona sin la tecnología original: otro lenguaje, otra base de datos y un proyecto que no tiene la forma "backend y frontend separados". De ahí salen además las primeras skills que no son de Go. Como es un proyecto existente, es también el caso de prueba de la etapa 4.
 **Lo que se encontró en p2p Controller (2026-10-05, solo lectura):** dos carpetas hermanas (`api.p2pcontroller`, la API, y `p2pcontroller.com/http`, el panel web), unas 13 000 líneas de PHP propio, 25 tablas y 67 procedimientos almacenados. No es un repositorio de git, y no tiene pruebas, Composer, formateador ni Docker. Trae bibliotecas de terceros copiadas dentro (`libraries/`, `bower_components/`). Consecuencias para el diseño: un verbo puede no estar definido en un proyecto, el perfil debe declarar las carpetas de terceros, y reglas como "80 % de cobertura" son del proyecto, no del núcleo. Se trabaja siempre sobre una copia.
@@ -275,6 +287,8 @@ Detalles que salieron al implementar el paso B2 (2026-10-09):
 | 2026-10-08 | Entrega B: una parte del perfil puede declarar varios roles, y cada rol recibe las skills de esa parte que le corresponden | Propuesto por Claude; aprobado por Orestes |
 | 2026-10-08 | Entrega B: las únicas skills nuevas son las de p2p Controller (`php`, `mysql`, `web-sin-framework`), marcadas "solo redactadas" hasta que haya un cambio real hecho con ellas | Propuesto por Claude; aprobado por Orestes |
 | 2026-10-08 | Entrega B: el catálogo de skills vive en el kit y la instalación copia solo las que el perfil nombra; sin perfil, las tres de siempre | Propuesto por Claude; aprobado por Orestes |
+| 2026-10-09 | El rol de base de datos se llama `dev-dba`, y la base de datos es suya, no de `dev-backend`. `simiente-santa-webside` lo incorpora cuando tenga perfil | Orestes |
+| 2026-10-09 | Lo que cada rol sabe del proyecto se escribe en el rol al generarlo, desde el perfil; las tareas se marcan con el nombre de la parte | Propuesto por Claude; Orestes no lo objetó al decidir el nombre del rol |
 | 2026-10-04 | **El nombre se queda en "bowser" por ahora** (es el nombre de su perro). Los comandos usan el prefijo `/bowser-`. Si más adelante aparece un nombre mejor, se cambia | Orestes |
 
 ## Decisiones abiertas

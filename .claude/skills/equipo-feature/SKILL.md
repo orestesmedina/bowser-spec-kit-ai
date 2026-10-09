@@ -31,7 +31,7 @@ Si tu herramienta no puede lanzar subagentes, asume tú cada rol leyendo `equipo
    📍 Fase y próximo paso.
 
 ## Fase 4 — Implementación
-1. Ejecuta `implement`, delegando cada tarea según su capa: `[backend]`/`[db]` → `dev-backend`, `[frontend]` → `dev-frontend`, `[infra]` → `devops`.
+1. Ejecuta `implement`, delegando cada tarea en el rol que el perfil asigna a su parte (`[api]` → el `dev-*` de la parte `api`; `[api:dev-dba]` → ese rol; `[infra]` → `devops`). Sin perfil: `[backend]` → `dev-backend`, `[frontend]` → `dev-frontend`.
 2. Tareas `[P]` sin dependencias entre sí pueden ir en paralelo.
 3. Un commit por tarea terminada (Conventional Commits). Las tareas hechas quedan con `[X]` en `tasks.md`.
    📍 Al empezar la fase y al cerrar la sesión: próximo paso con el ID de la siguiente tarea.

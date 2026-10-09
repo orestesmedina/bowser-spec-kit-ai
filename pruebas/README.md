@@ -44,6 +44,7 @@ Las pruebas de `nucleo/`:
 | `prueba_comandos.py` | Comandos del chat: generados para las tres herramientas, retirados al desactivar una, comandos propios, errores de formato y llegada al actualizar |
 | `prueba_costos.py` | `make costos` con OpenCode 1.x y 2.x, avisos y costo cerrado |
 | `prueba_catalogo.py` | Catálogo de skills: que esté bien escrito, que sin perfil lleguen las tres de siempre y con perfil solo las que nombra, el rechazo del commit cuando el perfil y las skills instaladas no coinciden, y los avisos (skill inexistente, skill solo redactada, perfil ilegible) |
+| `prueba_roles.py` | Roles sin tecnología: que ningún rol del kit nombre una, que cada rol generado reciba del perfil sus partes, skills, comandos y límites (y sin perfil, la estructura de siempre), que cambiar el perfil sin regenerar bloquee el commit, y qué pasa con un perfil ilegible |
 | `prueba_perfil.py` | Perfil del proyecto: `make` ejecuta los verbos de cada parte, perfiles mal escritos, varios roles por parte, las variables `PERFIL_RAIZ` y `PERFIL_TERCEROS`, el resumen de `make ci`, controles del commit (confirmación, inmutables, formato) y `make profile DETECTAR=1` |
 
 Las pruebas de `go/`:

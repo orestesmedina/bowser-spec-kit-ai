@@ -26,7 +26,7 @@ mi-proyecto/
 ├── .specify/memory/constitution.md  # Reglas no negociables del código
 ├── equipo/
 │   ├── orquestador.md               # Manual de trabajo del orquestador
-│   ├── agentes/*.md                 # Los 10 roles
+│   ├── agentes/*.md                 # Los 11 roles, sin tecnología
 │   ├── comandos/*.md                # Comandos del chat (/bowser-status…)
 │   ├── config.json                  # Herramientas activas y modelo de cada agente
 │   ├── perfil.json                  # Partes del proyecto y comando de cada verbo (opcional)
