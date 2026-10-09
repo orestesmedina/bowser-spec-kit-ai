@@ -49,7 +49,7 @@ Si dudas entre "trivial" y "funcionalidad": **no es trivial** si cambia comporta
 
 ## 3. Ciclo de una funcionalidad (Spec Kit + subagentes)
 
-Los comandos de Spec Kit en esta herramienta son `/speckit.<fase>` (en Codex: `$speckit-<fase>`). Cada fase la ejecuta el subagente indicado; tú coordinas.
+Los comandos de Spec Kit se nombran aquí como en OpenCode, `/speckit.<fase>`; en Claude Code son `/speckit-<fase>` y en Codex `$speckit-<fase>`. Cada fase la ejecuta el subagente indicado; tú coordinas.
 
 | Fase | Comando | Subagente | Produce | Puerta |
 |---|---|---|---|---|

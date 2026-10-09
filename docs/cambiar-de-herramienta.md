@@ -56,7 +56,7 @@ Lo que comparten es todo lo importante: el proceso, las reglas, el estado y los 
 
 | | Claude Code | Codex | OpenCode |
 |---|---|---|---|
-| Comandos de Spec Kit | `/speckit.plan` | `$speckit-plan` | `/speckit.plan` |
+| Comandos de Spec Kit | `/speckit-plan` | `$speckit-plan` | `/speckit.plan` |
 | El orquestador | La sesión principal | La sesión principal | Un agente llamado `orquestador`, abierto por defecto |
 | Modelo del orquestador | Se configura | Se elige al iniciar la sesión | Se configura |
 | [Hooks del agente](hooks-del-agente.md) | Sí | No | No |

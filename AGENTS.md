@@ -29,7 +29,7 @@ Las reglas no negociables están en `.specify/memory/constitution.md`. Léela an
 
 ## Proceso: fase de Spec Kit → subagente responsable
 
-Los comandos de Spec Kit se llaman `/speckit.<fase>` en Claude Code y OpenCode, y `$speckit-<fase>` en Codex.
+Los comandos de Spec Kit se llaman `/speckit.<fase>` en OpenCode, `/speckit-<fase>` en Claude Code y `$speckit-<fase>` en Codex.
 
 | Fase | Spec Kit | Subagente | Resultado | Aprobación humana |
 |---|---|---|---|---|

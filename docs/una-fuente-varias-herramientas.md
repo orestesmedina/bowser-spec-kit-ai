@@ -39,6 +39,9 @@ Con una sola fuente:
 
 Cada archivo generado empieza con un aviso que dice de qué fuente salió y que no se edita.
 
+> [!NOTE]
+> Spec Kit guarda sus comandos dentro de dos de esas carpetas: `.claude/skills/speckit-*/` y `.opencode/commands/speckit.*.md`. No son del kit: `make sincronizar` no los borra ni los cambia, y `make verificar-agentes` no los cuenta. Todo lo demás que haya en las carpetas generadas sí se borra.
+
 ## Qué lee cada herramienta
 
 | | Claude Code | Codex | OpenCode |
@@ -47,7 +50,7 @@ Cada archivo generado empieza con un aviso que dice de qué fuente salió y que 
 | Subagentes | `.claude/agents/*.md` | `.codex/agents/*.toml` | `.opencode/agents/*.md` |
 | Skills | `.claude/skills/` (una copia) | `.agents/skills/` | `.agents/skills/` |
 | Comandos del kit | `.claude/skills/bowser-*/` | `.agents/skills/bowser-*/` | `.opencode/commands/bowser-*.md` |
-| Comandos de Spec Kit | `/speckit.plan` | `$speckit-plan` | `/speckit.plan` |
+| Comandos de Spec Kit | `/speckit-plan` | `$speckit-plan` | `/speckit.plan` |
 | Hooks del agente | Sí | No | No |
 | Hooks de git e integración continua | Sí | Sí | Sí |
 
