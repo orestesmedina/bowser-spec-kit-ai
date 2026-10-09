@@ -49,7 +49,7 @@ mi-proyecto/
 │
 ├── backend/                         # Go
 ├── frontend/                        # React + TypeScript
-├── docker-compose.yml               # PostgreSQL local
+├── docker-compose.yml               # Servicios locales del proyecto (lo crea el proyecto)
 ├── .env.example                     # Variables de entorno, sin valores reales
 │
 ├── .bowser-spec-kit-ai/             # El kit (submódulo de git)
@@ -123,8 +123,8 @@ Todo archivo que no es código del producto pertenece a una de estas clases. Sab
 | `backend/migrations/` | Los cambios de esquema de la base de datos, numerados |
 | `backend/api/openapi.yaml` | El contrato de la API |
 | `frontend/` | React + TypeScript. Su organización interna está en la skill `react-frontend` |
-| `docker-compose.yml` | PostgreSQL para desarrollo local (semilla) |
-| `.env.example` | Las variables de entorno que necesita el proyecto, sin valores reales (semilla) |
+| `docker-compose.yml` (o `compose.yaml`) | Los servicios locales que levanta `make up`. Es del proyecto: el kit no trae ninguno y lo crea el rol `devops` |
+| `.env.example` | Las variables de entorno que necesita el proyecto, sin valores reales (semilla: llega vacía) |
 | `.env` | Los valores reales. Nunca se sube a git |
 
 ### El kit

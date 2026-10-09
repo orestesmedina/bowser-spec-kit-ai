@@ -100,15 +100,7 @@ Reinicia el agente de código para que tome la configuración nueva, e incluye e
 cp .env.example .env
 ```
 
-Las variables que usa el kit:
-
-| Variable | Para qué |
-|---|---|
-| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Credenciales y nombre de la base de datos local |
-| `POSTGRES_PORT` | Puerto de PostgreSQL en tu máquina. Cámbialo si el 5432 está ocupado |
-| `DATABASE_URL` | La dirección completa de la base de datos; la usa `make db-migrate` |
-| `DATABASE_URL_TEST` | La base de datos de las pruebas de integración |
-| `VITE_API_URL` | La dirección del backend, para el frontend |
+El kit lo instala vacío, solo con la explicación: las variables son del proyecto, porque dependen de su tecnología. La única que usa un comando del kit es `DATABASE_URL`, que lee `make db-migrate` en los proyectos sin [perfil](perfil-del-proyecto.md).
 
 Cuando una funcionalidad necesita una variable nueva, se agrega a `.env.example` sin su valor real. Eso lo hace el rol `devops`.
 

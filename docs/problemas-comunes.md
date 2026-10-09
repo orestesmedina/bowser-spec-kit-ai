@@ -52,11 +52,15 @@ La explicación de fondo está en [Windows y WSL](windows-wsl.md).
 
 ## Base de datos
 
+La base de datos y los demás servicios locales los define cada proyecto en su archivo de Docker Compose; el kit no trae ninguno. Los nombres de las variables de esta tabla son los habituales con PostgreSQL: en tu proyecto pueden ser otros.
+
 | Síntoma | Causa probable | Solución |
 |---|---|---|
-| Error de conexión a la base de datos | PostgreSQL no levantó, o `.env` es incorrecto | `make up`, `docker compose ps`, y revisa `DATABASE_URL` en `.env` |
-| La contraseña de `.env` no funciona | PostgreSQL solo toma la contraseña al crear la base por primera vez; se cambió `.env` después | `docker compose down -v && make up`. **Borra los datos locales** |
-| El puerto 5432 está ocupado | Hay otro PostgreSQL en la máquina | Detén el otro, o pon otro puerto en `POSTGRES_PORT` dentro de `.env` (por ejemplo `5433`) y ajusta `DATABASE_URL` |
+| `make up` responde `Este proyecto todavía no tiene entorno local` | El proyecto no tiene archivo de Docker Compose en la raíz. El kit dejó de traer uno en la 1.17.0 | Pídele al equipo (rol `devops`) que lo cree con los servicios que el proyecto usa. Si el proyecto no necesita servicios locales, no hace falta `make up` |
+| Después de actualizar el kit, `.gitignore` tiene reglas nuevas debajo del bloque del kit | El bloque ya no trae reglas de Go ni de Node; las que tenía se conservaron ahí para que git no empiece a ver lo que ignoraba | Son del proyecto: deja las que le sirven y borra las demás |
+| Error de conexión a la base de datos | La base de datos no levantó, o `.env` es incorrecto | `make up`, `docker compose ps`, y revisa la dirección de la base de datos en `.env` |
+| La contraseña de `.env` no funciona | El motor solo toma la contraseña al crear la base por primera vez; se cambió `.env` después | `docker compose down -v && make up`. **Borra los datos locales** |
+| El puerto 5432 está ocupado | Hay otro PostgreSQL en la máquina | Detén el otro, o cambia el puerto en `.env` (por ejemplo `5433`) y ajusta `DATABASE_URL` |
 | `authentication method 10 not supported` | El cliente de base de datos es demasiado viejo para PostgreSQL 16 | Usa DBeaver Community o pgAdmin 4, o actualiza tu cliente |
 | Error de autenticación **en español** ("la autentificación password falló…") | Te estás conectando a un PostgreSQL instalado en Windows, no al de Docker, que responde en inglés | Detén o desinstala el PostgreSQL de Windows, o cambia el puerto del de Docker |
 

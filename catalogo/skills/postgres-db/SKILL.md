@@ -73,6 +73,10 @@ Fuentes: el manual de PostgreSQL (postgresql.org/docs/current/) y la página "Do
 - La secuencia completa: aplicar el `up`, comprobar el resultado, aplicar el `down`, comprobar que quedó como estaba, y aplicar el `up` otra vez.
 - Si el proyecto tiene pruebas de base de datos, las nuevas van en su misma carpeta; si no, las consultas de comprobación y su resultado esperado van en la entrega, para que QA las repita.
 
+## Lo que no va en git
+- Los volcados con datos reales (los que produce `pg_dump` sobre una base en uso) y la carpeta de datos del motor, si la base local corre en un contenedor con una carpeta del proyecto.
+- El esquema, los archivos de cambio y los datos de ejemplo inventados sí van en git.
+
 ## Si el proyecto tiene sus propias convenciones
 - Esta página es el estándar. Si el proyecto tiene una skill de convenciones propias, **en nombres, estructura, patrones y herramientas manda esa**, para que lo nuevo se parezca a lo que ya hay. Lo que ella no diga se hace como dice esta página.
 - **Seguridad**, los parámetros en las consultas y el archivo de cambio con su reverso no admiten excepción. Si cumplirlos exige cambiar algo que tu tarea no cubre, detente y avisa.

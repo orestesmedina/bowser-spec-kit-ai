@@ -64,6 +64,10 @@ Qué herramienta de compilación, de rutas, de datos o de estilos usa el proyect
 ## Comandos
 Los pone el proyecto en su `package.json` y en su perfil. Lo que no puede faltar: la comprobación de tipos (`tsc --noEmit`) y ESLint con `eslint-plugin-react-hooks`.
 
+## Lo que no va en git
+- `node_modules/`, la carpeta que produce la construcción (según la herramienta: `dist/` o `build/`) y los informes de pruebas y de cobertura (`coverage/`).
+- `package.json` y el archivo de bloqueo de versiones (`package-lock.json` o el del gestor que use el proyecto) sí van en git.
+
 ## Si el proyecto tiene sus propias convenciones
 - Esta página es el estándar. Si el proyecto tiene una skill de convenciones propias, **en nombres, estructura, patrones y bibliotecas manda esa**, para que el código nuevo se parezca al que ya hay. Lo que ella no diga se hace como dice esta página.
 - **Seguridad** y **Las reglas de React** no admiten excepción. Si cumplirlas exige cambiar algo que tu tarea no cubre, detente y avisa.

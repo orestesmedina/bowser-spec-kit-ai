@@ -40,8 +40,8 @@ git submodule add https://github.com/orestesmedina/bowser-spec-kit-ai.git .bowse
 make -f .bowser-spec-kit-ai/Makefile instalar-kit
 
 # 4. El entorno local
-cp .env.example .env      # completa los valores
-make up && make doctor
+cp .env.example .env      # las variables las agrega el proyecto
+make doctor
 ```
 
 Después abre tu agente en la carpeta del proyecto y pídele lo que necesitas.

@@ -40,7 +40,7 @@ El comando hace tres cosas:
 2. Instala: reemplaza los archivos del kit que cambiaron, agrega los nuevos y borra los que el kit eliminó.
 3. Regenera la configuración de los agentes y muestra las novedades.
 
-Lo que **no** hace: tocar las semillas (`equipo/config.json`, `.github/CODEOWNERS`, `.env.example`, `docker-compose.yml`) ni ningún archivo propio del proyecto.
+Lo que **no** hace: tocar las semillas (`equipo/config.json`, `.github/CODEOWNERS`, `.env.example`) ni ningún archivo propio del proyecto, como su `docker-compose.yml`. En `.gitignore` solo cambia el bloque del kit; si una versión nueva saca reglas de ese bloque, las deja escritas debajo, como del proyecto.
 
 Al terminar, revisa los cambios y guárdalos:
 

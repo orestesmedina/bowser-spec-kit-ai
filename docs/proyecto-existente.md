@@ -44,9 +44,10 @@ La instalación toca solo los archivos que el kit gestiona. Si alguno ya existí
 | `AGENTS.md` | **Se reemplaza.** Respaldo en `.kit-respaldo/` |
 | `.github/workflows/ci.yml` | **Se reemplaza.** Respaldo en `.kit-respaldo/` |
 | Otros workflows en `.github/workflows/` | Se respetan |
-| `.github/CODEOWNERS`, `docker-compose.yml`, `.env.example` | Se respetan si ya existen. Si no existen, el kit copia los suyos |
+| `.github/CODEOWNERS`, `.env.example` | Se respetan si ya existen. Si no existen, el kit copia los suyos (`.env.example`, vacío) |
+| `docker-compose.yml` y el resto de tu entorno local | No se tocan: el kit no trae ninguno |
 | `README.md`, `CHANGELOG.md` | Se respetan: son del producto |
-| `.gitignore` | Se respeta, y se le agrega al final un bloque del kit |
+| `.gitignore` | Se respeta, y se le agrega al final un bloque del kit, sin reglas de ninguna tecnología |
 | Tu código, tus documentos y el resto de las carpetas | No se tocan |
 
 En resumen: en un proyecto típico se reemplazan tres archivos, y los tres quedan respaldados.
@@ -145,7 +146,8 @@ El kit nació para React, Go y PostgreSQL y está dejando de depender de ellas. 
 - **Los comandos (`make test`, `make lint`…) ejecutan lo que el perfil declara.**
 - **Las skills de tecnología** llegan del [catálogo del kit](skills.md#el-catálogo-de-skills-de-tecnología) y traen el estándar de cada una, según su documentación oficial. Hoy tiene las de Go, React, PostgreSQL, PHP, MySQL y web sin framework; para otra tecnología, el proyecto escribe su propia skill en `.agents/skills/` y el perfil la nombra.
 - **Lo propio de tu proyecto** (cómo nombra las cosas, cómo se organiza, qué patrones y bibliotecas usa) lo redacta un agente leyendo el código, con `/bowser-conventions`. Ver [Convenciones del proyecto](convenciones-del-proyecto.md).
-- **La constitución, la integración continua y los archivos iniciales** (`docker-compose.yml`, `.env.example`) todavía suponen React, Go y PostgreSQL. Mientras eso cambia, un proyecto con otras tecnologías mantiene su versión de esos archivos mediante `kit.excluir`.
+- **Los archivos iniciales no traen tecnología:** el kit no instala base de datos ni servicios, `.env.example` llega vacío y su bloque de `.gitignore` solo cubre secretos, editores y archivos del kit.
+- **La constitución y la integración continua** todavía suponen React, Go y PostgreSQL. Mientras eso cambia, un proyecto con otras tecnologías mantiene su versión de esos archivos mediante `kit.excluir`.
 
 Así que el primer paso con otro stack es crear el perfil, `/bowser-profile`, y el segundo, las convenciones, `/bowser-conventions`. El proceso, el estado, los costos y la instalación no dependen del stack. La página [Cómo contribuir](contribuir.md) explica cómo está organizado el kit por dentro.
 

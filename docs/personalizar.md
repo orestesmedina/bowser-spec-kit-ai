@@ -28,7 +28,8 @@ La idea central: **lo que tú agregas es tuyo, y el kit nunca lo toca**. Solo ha
 | Un comando del chat adicional | Un archivo nuevo en `equipo/comandos/` | No |
 | Otro workflow de GitHub | Un archivo nuevo en `.github/workflows/` | No |
 | Modelos, herramientas, temperaturas | `equipo/config.json` | No: es una semilla |
-| Servicios locales adicionales | `docker-compose.yml` | No: es una semilla |
+| Servicios locales (base de datos, colas…) | El archivo de Docker Compose de la raíz | No: es del proyecto, el kit no trae ninguno |
+| Qué ignora git | `.gitignore`, fuera del bloque del kit | No |
 | Quién aprueba los cambios a las reglas | `.github/CODEOWNERS` | No: es una semilla |
 | Versiones de las herramientas en la integración continua | Variables del repositorio en GitHub | No |
 

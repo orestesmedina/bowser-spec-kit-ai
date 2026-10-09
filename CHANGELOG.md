@@ -13,6 +13,32 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.17.0] - 2026-10-09
+
+Quinto paso (B5) de la entrega B de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.
+
+Lo que el kit deja en un proyecto al instalarse ya no trae tecnología: ni base de datos, ni variables de entorno, ni reglas de `.gitignore` de Go y Node.
+
+### Agregado
+- Cada skill del catálogo tiene la sección **"Lo que no va en git"**, y `/bowser-profile` propone esas reglas para el `.gitignore` del proyecto, fuera del bloque del kit y con la carpeta de cada parte.
+- `make up` y `make down` aceptan cualquiera de los nombres de Docker Compose (`compose.yaml`, `compose.yml`, `docker-compose.yaml`, `docker-compose.yml`). Si el proyecto no tiene ninguno, lo dicen con un mensaje claro en vez de dejar que Docker falle.
+
+### Cambiado
+- **`docker-compose.yml` deja de ser una semilla.** El kit ya no instala un PostgreSQL: el entorno local es del proyecto y lo crea el rol `devops` con los servicios que el proyecto usa.
+- **`.env.example` llega vacío**, solo con la explicación. Las variables las agrega el proyecto.
+- **El bloque del kit en `.gitignore` solo trae lo que no depende de la tecnología:** secretos, editores, la configuración personal de Claude Code y los archivos del propio kit. Salen las reglas de Go (`backend/bin/`, `backend/coverage.out`, `*.test`) y de Node (`frontend/node_modules/`, `frontend/dist/`, `frontend/coverage/`, `frontend/playwright-report/`, `frontend/test-results/`).
+- Al actualizar, **las reglas que salen del bloque no se pierden**: `make instalar-kit` las deja escritas debajo del bloque, como del proyecto, sin repetir las que el proyecto ya tenía. Así git no empieza a ver lo que antes ignoraba.
+
+### Límites
+- Un proyecto nuevo **sin perfil** ya no recibe el PostgreSQL ni las reglas de Go y Node, aunque el resto del kit siga suponiendo esa estructura mientras no haya perfil. Es la única diferencia de comportamiento sin perfil de esta versión.
+- `make up` sigue suponiendo Docker Compose. Un proyecto que levanta su entorno de otra forma define su comando en `proyecto.mk`.
+- `make db-migrate` sigue atado a `backend/migrations` y a la herramienta `migrate`. Se resuelve con el cambio de nombres de los comandos (entrega D).
+- Ningún control comprueba que el `.gitignore` del proyecto tenga las reglas de sus tecnologías: las propone un agente y las aprueba una persona.
+
+### Al actualizar
+- Tu `docker-compose.yml` y tu `.env.example` no cambian: ya eran del proyecto.
+- En `.gitignore` aparecen, debajo del bloque del kit, las reglas de Go y Node que antes estaban dentro. Revísalas: deja las que le sirven al proyecto y borra las demás. Van en el mismo commit de la actualización.
+
 ## [1.16.0] - 2026-10-09
 
 Cuarto paso (B4) de la entrega B de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.

@@ -74,6 +74,10 @@ Fuente: el manual de referencia de MySQL 8.4 (dev.mysql.com/doc/refman/8.4/en/),
 - Un procedimiento se prueba llamándolo con `CALL` para cada caso de la tarea, incluidos los que deben fallar.
 - Si el proyecto tiene pruebas de base de datos, las nuevas van en su misma carpeta; si no, las llamadas y su resultado esperado van en la entrega, para que QA las repita.
 
+## Lo que no va en git
+- Los volcados con datos reales (los que produce `mysqldump` sobre una base en uso) y la carpeta de datos del motor, si la base local corre en un contenedor con una carpeta del proyecto.
+- El esquema, los archivos de cambio y los datos de ejemplo inventados sí van en git.
+
 ## Si el proyecto tiene sus propias convenciones
 - Esta página es el estándar. Si el proyecto tiene una skill de convenciones propias, **en nombres, estructura, patrones y herramientas manda esa**, para que lo nuevo se parezca a lo que ya hay. Lo que ella no diga se hace como dice esta página.
 - Las reglas de **Seguridad**, los parámetros en las consultas y el archivo de cambio con su reverso no admiten excepción. Si cumplirlas exige cambiar algo que tu tarea no cubre, detente y avisa.

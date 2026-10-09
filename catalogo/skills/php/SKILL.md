@@ -87,6 +87,10 @@ vendor/              # lo instala Composer; nunca en git, nunca se edita
 
 Los que el proyecto tiene de verdad están en su perfil; no instales una herramienta que el plan no pidió.
 
+## Lo que no va en git
+- `vendor/` (lo instala Composer) y las cachés de las herramientas (`.phpunit.cache/`, `.php-cs-fixer.cache`).
+- `composer.json` y `composer.lock` sí van en git: el segundo es el que garantiza las mismas versiones en todas las máquinas.
+
 ## Si el proyecto tiene sus propias convenciones
 - Esta página es el estándar. Si el proyecto tiene una skill de convenciones propias, **en nombres, estructura, patrones y bibliotecas manda esa**, para que el código nuevo se parezca al que ya hay. Lo que ella no diga se hace como dice esta página.
 - Las reglas de **Seguridad** y las sentencias preparadas de **Base de datos** no admiten excepción. Si cumplirlas exige cambiar algo que tu tarea no cubre, detente y avisa.

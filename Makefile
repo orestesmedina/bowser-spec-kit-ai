@@ -59,11 +59,23 @@ instalar-hooks: ## Activa los hooks de git del proyecto (una vez por clon)
 	chmod +x .githooks/* equipo/adaptadores/claude/hooks/*.sh
 	@echo "Hooks de git activados."
 
-up: ## Levanta el entorno local (PostgreSQL y servicios)
+# El entorno local es del proyecto: el kit no trae ningún servicio. Lo crea el rol devops según el perfil.
+COMPOSE := $(wildcard compose.yaml compose.yml docker-compose.yaml docker-compose.yml)
+SIN_COMPOSE = echo "Este proyecto todavía no tiene entorno local: falta compose.yaml (o docker-compose.yml) en la raíz. Lo crea el rol devops con los servicios que el proyecto usa."; exit 1
+
+up: ## Levanta el entorno local del proyecto (sus servicios, con Docker)
+ifdef COMPOSE
 	docker compose up -d
+else
+	@$(SIN_COMPOSE)
+endif
 
 down: ## Detiene el entorno local (conserva los datos)
+ifdef COMPOSE
 	docker compose down
+else
+	@$(SIN_COMPOSE)
+endif
 
 db-migrate: ## Aplica las migraciones pendientes
 	migrate -path backend/migrations -database "$$DATABASE_URL" up

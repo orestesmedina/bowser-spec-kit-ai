@@ -38,8 +38,8 @@ Las pruebas de `nucleo/`:
 | Archivo | Qué comprueba |
 |---|---|
 | `prueba_repositorio.py` | Archivos generados al día, `VERSION` con su entrada en el `CHANGELOG`, lista del instalador y enlaces internos de la documentación |
-| `prueba_instalacion.py` | Instalación en un proyecto nuevo y en uno existente, qué llega y qué no llega al proyecto, y permisos de los hooks |
-| `prueba_actualizacion.py` | Actualización desde la versión anterior con el `Makefile` viejo, archivos editados en el proyecto, `kit.excluir`, archivos retirados y novedades |
+| `prueba_instalacion.py` | Instalación en un proyecto nuevo y en uno existente, qué llega y qué no llega al proyecto, que lo que llega no traiga tecnología (servicios, variables, reglas de `.gitignore`), y permisos de los hooks |
+| `prueba_actualizacion.py` | Actualización desde la versión anterior con el `Makefile` viejo, las reglas de `.gitignore` que salen del bloque del kit y quedan en el proyecto, archivos editados en el proyecto, `kit.excluir`, archivos retirados y novedades |
 | `prueba_controles.py` | Mensajes de commit, secretos, constitución, migraciones, falta de `python3` y el hook de Claude Code |
 | `prueba_comandos.py` | Comandos del chat: generados para las tres herramientas, retirados al desactivar una, comandos propios, errores de formato y llegada al actualizar |
 | `prueba_costos.py` | `make costos` con OpenCode 1.x y 2.x, avisos y costo cerrado |

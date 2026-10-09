@@ -215,6 +215,8 @@ Se usa al crear o modificar páginas, plantillas, hojas de estilo o JavaScript d
 
 Una skill del catálogo no describe cómo está hecho un proyecto en particular ni las preferencias de un equipo: recoge lo que recomienda quien mantiene la tecnología. Cada una nombra sus fuentes al inicio, con la fecha en que se revisaron, y a ellas se va cuando la skill no resuelve una duda. Donde la fuente oficial no fija nada (por ejemplo, el formato de los archivos de cambio de una base de datos), la skill lo dice.
 
+Cada una dice también qué no va en git (`node_modules/`, `vendor/`, binarios, volcados con datos reales). El kit no trae esas reglas en su bloque de `.gitignore`: las escribe `/bowser-profile` en el del proyecto, con la carpeta de cada parte.
+
 Así una skill sirve igual para cualquier proyecto que use esa tecnología.
 
 Lo propio de cada proyecto (cómo nombra variables, tablas y columnas, qué patrones de diseño sigue, qué bibliotecas eligió) va aparte, en una skill del proyecto que redacta `/bowser-conventions`. Ver [Convenciones del proyecto](convenciones-del-proyecto.md). Cuando las dos dicen cosas distintas:

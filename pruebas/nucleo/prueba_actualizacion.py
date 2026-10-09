@@ -13,6 +13,9 @@ def desde_la_anterior(e):
     afirmar(version_vieja != e.version, f"la versión anterior ({anterior}) es la misma que se prueba")
     p.escribir("proyecto.mk", "e2e: ## Pruebas end-to-end del proyecto\n\t@echo e2e-del-proyecto\n")
     config_antes = p.leer("equipo/config.json")
+    # La versión anterior traía reglas de Go y Node en su bloque de .gitignore. Una de ellas, además, ya era del proyecto.
+    contiene(p.leer(".gitignore"), "frontend/node_modules/", "el bloque del kit anterior")
+    p.escribir(".gitignore", "frontend/dist/\n\n" + p.leer(".gitignore") + "\n# Del proyecto\n*.log\n")
     p.commit("chore: comando propio")
 
     e.pasar_kit_a(kit, "actual")
@@ -27,6 +30,22 @@ def desde_la_anterior(e):
     afirmar(p.leer("equipo/config.json") == config_antes, "la actualización tocó equipo/config.json, que es del proyecto")
     contiene(p.make("e2e").salida, "e2e-del-proyecto")
     contiene(p.make("help").salida, "e2e")
+
+    # Las reglas que el bloque ya no trae no se pierden: quedan debajo, como del proyecto, y sin repetir las que ya tenía.
+    contiene(r.salida, "Se conservaron debajo del bloque: ahora son del proyecto.")
+    gitignore = p.leer(".gitignore")
+    antes, resto = gitignore.split("# >>> bowser-spec-kit-ai", 1)
+    bloque, despues = resto.split("# <<< bowser-spec-kit-ai", 1)
+    afirmar("node_modules" not in bloque and "backend" not in bloque, "el bloque del kit sigue trayendo tecnología")
+    for regla in ("frontend/node_modules/", "backend/bin/", "*.test"):
+        contiene(despues, f"\n{regla}\n", "lo que quedó debajo del bloque del kit")
+    afirmar(gitignore.count("frontend/dist/") == 1, "repitió una regla que el proyecto ya tenía fuera del bloque")
+    afirmar(gitignore.count("\n.env\n") == 1, "pasó al proyecto una regla que el bloque sigue trayendo")
+    afirmar(antes == "frontend/dist/\n\n" and despues.endswith("\n# Del proyecto\n*.log\n"),
+            "la actualización cambió lo que el proyecto tenía escrito en su .gitignore")
+    p.escribir("frontend/node_modules/x/index.js", "x\n")
+    afirmar(all("node_modules" not in l for l in p.pendientes()),
+            "git empezó a ver frontend/node_modules/ después de actualizar")
     p.commit(f"chore: actualiza kit a {e.version}")
     afirmar(not p.pendientes(), f"quedaron archivos sin commit después de actualizar: {p.pendientes()}")
     contiene(p.make("instalar-kit").salida, "Sin cambios: el proyecto ya estaba al día.")

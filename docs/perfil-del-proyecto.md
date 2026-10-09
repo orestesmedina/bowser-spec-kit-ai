@@ -176,6 +176,7 @@ En el chat de tu herramienta:
 4. Te muestra la propuesta en lenguaje simple y espera tu aprobación.
 5. Con tu "sí", escribe `equipo/perfil.json` y lo valida.
 6. Ejecuta `make instalar-kit`, que trae del catálogo las skills que el perfil nombra y retira las que no.
+7. Te propone lo que el kit no trae porque depende de la tecnología: las reglas de `.gitignore` (cada skill del catálogo dice qué no va en git; quedan fuera del bloque del kit, con la carpeta de cada parte delante, por ejemplo `web/node_modules/`) y, si el proyecto no tiene entorno local, lo deja anotado como pendiente para el rol `devops`.
 
 En un proyecto recién creado, sin código todavía, el paso 1 no encuentra nada y el perfil sale de la conversación sobre qué se va a construir.
 
@@ -300,7 +301,7 @@ Con un perfil inválido el kit no ejecuta ningún verbo y bloquea los commits ha
 ## Límites
 
 - **La integración continua todavía no lee el perfil.** El `ci.yml` que trae el kit sigue buscando `backend/go.mod` y `frontend/package.json`. Un proyecto con otra forma necesita por ahora su propio workflow. Se resuelve en una entrega posterior.
-- **`make doctor`, la constitución y las semillas todavía hablan de Go, React y PostgreSQL.** Los roles ya no: cada uno recibe del perfil sus partes, skills y comandos (ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto)). Lo demás es de entregas posteriores.
+- **`make doctor` y la constitución todavía hablan de Go, React y PostgreSQL.** Los roles y los archivos iniciales ya no: el kit no instala servicios, variables de entorno ni reglas de `.gitignore` de ninguna tecnología, y cada uno recibe del perfil sus partes, skills y comandos (ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto)). Lo demás es de entregas posteriores.
 - **Cambiar el perfil obliga a regenerar los roles.** Lo que cada agente sabe del proyecto queda escrito en sus instrucciones al generarlas, así que un perfil nuevo sin `make instalar-kit` (o `make sincronizar`, si las skills no cambiaron) deja el commit bloqueado con `La configuración de agentes está desactualizada`.
 - **El hook de Claude Code sigue protegiendo `backend/migrations/`**, no los `inmutables` del perfil. El control del commit sí usa el perfil, y es el que vale para las tres herramientas.
 - **`make verificar-generados` revisa toda la carpeta de la parte.** Si tienes otros cambios sin commit en ella, los toma por código generado desactualizado.

@@ -74,7 +74,7 @@ Los comandos de Spec Kit en esta herramienta son `/speckit.<fase>` (en Codex: `$
 | 6. Implementar | `/speckit.implement` | el `dev-*` de la parte, o `devops` (ver "A quién delegar") | código + pruebas; un commit por tarea | — |
 | 7. Validar | — | `qa-tester`, `revisor-codigo`, `seguridad` en paralelo | `specs/NNN-nombre/revision-<fecha>.md` | Bucle de corrección, máx. 3 ciclos |
 | 8. Converger | `/speckit.converge` | tú | tareas pendientes nuevas en `tasks.md`, o "Converged" | Repetir 6–8 hasta "Converged" |
-| 9. Entregar | — | `devops` (CI, Docker, `.env.example`), `documentador` (CHANGELOG, README, notas) | Pull Request | ✋ **Aprobación humana** del merge y del despliegue |
+| 9. Entregar | — | `devops` (CI, entorno local, `.env.example`), `documentador` (CHANGELOG, README, notas) | Pull Request | ✋ **Aprobación humana** del merge y del despliegue |
 
 **Puertas de aprobación.** En cada ✋ te detienes y presentas un resumen corto con la checklist de esa puerta, de `.bowser-spec-kit-ai/docs/aprobaciones.md`. Solo continúas con una aprobación explícita ("apruebo la spec", "apruebo el plan", "apruebo el PR"). Un "ok" ambiguo no es aprobación: confirma.
 
@@ -133,7 +133,7 @@ Al delegar, das al subagente: la fase, la ruta de la spec/plan/tareas, qué entr
 | `make estado` | Por dónde vamos: roadmap, fase, aprobaciones, tareas y próximo paso |
 | `make costos` | Registrar y ver el costo de IA de la tarea (`TODO=1` proyecto completo, `PRECIOS=hoy` cotizar, `CERRAR=1` cerrar) |
 | `make doctor` | Verificar el entorno (herramientas, WSL, Docker, kit, hooks) |
-| `make up` / `make down` | Levantar / detener PostgreSQL local |
+| `make up` / `make down` | Levantar / detener el entorno local del proyecto (sus servicios, con Docker). Si avisa que no hay entorno, crearlo es tarea de `devops` |
 | `make test`, `make lint`, `make security`, `make ci` | Pruebas, linters, auditoría, todo junto. Con perfil ejecutan los verbos que el proyecto declaró (`PARTE=nombre` para una sola parte), y `make ci` termina con un resumen: lo que dice «sin definir» no lo comprobó nadie, y así se lo dices a la persona |
 | `make profile` | Ver y validar el perfil del proyecto, `equipo/perfil.json` (`DETECTAR=1`: qué tecnologías hay en el proyecto). Se redacta con `/bowser-profile` |
 | `make generar` / `make verificar-generados` | Regenerar el código generado (sqlc, tipos de la API) / comprobar que está al día |

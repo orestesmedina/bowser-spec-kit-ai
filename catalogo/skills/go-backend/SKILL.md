@@ -87,6 +87,10 @@ internal/
 
 Los que el proyecto tiene de verdad están en su perfil.
 
+## Lo que no va en git
+- Los binarios compilados, los ejecutables de prueba (`*.test`) y los perfiles de cobertura (`*.out`).
+- `go.mod` y `go.sum` sí van en git, siempre (go.dev/ref/mod). `vendor/` va en git solo si el proyecto decidió versionar sus dependencias.
+
 ## Si el proyecto tiene sus propias convenciones
 - Esta página es el estándar. Si el proyecto tiene una skill de convenciones propias, **en nombres, estructura, patrones y bibliotecas manda esa**, para que el código nuevo se parezca al que ya hay. Lo que ella no diga se hace como dice esta página.
 - **Seguridad** y los parámetros en las consultas no admiten excepción. Si cumplirlos exige cambiar algo que tu tarea no cubre, detente y avisa.

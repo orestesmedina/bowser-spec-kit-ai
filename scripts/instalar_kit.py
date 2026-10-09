@@ -8,7 +8,7 @@ en la raíz del proyecto, no dentro del submódulo. Este script:
   2. Copia del catálogo (catalogo/skills/) a .agents/skills/ solo las skills de tecnología que nombra el perfil
      del proyecto (equipo/perfil.json); sin perfil, las tres de siempre. También quedan gestionadas.
   3. Copia las SEMILLAS solo si no existen (después son del proyecto: config.json, CODEOWNERS…).
-  4. Mantiene un bloque del kit dentro de .gitignore.
+  4. Mantiene un bloque del kit dentro de .gitignore (solo lo que no depende de la tecnología).
   5. Registra en .kit-manifest.json qué archivos vienen del kit y su hash, para:
        - borrar los que el kit eliminó,
        - detectar si alguien modificó localmente un archivo del kit (y no pisarlo).
@@ -68,10 +68,12 @@ import catalogo  # noqa: E402
 import perfil as perfil_proyecto  # noqa: E402
 sys.path.pop(0)
 # Se copian una sola vez; después pertenecen al proyecto.
-SEMILLAS = ["equipo/config.json", ".github/CODEOWNERS", ".env.example", "docker-compose.yml"]
+# Ninguna trae tecnología: el entorno local (docker-compose.yml) lo crea el proyecto según su perfil.
+SEMILLAS = ["equipo/config.json", ".github/CODEOWNERS", ".env.example"]
 
 INICIO_GITIGNORE = "# >>> bowser-spec-kit-ai (gestionado por make instalar-kit; no editar este bloque)"
 FIN_GITIGNORE = "# <<< bowser-spec-kit-ai"
+HEREDADAS_GITIGNORE = "# Estas líneas venían en el bloque del kit; desde ahora son del proyecto: edítalas o bórralas."
 
 
 # ---------------------------------------------------------------- utilidades
@@ -253,14 +255,25 @@ def bloque_gitignore() -> str:
     return "\n".join([INICIO_GITIGNORE, *lineas, FIN_GITIGNORE]) + "\n"
 
 
-def gitignore_con_bloque(actual: str) -> str:
+def reglas_gitignore(texto: str) -> list[str]:
+    return [l.strip() for l in texto.splitlines() if l.strip() and not l.strip().startswith("#")]
+
+
+def gitignore_con_bloque(actual: str) -> tuple[str, list[str]]:
+    """El .gitignore con el bloque del kit al día, y las reglas que el bloque tenía y ya no trae.
+    Esas no se pierden: quedan debajo del bloque, como del proyecto (si no, git empezaría a ver lo que ignoraba)."""
     bloque = bloque_gitignore()
     if INICIO_GITIGNORE in actual and FIN_GITIGNORE in actual:
         antes, resto = actual.split(INICIO_GITIGNORE, 1)
-        _, despues = resto.split(FIN_GITIGNORE, 1)
-        return antes + bloque + despues.lstrip("\n")
+        viejo, despues = resto.split(FIN_GITIGNORE, 1)
+        despues = despues.lstrip("\n")
+        quedan = set(reglas_gitignore(antes + bloque + despues))
+        heredadas = [r for r in reglas_gitignore(viejo) if r not in quedan]
+        if heredadas:
+            bloque += "\n" + "\n".join([HEREDADAS_GITIGNORE, *heredadas]) + "\n" + ("\n" if despues else "")
+        return antes + bloque + despues, heredadas
     separador = "" if not actual or actual.endswith("\n\n") else ("\n" if actual.endswith("\n") else "\n\n")
-    return actual + separador + bloque
+    return actual + separador + bloque, []
 
 
 # ---------------------------------------------------------------- análisis
@@ -361,7 +374,7 @@ def instalar(forzar: bool) -> int:
 
     gi = DESTINO / ".gitignore"
     actual = gi.read_text(encoding="utf-8") if gi.exists() else ""
-    nuevo = gitignore_con_bloque(actual)
+    nuevo, heredadas = gitignore_con_bloque(actual)
     if nuevo != actual:
         gi.write_text(nuevo, encoding="utf-8")
 
@@ -390,6 +403,9 @@ def instalar(forzar: bool) -> int:
             print(f"        {rel}")
     if respaldo:
         print(f"  Respaldo de lo reemplazado: {respaldo.relative_to(DESTINO)}/")
+    if heredadas:
+        print(f"  ! El bloque del kit en .gitignore ya no trae {len(heredadas)} reglas de tecnología. "
+              "Se conservaron debajo del bloque: ahora son del proyecto.")
     # Skills del catálogo: lo que el perfil pide y no hay, y las que llegan por primera vez sin estar probadas.
     for aviso in a["avisos"]:
         print(f"  ! {aviso}")
@@ -398,7 +414,7 @@ def instalar(forzar: bool) -> int:
         if disponibles[nombre]["madurez"] != "probada":
             print(f"  ! La skill «{nombre}» está {catalogo.MADUREZ[disponibles[nombre]['madurez']]}. "
                   "Revisa con más cuidado lo que los agentes hagan con ella.")
-    if not (a["nuevos"] or a["actualizar"] or a["previos"] or eliminados or semillas or (forzar and a["conflictos"])):
+    if not (a["nuevos"] or a["actualizar"] or a["previos"] or eliminados or semillas or heredadas or (forzar and a["conflictos"])):
         print("  Sin cambios: el proyecto ya estaba al día.")
     # El Makefile del kit muestra las novedades al final (--resumen-novedades). Un Makefile anterior no lo hace:
     # en ese caso se muestran aquí.

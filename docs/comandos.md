@@ -31,7 +31,7 @@ Las opciones se pasan después del comando, en mayúsculas: `make costos TODO=1`
 |---|---|
 | `make doctor` | ¿Mi entorno está bien? |
 | `make estado` | ¿Por dónde vamos? |
-| `make up` | Levantar la base de datos |
+| `make up` | Levantar los servicios locales del proyecto |
 | `make ci` | ¿Esto va a pasar en GitHub? |
 | `make actualizar-kit` | Traer la última versión del kit |
 
@@ -105,7 +105,13 @@ Revisa que tu máquina y el proyecto tengan todo: herramientas y sus versiones, 
 
 ### `make up` y `make down`
 
-Levantan y detienen los servicios locales (PostgreSQL) con Docker Compose. `make down` conserva los datos.
+Levantan y detienen con Docker Compose los servicios locales del proyecto (su base de datos, por ejemplo). `make down` conserva los datos.
+
+El kit no trae ningún servicio: lee el archivo que el proyecto tenga en la raíz (`compose.yaml`, `compose.yml`, `docker-compose.yaml` o `docker-compose.yml`), que crea el rol `devops`. Si no hay ninguno, los dos comandos terminan con error y este mensaje:
+
+```
+Este proyecto todavía no tiene entorno local: falta compose.yaml (o docker-compose.yml) en la raíz. Lo crea el rol devops con los servicios que el proyecto usa.
+```
 
 - **Cuándo:** `make up` al empezar a trabajar.
 

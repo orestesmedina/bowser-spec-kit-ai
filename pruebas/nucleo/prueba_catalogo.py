@@ -43,6 +43,8 @@ def catalogo_valido(e):
         afirmar("\n## Pruebas\n" in texto or "\n## Cómo probar" in texto, f"la skill {nombre} no dice cómo se prueba")
         afirmar("\n## Si el proyecto tiene sus propias convenciones\n" in texto,
                 f"la skill {nombre} no dice qué manda cuando el proyecto tiene sus convenciones")
+        afirmar("\n## Lo que no va en git\n" in texto,
+                f"la skill {nombre} no dice qué no va en git: el kit ya no lo trae en su .gitignore")
         afirmar("la empresa" not in texto, f"la skill {nombre} habla de «la empresa»: el catálogo es general")
 
     for carpeta, texto, mensaje in (

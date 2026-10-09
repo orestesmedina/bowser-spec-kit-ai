@@ -73,6 +73,14 @@ Si un verbo necesita un script propio del proyecto, va en `tools/`, en la raíz,
 7. Las skills del catálogo dicen el estándar de cada tecnología, no cómo lo hace este proyecto. Lo propio del proyecto (nombres, estructura, patrones, bibliotecas) va en una skill `convenciones-de-<parte>`, que redacta el comando `bowser-conventions` y se nombra aquí junto a la del catálogo. No la inventes al redactar el perfil: si falta, `make profile` lo recuerda.
 8. Nada de secretos en los comandos: las credenciales vienen de variables de entorno.
 
+## Lo que el kit no trae y el perfil permite completar
+
+El kit no instala nada que dependa de la tecnología. Al redactar el perfil, revisa y propone junto con él:
+
+- **`.gitignore`.** El bloque del kit solo cubre secretos, editores y sus propios archivos. Lo que cada tecnología genera lo dice la sección "Lo que no va en git" de su skill: escribe esas reglas en el `.gitignore` del proyecto, **fuera del bloque del kit** y con la carpeta de cada parte delante (`web/node_modules/`). Antes mira `git status`: si algo de eso ya está versionado, no lo saques de git por tu cuenta; avísalo.
+- **Entorno local.** `make up` levanta lo que diga el archivo de Docker Compose de la raíz (`compose.yaml` o `docker-compose.yml`). El kit no trae ninguno. Si el proyecto no lo tiene, dilo en la entrega como pendiente: crearlo es tarea de `devops`, con los servicios y las versiones que el perfil y las skills nombran. No todos los proyectos lo necesitan.
+- **`.env.example`.** Lista las variables de entorno que el proyecto necesita, sin valores reales. El kit lo deja vacío: se llena cuando existe la primera variable.
+
 ## Entrega
 
 - El JSON propuesto.

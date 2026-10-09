@@ -31,8 +31,25 @@ def solo_del_kit(e):
             "en docs/ del proyecto solo debe estar plantillas/")
     afirmar(p.existe(f"{SUBMODULO}/docs/aprobaciones.md"), "la documentación debe leerse desde el submódulo")
     # Las semillas sí llegan, una sola vez.
-    for rel in ("equipo/config.json", ".github/CODEOWNERS", "docker-compose.yml"):
+    for rel in ("equipo/config.json", ".github/CODEOWNERS", ".env.example"):
         afirmar(p.existe(rel), f"falta la semilla {rel}")
+
+
+@prueba("lo que llega a un proyecto nuevo no trae tecnología: ni servicios, ni variables, ni reglas de .gitignore")
+def semillas_sin_tecnologia(e):
+    p = e.proyecto(commit=False)
+    for rel in ("docker-compose.yml", "compose.yaml"):
+        afirmar(not p.existe(rel), f"{rel} llegó al proyecto: el entorno local es del proyecto, no del kit")
+    gitignore = p.leer(".gitignore")
+    for regla in (".env", "secrets/", ".claude/settings.local.json", "__pycache__/", ".kit-respaldo/"):
+        contiene(gitignore, f"\n{regla}\n", "el bloque del kit en .gitignore")
+    for palabra in ("backend", "frontend", "node_modules", "Go", "Node", "React", "*.test"):
+        afirmar(palabra not in gitignore, f"el bloque del kit en .gitignore nombra «{palabra}»")
+    # Sin archivo de Docker Compose, make up lo dice en vez de dejar que Docker falle.
+    for orden in ("up", "down"):
+        contiene(p.make(orden, espera=1).salida, "todavía no tiene entorno local")
+    variables = [l for l in p.leer(".env.example").splitlines() if l.strip() and not l.lstrip().startswith("#")]
+    afirmar(not variables, f".env.example trae variables de una tecnología: {variables}")
     r = p.make("test-kit", espera=1)
     contiene(r.salida, "test-kit", "el error de make")
     afirmar("test-kit" not in p.make("help").salida, "make help ofrece test-kit en un proyecto")

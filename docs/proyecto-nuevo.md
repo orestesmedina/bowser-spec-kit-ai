@@ -52,13 +52,12 @@ Si tu equipo mantiene su propia copia del kit, usa la dirección de ese reposito
 ### 3. Preparar el entorno local
 
 ```bash
-cp .env.example .env      # completa los valores
-make up                   # levanta PostgreSQL con Docker
+cp .env.example .env      # todavía sin variables: se agregan cuando el proyecto las necesite
 make doctor               # verifica que todo esté listo
 ```
 
-> [!WARNING]
-> Ajusta la contraseña en `.env` **antes** del primer `make up`. PostgreSQL solo la toma al crear la base de datos; si la cambias después, hay que recrearla con `docker compose down -v && make up`, que borra los datos locales.
+> [!NOTE]
+> El kit no trae base de datos ni ningún otro servicio: cuáles usa el proyecto y en qué versión es decisión suya. En un proyecto recién instalado, `make up` responde "Este proyecto todavía no tiene entorno local". El archivo que `make up` levanta (`compose.yaml` o `docker-compose.yml`, en la raíz) lo crea el rol `devops` durante la primera funcionalidad, según el [perfil del proyecto](perfil-del-proyecto.md). Lo mismo con `.env.example` y con las reglas de `.gitignore` de cada tecnología, que propone `/bowser-profile`.
 
 ### 4. Guardar
 
@@ -73,8 +72,8 @@ Este commit ya pasa por los [hooks de git](hooks-de-git.md). Si alguno lo bloque
 Las herramientas leen sus archivos en la raíz del proyecto, no dentro del submódulo. Por eso `make instalar-kit`:
 
 1. **Copió a la raíz los archivos del kit:** las instrucciones de los agentes, los roles, las skills, los hooks, la integración continua, la constitución, los scripts y el `Makefile`. Quedan registrados en `.kit-manifest.json`.
-2. **Copió las semillas:** `equipo/config.json`, `.github/CODEOWNERS`, `.env.example` y `docker-compose.yml`. Son un punto de partida; desde ahora son del proyecto.
-3. **Agregó un bloque del kit a `.gitignore`.**
+2. **Copió las semillas:** `equipo/config.json`, `.github/CODEOWNERS` y `.env.example` (vacío). Son un punto de partida; desde ahora son del proyecto.
+3. **Agregó un bloque del kit a `.gitignore`**, solo con lo que no depende de la tecnología: secretos, editores y archivos del propio kit.
 4. **Generó la configuración de cada herramienta** (`CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`).
 5. **Activó los hooks de git.**
 

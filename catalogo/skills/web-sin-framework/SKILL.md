@@ -59,6 +59,10 @@ Para interfaces donde el navegador recibe HTML ya armado (por el servidor o escr
 - Las pruebas van en `tests/`, en la raíz de la parte, con la herramienta que defina el plan. Lo que más rinde probar: los flujos completos en un navegador real y las funciones de lógica pura.
 - Si el proyecto no tiene herramienta de pruebas, no instales una por tu cuenta. Lo mínimo antes de entregar es abrir la pantalla en el navegador y dejar escrito en la entrega qué se comprobó, paso por paso, para que QA lo repita: el camino normal, cada error, el estado sin resultados, el uso solo con teclado, una pantalla angosta, el HTML validado y la consola sin errores.
 
+## Lo que no va en git
+- Sin paso de construcción, todo el código de la parte va en git. Si el proyecto usa herramientas de Node (para pruebas o para validar), `node_modules/` y sus informes quedan fuera.
+- Los archivos que suben las personas que usan el sitio no son código: fuera de git.
+
 ## Si el proyecto tiene sus propias convenciones
 - Esta página es el estándar. Si el proyecto tiene una skill de convenciones propias, **en nombres, estructura, patrones y bibliotecas manda esa**, para que una pantalla nueva se parezca a las que ya hay. Lo que ella no diga se hace como dice esta página.
 - Las reglas de **Seguridad** no admiten excepción. Si cumplirlas exige cambiar algo que tu tarea no cubre, detente y avisa.
