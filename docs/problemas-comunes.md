@@ -37,6 +37,7 @@ Revisa el entorno completo y marca con `✗` lo que falta, indicando cómo corre
 | "Docker no está corriendo" | Docker Desktop está cerrado | Ábrelo y espera a que arranque |
 | `make: docker: No such file or directory` | Docker no está instalado en Ubuntu, o falta la integración con WSL | Docker Desktop con **WSL Integration → Ubuntu** activado. Reabre la terminal |
 | El agente no conoce los comandos `/speckit.*` | Spec Kit no está inicializado para esa herramienta | `specify init --here --force --integration <herramienta>` |
+| Los comandos `/speckit.*` desaparecieron después de `make sincronizar` o de actualizar el kit | Las versiones 1.11.0 a 1.12.1 del kit los borraban en OpenCode y Claude Code | Actualiza el kit y recupéralos: `git checkout -- .opencode/commands .claude/skills` si todavía no hiciste el commit, o `specify init --here --force --integration <herramienta>` |
 
 ## Windows y WSL
 

@@ -62,6 +62,38 @@ def sin_codex(e):
     p.commit("chore: solo Claude Code")
 
 
+@prueba("los comandos de Spec Kit sobreviven a make sincronizar y no cuentan al verificar")
+def spec_kit_intacto(e):
+    p = e.proyecto()
+    # Lo que deja `specify init` para cada herramienta (specify 1.0.12).
+    de_spec_kit = {
+        ".claude/skills/speckit-plan/SKILL.md": "---\nname: speckit-plan\n---\nPlan de Claude Code.\n",
+        ".opencode/commands/speckit.plan.md": "---\ndescription: Plan\n---\nPlan de OpenCode.\n",
+        ".agents/skills/speckit-plan/SKILL.md": "---\nname: speckit-plan\n---\nPlan de Codex.\n",
+    }
+    for rel, texto in de_spec_kit.items():
+        p.escribir(rel, texto)
+    p.make("sincronizar")
+    for rel, texto in de_spec_kit.items():
+        afirmar(p.existe(rel), f"make sincronizar borró un comando de Spec Kit: {rel}")
+        afirmar(p.leer(rel) == texto, f"make sincronizar cambió un comando de Spec Kit: {rel}")
+    afirmar(p.existe(f".opencode/commands/{PREFIJO}status.md"), "se perdió un comando del kit en OpenCode")
+    p.correr("python3", "scripts/sincronizar.py", "--verificar")
+    p.verificar_kit()
+    p.commit("chore: spec kit")
+
+    # Al desactivar la herramienta se va lo del kit; lo de Spec Kit se queda.
+    config = json.loads(p.leer("equipo/config.json"))
+    config["herramientas"] = ["codex"]
+    p.escribir("equipo/config.json", json.dumps(config, ensure_ascii=False, indent=2) + "\n")
+    p.make("sincronizar")
+    afirmar(not p.existe(f".opencode/commands/{PREFIJO}status.md"), "quedó un comando del kit con OpenCode desactivado")
+    afirmar(not p.existe(".claude/skills/equipo-retomar"), "quedó una skill del kit con Claude Code desactivado")
+    for rel in de_spec_kit:
+        afirmar(p.existe(rel), f"al desactivar la herramienta se borró un comando de Spec Kit: {rel}")
+    p.correr("python3", "scripts/sincronizar.py", "--verificar")
+
+
 @prueba("un comando propio del proyecto se genera igual, y uno mal escrito detiene make sincronizar")
 def comando_propio(e):
     p = e.proyecto()

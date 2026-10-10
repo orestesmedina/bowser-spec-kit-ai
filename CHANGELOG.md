@@ -13,6 +13,17 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.12.2] - 2026-10-10
+
+Corrección encontrada al validar la rama `etapa-2` sobre la copia de un proyecto real. Se publica en `main` para que ningún proyecto la sufra al actualizar.
+
+### Corregido
+- **`make sincronizar` borraba los comandos de Spec Kit.** Spec Kit guarda sus comandos en `.opencode/commands/speckit.*.md` y en `.claude/skills/speckit-*/`, dos carpetas que el generador vaciaba antes de escribir. En OpenCode pasaba desde la 1.11.0, cuando el kit empezó a generar ahí sus propios comandos; en Claude Code, además, la copia de Codex pisaba la de Claude Code. Ahora lo que empieza con `speckit` no se borra, no se copia de una herramienta a otra y no cuenta en `make verificar-agentes`.
+- La documentación decía que en Claude Code los comandos de Spec Kit se escriben `/speckit.plan`. Con Spec Kit 1.0.12 son `/speckit-plan` (con guion); en OpenCode siguen siendo `/speckit.plan` y en Codex `$speckit-plan`. Corregido en `AGENTS.md`, el orquestador y las páginas de `docs/`.
+
+### Al actualizar
+- Si usas OpenCode o Claude Code y pasaste por la 1.11.0, la 1.12.0 o la 1.12.1, comprueba que sigan ahí los comandos de Spec Kit (`ls .opencode/commands/ .claude/skills/`). Si faltan, recupéralos con `specify init --here --force --integration <herramienta>`.
+
 ## [1.12.1] - 2026-10-08
 
 Correcciones que salieron al escribir el perfil de dos proyectos reales sobre copias (uno en Go y React, otro en PHP puro con MySQL).

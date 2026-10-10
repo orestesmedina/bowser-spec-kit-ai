@@ -41,7 +41,7 @@ Las pruebas de `nucleo/`:
 | `prueba_instalacion.py` | Instalación en un proyecto nuevo y en uno existente, qué llega y qué no llega al proyecto, y permisos de los hooks |
 | `prueba_actualizacion.py` | Actualización desde la versión anterior con el `Makefile` viejo, archivos editados en el proyecto, `kit.excluir`, archivos retirados y novedades |
 | `prueba_controles.py` | Mensajes de commit, secretos, constitución, migraciones, falta de `python3` y el hook de Claude Code |
-| `prueba_comandos.py` | Comandos del chat: generados para las tres herramientas, retirados al desactivar una, comandos propios, errores de formato y llegada al actualizar |
+| `prueba_comandos.py` | Comandos del chat: generados para las tres herramientas, retirados al desactivar una, los de Spec Kit intactos, comandos propios, errores de formato y llegada al actualizar |
 | `prueba_costos.py` | `make costos` con OpenCode 1.x y 2.x, avisos y costo cerrado |
 | `prueba_perfil.py` | Perfil del proyecto: `make` ejecuta los verbos de cada parte, perfiles mal escritos, controles del commit (confirmación, inmutables, formato) y `make profile DETECTAR=1` |
 

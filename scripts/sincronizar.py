@@ -46,6 +46,10 @@ GESTIONADOS = {
     "codex": {"dirs": [".codex/agents", COMANDOS_CODEX + "*"], "files": []},
     "opencode": {"dirs": [".opencode/agents", ".opencode/commands"], "files": ["opencode.json"]},
 }
+# Spec Kit deja sus comandos dentro de carpetas que este script controla (.claude/skills/speckit-*/ y
+# .opencode/commands/speckit.*.md; verificado con specify 1.0.12, 2026-10-09). Lo que empieza así no es del kit:
+# no se borra, no se copia de una herramienta a otra y no cuenta al verificar.
+DE_SPEC_KIT = "speckit"
 PREFIJOS = {"claude": (".claude", "CLAUDE"), "codex": (".codex", COMANDOS_CODEX), "opencode": (".opencode", "opencode.json")}
 
 ACCESOS = {"lectura", "documentos", "completo"}
@@ -285,7 +289,7 @@ def generar_claude(agentes: list[dict], comandos: list[dict], config: dict) -> d
     for archivo in sorted(origen.rglob("*")):
         if archivo.is_file():
             rel = archivo.relative_to(origen).as_posix()
-            if not rel.startswith(PREFIJO_COMANDOS):
+            if not rel.startswith((PREFIJO_COMANDOS, DE_SPEC_KIT)):
                 salida[f".claude/skills/{rel}"] = archivo.read_bytes()
 
     # Comandos: skills que solo se cargan cuando la persona las escribe (su descripción no ocupa contexto).
@@ -467,13 +471,19 @@ def carpetas_gestionadas(g: dict) -> list[Path]:
     return [c for d in g["dirs"] for c in sorted(RAIZ.glob(d)) if c.is_dir()]
 
 
+def propios(base: Path) -> list[Path]:
+    """Lo que hay en una carpeta gestionada, sin lo que dejó Spec Kit."""
+    return [f for f in sorted(base.iterdir()) if not f.name.startswith(DE_SPEC_KIT)]
+
+
 def archivos_actuales() -> dict[str, bytes]:
     actuales: dict[str, bytes] = {}
     for g in GESTIONADOS.values():
         for base in carpetas_gestionadas(g):
-            for f in base.rglob("*"):
-                if f.is_file():
-                    actuales[f.relative_to(RAIZ).as_posix()] = f.read_bytes()
+            for propio in propios(base):
+                for f in [propio, *propio.rglob("*")]:
+                    if f.is_file():
+                        actuales[f.relative_to(RAIZ).as_posix()] = f.read_bytes()
         for f in g["files"]:
             p = RAIZ / f
             if p.exists():
@@ -539,7 +549,13 @@ def main() -> int:
     # Limpia todo lo gestionado (también de herramientas desactivadas) y vuelve a escribir.
     for g in GESTIONADOS.values():
         for d in carpetas_gestionadas(g):
-            shutil.rmtree(d, ignore_errors=True)
+            for f in propios(d):
+                if f.is_dir():
+                    shutil.rmtree(f, ignore_errors=True)
+                else:
+                    f.unlink(missing_ok=True)
+            if not any(d.iterdir()):
+                d.rmdir()
         for f in g["files"]:
             (RAIZ / f).unlink(missing_ok=True)
     for rel, contenido in esperado.items():

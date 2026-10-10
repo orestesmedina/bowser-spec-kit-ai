@@ -104,15 +104,15 @@ Una buena especificación tiene tres propiedades: cada requisito trae **criterio
 
 Los comandos se escriben dentro del agente de código:
 
-| Fase | Claude Code y OpenCode | Codex |
-|---|---|---|
-| Especificar | `/speckit.specify` | `$speckit-specify` |
-| Aclarar | `/speckit.clarify` | `$speckit-clarify` |
-| Planificar | `/speckit.plan` | `$speckit-plan` |
-| Tareas | `/speckit.tasks` | `$speckit-tasks` |
-| Coherencia | `/speckit.analyze` | `$speckit-analyze` |
-| Implementar | `/speckit.implement` | `$speckit-implement` |
-| Converger | `/speckit.converge` | `$speckit-converge` |
+| Fase | OpenCode | Claude Code | Codex |
+|---|---|---|---|
+| Especificar | `/speckit.specify` | `/speckit-specify` | `$speckit-specify` |
+| Aclarar | `/speckit.clarify` | `/speckit-clarify` | `$speckit-clarify` |
+| Planificar | `/speckit.plan` | `/speckit-plan` | `$speckit-plan` |
+| Tareas | `/speckit.tasks` | `/speckit-tasks` | `$speckit-tasks` |
+| Coherencia | `/speckit.analyze` | `/speckit-analyze` | `$speckit-analyze` |
+| Implementar | `/speckit.implement` | `/speckit-implement` | `$speckit-implement` |
+| Converger | `/speckit.converge` | `/speckit-converge` | `$speckit-converge` |
 
 Normalmente **no los escribes tú**. Le pides al orquestador lo que necesitas con tus palabras, y él ejecuta la fase que corresponde y la delega en el agente indicado. Los comandos sirven cuando quieres ejecutar una fase suelta.
 
