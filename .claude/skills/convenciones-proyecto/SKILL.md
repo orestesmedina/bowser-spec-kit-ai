@@ -34,6 +34,9 @@ Redactadas el <fecha> leyendo el código. Estándar de referencia: skill `<la de
 ## Patrones
 - …
 
+## Base de datos
+- … (solo si la parte tiene `dev-dba` junto a otro rol)
+
 ## Bibliotecas y herramientas
 - …
 
@@ -59,8 +62,9 @@ Redactadas el <fecha> leyendo el código. Estándar de referencia: skill `<la de
    - **Código:** cómo se nombran archivos, clases, funciones y variables; idioma de los nombres y de los comentarios; sangría y formato; cómo se organizan las carpetas y dónde va cada tipo de archivo; cómo se cargan las dependencias; los patrones que se repiten (capas, acceso a datos, manejo de errores, validación, respuestas); las bibliotecas que usa y en qué versión; dónde y cómo están las pruebas.
    - **Base de datos:** cómo se nombran tablas, columnas, claves, índices y procedimientos; prefijos; tipos que usa para identificadores, fechas, dinero y estados; cómo se hacen los cambios de esquema y dónde quedan; si la lógica vive en la base de datos o en el código.
    - **Interfaz:** biblioteca de componentes o plantilla visual; cómo se arma una página; cómo se nombran las clases de estilo; cómo se llama al servidor; cómo se muestran los errores y las cargas.
-8. **Corta y concreta.** Reglas de una línea con su ejemplo. Si pasa de unas 150 líneas, sobra detalle: se carga en cada tarea.
-9. Sin secretos ni datos reales en los ejemplos.
+8. **Corta y concreta.** Una regla, un ejemplo: no varias reglas ni varios ejemplos en la misma línea. El archivo se carga en cada tarea, así que el límite es de tamaño, no de líneas: **unos 7 000 caracteres** (compruébalo con `wc -c`). Si pasa, sobra detalle: quita lo que el proyecto hace igual que el estándar, las excepciones heredadas que nadie va a repetir y los segundos ejemplos.
+9. **Si la parte tiene `dev-dba` junto a otro rol**, lo de la base de datos (nombres de tablas, columnas e índices, tipos, cambios de esquema, consultas) va en una sección propia, `## Base de datos`, después de "Patrones": es lo único del archivo que ese rol necesita, y así lo encuentra sin leer el resto.
+10. Sin secretos ni datos reales en los ejemplos.
 
 ## En un proyecto nuevo
 No hay código que leer. Las convenciones nacen de lo que decide el plan (qué bibliotecas, qué estructura) y se escriben cuando la primera funcionalidad ya dejó código: antes serían un deseo, no una convención.

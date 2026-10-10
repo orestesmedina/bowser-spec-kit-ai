@@ -238,7 +238,10 @@ def roles_de(parte: dict) -> list[dict]:
     resultado = []
     for r in roles:
         nombre, propias = (r["rol"], r.get("skills", [])) if isinstance(r, dict) else (r, [])
-        resultado.append({"rol": nombre, "skills": list(dict.fromkeys([*comunes, *propias]))})
+        skills = list(dict.fromkeys([*comunes, *propias]))
+        # Primero el estándar y después lo propio del proyecto, las nombre donde las nombre el perfil.
+        skills.sort(key=lambda s: s.startswith(CONVENCIONES))
+        resultado.append({"rol": nombre, "skills": skills})
     return resultado
 
 

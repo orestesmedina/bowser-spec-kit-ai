@@ -13,6 +13,20 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.17.2] - 2026-10-10
+
+Ajustes que dejó la prueba de `/bowser-conventions` en OpenCode real, sobre las copias de los dos proyectos de validación (paso B6). Vive en la rama `etapa-2`.
+
+### Cambiado
+- **El límite de tamaño de una convención se mide en caracteres, no en líneas.** La skill `convenciones-proyecto` pedía "unas 150 líneas", y un agente lo cumplió con 81 líneas muy largas: unos 3 300 tokens que el rol carga en cada tarea. Ahora pide unos 7 000 caracteres (lo que mide una skill del catálogo) y una regla con un ejemplo por línea.
+- Si una parte la trabajan `dev-dba` y otro rol, las convenciones llevan una sección "Base de datos" aparte: `dev-dba` recibe el archivo entero y así encuentra lo suyo sin leer el resto.
+
+### Corregido
+- En los roles generados y en `make profile`, las skills de una parte salen siempre en el mismo orden: primero el estándar y después las convenciones del proyecto. Antes dependía de dónde las nombrara el perfil.
+
+### Al actualizar
+- Si ya tienes convenciones (`.agents/skills/convenciones-de-*/`), mide su tamaño con `wc -c`. Si alguna pasa de unos 7 000 caracteres, repite `/bowser-conventions <parte>` y pide que la recorte.
+
 ## [1.17.1] - 2026-10-09
 
 Corrección encontrada al empezar el paso B6 (validación en las copias de los dos proyectos). Vive en la rama `etapa-2`.

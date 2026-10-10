@@ -133,6 +133,15 @@ def roles_con_perfil(e):
     contiene(p.leer(".claude/agents/devops.md"), "\nskills: react-frontend\n", "la cabecera de devops")
     contiene(seccion(p, "dev-frontend"), "Hoy no te asigna ninguna parte")
     afirmar("\nskills:" not in p.leer(".claude/agents/dev-frontend.md"), "dev-frontend conserva una skill sin tener parte")
+
+    # Las convenciones del proyecto van después del estándar, las nombre donde las nombre el perfil.
+    p.escribir(".agents/skills/convenciones-de-panel/SKILL.md", "---\nname: convenciones-de-panel\ndescription: Del proyecto.\n---\n")
+    perfil["partes"][2]["skills"] = ["convenciones-de-panel"]
+    escribir_perfil(p, perfil)
+    p.make("sincronizar")
+    contiene(seccion(p, "devops"), "Skills que debes aplicar: `react-frontend`, `convenciones-de-panel` (en")
+    contiene(seccion(p, "arquitecto"), "Sus convenciones están en las skills `react-frontend`, `convenciones-de-panel` (en")
+    contiene(p.make("profile").salida, "devops (react-frontend, convenciones-de-panel)")
     p.commit("chore: el panel pasa a devops", extra=APROBADO)
 
     # Con un perfil mal escrito no se supone nada: se avisa y los roles lo dicen.

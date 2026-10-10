@@ -129,8 +129,10 @@ def leer_perfil() -> tuple[dict | None, bool, list[str]]:
 
 
 def instaladas(skills: list[str]) -> list[str]:
-    """De esas skills, las que el proyecto tiene: el perfil puede nombrar una que todavía no existe."""
-    return [s for s in dict.fromkeys(skills) if (RAIZ / ".agents/skills" / s / "SKILL.md").exists()]
+    """De esas skills, las que el proyecto tiene: el perfil puede nombrar una que todavía no existe.
+    Primero el estándar y después las convenciones del proyecto."""
+    hay = [s for s in dict.fromkeys(skills) if (RAIZ / ".agents/skills" / s / "SKILL.md").exists()]
+    return sorted(hay, key=lambda s: s.startswith(perfil_proyecto.CONVENCIONES))
 
 
 def en_codigo(valores: list[str]) -> str:

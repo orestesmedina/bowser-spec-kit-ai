@@ -126,7 +126,9 @@ Mientras tanto, los agentes trabajan con el estándar de las skills del catálog
 - **Las redacta un agente leyendo una muestra del código, no todo.** Puede tomar por convención algo que no lo es, o no ver una. Por eso cada regla lleva su ejemplo y la aprobación es tuya.
 - No hay un control que verifique que el código nuevo las cumple: las aplican los agentes que desarrollan y las revisa `revisor-codigo`. Lo que deba cumplirse sin excepción va en la [constitución](la-constitucion.md).
 - No se actualizan solas. Si el proyecto cambia de costumbre y nadie repite el comando, quedan viejas.
-- El comando se probó generando sus archivos para las tres herramientas; no se ha probado todavía en un proyecto real.
+- **Pesan en cada tarea**, porque el rol las carga siempre que trabaja la parte. Por eso el agente tiene un límite de unos 7 000 caracteres por archivo (lo que mide una skill del catálogo). Compruébalo con `wc -c .agents/skills/convenciones-de-*/SKILL.md`; si un archivo pasa, pide que lo recorte.
+- Si una parte la trabajan `dev-dba` y otro rol, los dos reciben el archivo entero. Lo de la base de datos va en su propia sección, "Base de datos", para que `dev-dba` la encuentre sin leer el resto.
+- Probado el 2026-10-10 en OpenCode real, sobre copias de dos proyectos existentes (uno en Go, React y PostgreSQL; otro en PHP y MySQL). En Claude Code y Codex solo se comprobó que el comando se genera.
 
 ## Siguientes pasos
 
