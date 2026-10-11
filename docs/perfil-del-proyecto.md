@@ -310,7 +310,7 @@ Con perfil, `make ci` ejecuta todos los verbos aunque uno falle, para que el res
 | `make ci` | Los cinco comandos anteriores, uno tras otro; se detiene en el primer error | Todos los verbos, y al final [un resumen](#el-resumen-de-make-ci) |
 | `make doctor` | Go, Node y las herramientas de Go | Los [requisitos](#los-requisitos-de-la-máquina) del perfil |
 | Commit: formato | `gofmt` y `prettier` | El verbo `formato`, solo en las partes que el commit toca |
-| Commit: archivos que no se modifican | `backend/migrations/*.sql` | Los `inmutables` de cada parte |
+| Commit, integración continua y [hook de Claude Code](hooks-del-agente.md#los-archivos-inmutables-del-proyecto): archivos que no se modifican | `backend/migrations/*.sql` | Los `inmutables` de cada parte |
 | Lo que cada agente sabe del proyecto | `backend/` es de `dev-backend` (con la base de datos) y `frontend/` de `dev-frontend`, con las tres skills de siempre | Las partes, skills y comandos que el perfil asigna a cada rol. Ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto) |
 | Las marcas de las tareas | `[backend]`, `[frontend]`, `[infra]` | El nombre de cada parte (`[api]`), o `[infra]` |
 
@@ -361,7 +361,7 @@ Con un perfil inválido el kit no ejecuta ningún verbo y bloquea los commits ha
 - **`make doctor` no comprueba que `requisitos` esté completo.** Revisa lo que el perfil declara; si un verbo llama a un programa que nadie anotó, lo descubre quien no lo tiene, al ejecutar ese verbo.
 - **La constitución todavía habla de Go, React y PostgreSQL.** Los roles, los archivos iniciales y `make doctor` ya no: el kit no instala servicios, variables de entorno ni reglas de `.gitignore` de ninguna tecnología, y cada uno recibe del perfil sus partes, skills y comandos (ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto)). Lo demás es de entregas posteriores.
 - **Cambiar el perfil obliga a regenerar los roles.** Lo que cada agente sabe del proyecto queda escrito en sus instrucciones al generarlas, así que un perfil nuevo sin `make instalar-kit` (o `make sincronizar`, si las skills no cambiaron) deja el commit bloqueado con `La configuración de agentes está desactualizada`.
-- **El hook de Claude Code sigue protegiendo `backend/migrations/`**, no los `inmutables` del perfil. El control del commit sí usa el perfil, y es el que vale para las tres herramientas.
+- **Los `inmutables` solo se adelantan al agente en Claude Code**, que es la única herramienta con [hooks del agente](hooks-del-agente.md). En Codex y OpenCode el agente se entera en el commit, que es el control que vale para las tres.
 - **`make verificar-generados` revisa toda la carpeta de la parte.** Si tienes otros cambios sin commit en ella, los toma por código generado desactualizado.
 - **La detección describe, no decide.** Reconoce las tecnologías más comunes por sus archivos; una que no conozca aparece solo como carpetas con archivos. Y no sabe cómo se prueba ni cómo se levanta el proyecto: eso se pregunta.
 - **La confirmación con `APROBADO_PERFIL=1` depende de que el agente respete la instrucción de no usarla.** Es la misma garantía que tiene la constitución.

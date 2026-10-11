@@ -13,6 +13,35 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.20.0] - 2026-10-11
+
+Tercer paso (C3) de la entrega C de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.
+
+Lo que el kit configura en Claude Code deja de nombrar Go y Node: el hook protege lo que el proyecto declara, y los permisos son los mismos para cualquier tecnología.
+
+### Cambiado
+- **El hook de Claude Code protege los `inmutables` del perfil**, no `backend/migrations/`. Bloquea la edición de un archivo que el perfil declara inmutable y que ya está en git; uno nuevo se puede escribir y corregir. Es la misma lista que ya revisaban el commit y la integración continua. Sin perfil sigue cuidando `backend/migrations/*.sql`.
+- **Los permisos de Claude Code ya no nombran herramientas de Go ni de Node.** Sin preguntar quedan `make`, `docker compose` y los comandos de lectura y commit de git; lo demás pregunta. Los agentes prueban y revisan con `make`, que ejecuta los verbos del perfil.
+- `make doctor` ya no marca como problema que falte `.env` en un proyecto que no declara ninguna variable en `.env.example`.
+
+### Retirado
+- **El formateo automático al editar** (`equipo/adaptadores/claude/hooks/formatear.sh`). Solo existía en Claude Code, y solo para `gofmt` y Prettier. El control de formato es el del commit, que ejecuta el verbo `formato` de cada parte y vale para las tres herramientas.
+
+### Agregado
+- `python3 scripts/verbos.py --inmutable <archivo>`: dice si un archivo es inmutable y ya está versionado. Es lo que usa el hook.
+
+### Límites
+- Con un perfil que tiene errores, el hook no protege ningún archivo inmutable hasta que se corrija (el commit sí se rechaza). Se eligió así para que el agente pueda corregir el perfil.
+- El hook llama a `python3` en cada edición de un archivo que ya existe: una fracción de segundo.
+- Un proyecto no puede todavía agregar permisos propios para todo el equipo sin excluir `equipo/adaptadores/` del kit; cada persona sí puede, en su `.claude/settings.local.json`.
+- No se probó dentro de Claude Code real: las pruebas llaman al hook como lo llama Claude Code y leen la configuración generada.
+
+### Al actualizar
+- **Reinicia Claude Code** después de actualizar: si sigue con la configuración anterior, cada edición muestra un error porque el hook de formateo ya no existe.
+- En Claude Code, el agente pedirá confirmación para `go test`, `npm run` y las demás herramientas que antes tenía permitidas. Lo esperado es que use `make` (`make test`, `make lint`, `make ci`). Si quieres permitir un comando en tu máquina, acepta "no volver a preguntar": queda en `.claude/settings.local.json`.
+- El código ya no se formatea solo al editarlo en Claude Code. Si el commit lo rechaza por formato, ejecuta el formateador de tu proyecto.
+- Si el proyecto tiene perfil, revisa con `make profile` que la parte de la base de datos declare sus `inmutables` (por ejemplo `migrations/*.sql`): es lo único que el hook protege ahora.
+
 ## [1.19.0] - 2026-10-11
 
 Segundo paso (C2) de la entrega C de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.

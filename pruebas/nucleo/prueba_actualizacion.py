@@ -51,6 +51,9 @@ def desde_la_anterior(e):
     manifiesto = json.loads(p.leer(".kit-manifest.json"))["archivos"]
     afirmar(".github/workflows/ci.yml" not in manifiesto, "ci.yml sigue figurando como archivo del kit")
     afirmar(".github/workflows/bowser.yml" in manifiesto, "el workflow del kit (bowser.yml) no llegó al actualizar")
+    # El hook que formateaba al editar se retira, y la configuración de Claude Code deja de llamarlo.
+    afirmar(not p.existe("equipo/adaptadores/claude/hooks/formatear.sh"), "el hook de formateo no se retiró al actualizar")
+    afirmar("formatear.sh" not in p.leer(".claude/settings.json"), ".claude/settings.json sigue llamando al hook de formateo")
     p.escribir("frontend/node_modules/x/index.js", "x\n")
     afirmar(all("node_modules" not in l for l in p.pendientes()),
             "git empezó a ver frontend/node_modules/ después de actualizar")

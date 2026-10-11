@@ -123,7 +123,10 @@ fi
 if [ "$(git config core.hooksPath 2>/dev/null)" != ".githooks" ]; then rojo "Hooks de git inactivos (ejecuta: make instalar-hooks)"
 elif [ ! -x .githooks/pre-commit ] || [ ! -x .githooks/commit-msg ]; then rojo "Hooks de git sin permiso de ejecución: git los ignora (ejecuta: make instalar-hooks)"
 else verde "Hooks de git activos"; fi
-[ -f .env ] && verde "Archivo .env existe" || rojo "Falta .env (ejecuta: cp .env.example .env y completa valores)"
+# .env solo hace falta si el proyecto declara alguna variable en .env.example.
+if [ -f .env ]; then verde "Archivo .env existe"
+elif grep -qE '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=' .env.example 2>/dev/null; then rojo "Falta .env (ejecuta: cp .env.example .env y completa valores)"
+fi
 if python3 scripts/sincronizar.py --verificar >/dev/null 2>&1; then verde "Configuración de agentes al día"; else rojo "Configuración de agentes desactualizada (ejecuta: make sincronizar)"; fi
 RUTA_KIT=$(bash scripts/ruta-kit.sh)
 if [ -f .kit-manifest.json ]; then

@@ -55,7 +55,7 @@ Las reglas más importantes están protegidas en varias capas a la vez:
 | No editar archivos del kit | ✓ | ✓ | ✓ | ✓ |
 | No editar `costos.json` a mano | ✓ | ✓ | Si está cerrado | |
 | Configuración de agentes al día | ✓ | | ✓ | ✓ |
-| Código formateado | ✓ | Lo formatea | ✓ | ✓ |
+| Código formateado | ✓ | | ✓ | ✓ |
 | Mensajes de commit con formato | ✓ | | ✓ | |
 | Pruebas pasando | ✓ | | | ✓ |
 | Cobertura mínima de la capa de servicio | ✓ | | | ✓ |

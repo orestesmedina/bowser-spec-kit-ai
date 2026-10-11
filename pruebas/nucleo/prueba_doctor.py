@@ -60,6 +60,12 @@ def doctor_segun_el_perfil(e):
     s = doctor(p).salida
     contiene(s, "Docker")
     contiene(s, "corriendo")
+    # .env solo se exige si el proyecto declara alguna variable en .env.example (el del kit llega vacío).
+    afirmar(".env" not in s, f"make doctor pide .env en un proyecto que no declara variables:\n{s}")
+    p.escribir(".env.example", "# Puerto del servidor\nPUERTO=\n")
+    afirmar("✗" in linea(doctor(p).salida, "Falta .env"), "con variables declaradas, la falta de .env no es un problema")
+    p.escribir(".env", "PUERTO=8080\n")
+    afirmar("✓" in linea(doctor(p).salida, "Archivo .env existe"), "make doctor no reconoce el .env")
 
     # Con perfil, lo de Go y Node deja de revisarse. Sin requisitos, se avisa.
     p = con_perfil(e)

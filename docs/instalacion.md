@@ -154,7 +154,7 @@ Cada línea empieza con un símbolo:
 | `!` | Recomendado, pero no obligatorio | Conviene resolverlo; no te bloquea |
 | `✗` | Falta algo necesario | Corrígelo antes de trabajar. El mensaje dice cómo |
 
-Además de las herramientas, `make doctor` revisa cosas que solo aparecen al trabajar: que Docker esté corriendo (si el proyecto lo usa), que los hooks de git estén activos, que exista el archivo `.env`, que el kit del proyecto esté al día y, en Windows, que no se estén usando por error programas instalados del lado de Windows.
+Además de las herramientas, `make doctor` revisa cosas que solo aparecen al trabajar: que Docker esté corriendo (si el proyecto lo usa), que los hooks de git estén activos, que exista el archivo `.env` (si el proyecto declara alguna variable en `.env.example`), que el kit del proyecto esté al día y, en Windows, que no se estén usando por error programas instalados del lado de Windows.
 
 La instalación está completa cuando termina con:
 

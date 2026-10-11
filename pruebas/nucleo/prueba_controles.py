@@ -99,6 +99,26 @@ def sin_python(e):
     afirmar(p.commits() == 1, "el commit entró sin que corrieran los controles")
 
 
+def intento_de_editar(e, p, rel: str) -> subprocess.CompletedProcess:
+    """Lo que Claude Code le pasa al hook antes de editar un archivo."""
+    return subprocess.run(["bash", "equipo/adaptadores/claude/hooks/proteger-archivos.sh"], cwd=p.ruta,
+                          input=json.dumps({"tool_input": {"file_path": str(p.ruta / rel)}}).encode(),
+                          env=dict(e.entorno, CLAUDE_PROJECT_DIR=str(p.ruta)), capture_output=True)
+
+
+def se_bloquea(e, p, rel: str) -> str:
+    r = intento_de_editar(e, p, rel)
+    afirmar(r.returncode == 2, f"editar {rel} debía bloquearse (código 2) y dio {r.returncode}")
+    motivo = r.stderr.decode("utf-8", "replace")
+    contiene(motivo, "Bloqueado", f"el motivo al bloquear {rel}")
+    return motivo
+
+
+def se_permite(e, p, rel: str) -> None:
+    r = intento_de_editar(e, p, rel)
+    afirmar(r.returncode == 0, f"editar {rel} debía permitirse y se bloqueó: {r.stderr.decode('utf-8', 'replace')}")
+
+
 @prueba("Claude Code: el hook bloquea secretos, constitución, archivos del kit y costos, y deja pasar el resto",
         requiere=("jq",))
 def hook_de_claude(e):
@@ -106,16 +126,59 @@ def hook_de_claude(e):
     p.escribir("backend/migrations/000001_inicio.up.sql", "CREATE TABLE a (id int);\n")
     p.commit("feat(db): primera migración")
 
-    def intento(rel: str) -> subprocess.CompletedProcess:
-        return subprocess.run(["bash", "equipo/adaptadores/claude/hooks/proteger-archivos.sh"], cwd=p.ruta,
-                              input=json.dumps({"tool_input": {"file_path": str(p.ruta / rel)}}).encode(),
-                              env=dict(e.entorno, CLAUDE_PROJECT_DIR=str(p.ruta)), capture_output=True)
-
+    # Sin perfil, los inmutables son los de la estructura supuesta: las migraciones de backend/.
     for rel in (".env", "secrets/clave.txt", "certificado.pem", CONSTITUCION, "AGENTS.md", "equipo/orquestador.md",
                 ".bowser-spec-kit-ai/README.md", "backend/migrations/000001_inicio.up.sql", "specs/001-x/costos.json"):
-        r = intento(rel)
-        afirmar(r.returncode == 2, f"editar {rel} debía bloquearse (código 2) y dio {r.returncode}")
-        afirmar(b"Bloqueado" in r.stderr, f"al bloquear {rel} no se explicó el motivo")
+        se_bloquea(e, p, rel)
     for rel in (".env.example", "src/app.go", "equipo/config.json", "backend/migrations/000002_nueva.up.sql", "specs/001-x/spec.md"):
-        r = intento(rel)
-        afirmar(r.returncode == 0, f"editar {rel} debía permitirse y se bloqueó: {r.stderr.decode('utf-8', 'replace')}")
+        se_permite(e, p, rel)
+
+
+@prueba("Claude Code: con perfil, el hook protege los inmutables que el perfil declara, y solo los ya versionados",
+        requiere=("jq",))
+def hook_de_claude_con_perfil(e):
+    p = e.proyecto()
+    perfil = {"partes": [
+        {"nombre": "datos", "carpeta": "base", "roles": ["dev-dba"], "inmutables": ["cambios/*.sql"]},
+        {"nombre": "api", "carpeta": "backend", "roles": ["dev-backend"]},
+    ]}
+    p.escribir("equipo/perfil.json", json.dumps(perfil, ensure_ascii=False, indent=2) + "\n")
+    p.escribir("base/cambios/001_inicio.sql", "CREATE TABLE a (id int);\n")
+    p.escribir("base/consultas/listar.sql", "SELECT 1;\n")
+    p.escribir("backend/migrations/000001_inicio.up.sql", "CREATE TABLE a (id int);\n")
+    p.make("instalar-kit")
+    p.commit("feat(db): primer cambio de esquema", extra={"APROBADO_PERFIL": "1"})
+
+    motivo = se_bloquea(e, p, "base/cambios/001_inicio.sql")
+    contiene(motivo, "«datos»", "el motivo del bloqueo")
+    contiene(motivo, "crea uno nuevo", "el motivo del bloqueo")
+    # Uno nuevo se puede escribir y corregir mientras no esté en git, aunque ya exista en el disco.
+    se_permite(e, p, "base/cambios/002_columna.sql")
+    p.escribir("base/cambios/002_columna.sql", "ALTER TABLE a ADD b int;\n")
+    se_permite(e, p, "base/cambios/002_columna.sql")
+    # Lo que el perfil no declara no se protege: ni otros archivos de la parte ni la carpeta de la estructura original.
+    se_permite(e, p, "base/consultas/listar.sql")
+    se_permite(e, p, "backend/migrations/000001_inicio.up.sql")
+
+    # Con un perfil mal escrito no se bloquea nada (el commit lo rechaza): si no, no se podría ni corregir.
+    p.escribir("equipo/perfil.json", "{ esto no es JSON\n")
+    se_permite(e, p, "base/cambios/001_inicio.sql")
+    se_bloquea(e, p, ".env")
+
+
+@prueba("Claude Code: los permisos y los hooks que el kit instala no nombran ninguna tecnología ni formatean al editar")
+def ajustes_de_claude(e):
+    p = e.proyecto(commit=False)
+    for rel in ("equipo/adaptadores/claude/settings.json", ".claude/settings.json"):
+        ajustes = json.loads(p.leer(rel))
+        afirmar("PostToolUse" not in ajustes.get("hooks", {}), f"{rel} ejecuta un hook después de cada edición")
+        permisos = [regla for grupo in ajustes["permissions"].values() for regla in grupo]
+        for palabra in ("go ", "gofmt", "golangci", "govulncheck", "npm", "npx", "playwright", "php", "composer"):
+            malos = [regla for regla in permisos if palabra in regla.lower()]
+            afirmar(not malos, f"{rel} nombra una tecnología en sus permisos: {malos}")
+        for regla in ("Bash(make:*)", "Read(./.env)", "Bash(git push:*)"):
+            afirmar(regla in permisos, f"{rel} perdió el permiso {regla}")
+    afirmar(not p.existe("equipo/adaptadores/claude/hooks/formatear.sh"), "el hook de formateo sigue llegando a los proyectos")
+    hook = p.leer("equipo/adaptadores/claude/hooks/proteger-archivos.sh")
+    for palabra in ("backend", "migrations", "gofmt", "prettier"):
+        afirmar(palabra not in hook, f"el hook de Claude Code nombra «{palabra}»")

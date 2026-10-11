@@ -37,10 +37,12 @@ if [ -f "$RAIZ/.kit-manifest.json" ] && jq -e --arg p "$REL" '.archivos | has($p
   exit 2
 fi
 
-# 4. Migraciones ya versionadas en git no se editan (se crea una nueva)
-if [[ "$FILE" == */backend/migrations/*.sql ]] && [ -f "$FILE" ]; then
-  if git -C "$RAIZ" ls-files --error-unmatch "$FILE" >/dev/null 2>&1; then
-    echo "Bloqueado: '$FILE' ya está versionada. Crea una migración nueva en lugar de editarla." >&2
+# 4. Los archivos que el perfil del proyecto declara inmutables (ej. migraciones) no se editan una vez
+#    versionados en git: se crea uno nuevo. Un archivo que todavía no existe no puede estar versionado.
+if [ -f "$FILE" ] && [ -f "$RAIZ/scripts/verbos.py" ] && command -v python3 >/dev/null 2>&1; then
+  MOTIVO=$(cd "$RAIZ" && python3 scripts/verbos.py --inmutable "$REL" 2>&1 >/dev/null)
+  if [ $? -eq 1 ] && [ -n "$MOTIVO" ]; then
+    echo "Bloqueado: $MOTIVO" >&2
     exit 2
   fi
 fi

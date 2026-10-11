@@ -102,7 +102,7 @@ Las pruebas de código generado y de cobertura necesitan `go`, `sqlc`, `node` y 
 En GitHub las mismas pruebas corren solas en cada Pull Request y en cada push a `main` (workflow `kit.yml`), con todo instalado y sin permitir pruebas omitidas.
 
 > [!WARNING]
-> Las pruebas no lo cubren todo. `make estado` y `make actualizar-modelos` todavía se prueban a mano, igual que la parte de `make doctor` que no son herramientas (WSL, hooks, `.env`, kit), y `make costos` se prueba contra un OpenCode simulado.
+> Las pruebas no lo cubren todo. `make estado` y `make actualizar-modelos` todavía se prueban a mano, igual que la parte de `make doctor` que no son herramientas (WSL, hooks, kit), y `make costos` se prueba contra un OpenCode simulado.
 
 > [!NOTE]
 > Lo que cambia en `.github/workflows/bowser.yml` solo se prueba de verdad en GitHub. Valida el cambio en un proyecto real antes de darlo por bueno.

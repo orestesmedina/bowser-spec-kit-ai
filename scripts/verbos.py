@@ -14,6 +14,7 @@ Uso:
   python3 scripts/verbos.py formato probar --resumen   al final, qué se comprobó y qué quedó sin comprobar (make ci)
   python3 scripts/verbos.py --pre-commit           controles del perfil en cada commit (lo llama el hook de git)
   python3 scripts/verbos.py --inmutables origin/main   falla si la rama modifica archivos inmutables (integración continua)
+  python3 scripts/verbos.py --inmutable <archivo>  termina con 1 si el archivo es inmutable y ya está versionado (hook del agente)
 
 Solo usa la biblioteca estándar de Python 3.9+.
 """
@@ -165,6 +166,31 @@ def inmutables_desde(base: str) -> int:
     return 1 if mensajes else 0
 
 
+def es_inmutable(archivo: str) -> int:
+    """Para el hook del agente (Claude Code): 1 si el archivo es inmutable y ya está versionado, con el motivo;
+    0 si se puede editar. Sin perfil se usa la estructura supuesta. Con un perfil que no se puede leer no se
+    bloquea nada: lo dirá el commit, y bloquear aquí impediría hasta corregir el perfil."""
+    try:
+        perfil = cargar()
+        if perfil is None:
+            perfil = SIN_PERFIL
+        elif validar(perfil)[0]:
+            return 0
+    except ErrorPerfil:
+        return 0
+    if os.path.isabs(archivo):
+        archivo = os.path.relpath(os.path.realpath(archivo), os.path.realpath(RAIZ))
+    archivo = archivo.replace("\\", "/")
+    mensajes = inmutables_tocados(perfil, [archivo])
+    if not mensajes:
+        return 0
+    versionado = subprocess.run(["git", "ls-files", "--error-unmatch", "--", archivo], cwd=RAIZ, capture_output=True)
+    if versionado.returncode != 0:      # todavía no está en git: se puede escribir y corregir
+        return 0
+    print(mensajes[0], file=sys.stderr)
+    return 1
+
+
 def pre_commit() -> int:
     """Controles del perfil en cada commit. Escribe un «✗» por problema y termina con 1 si hay alguno."""
     errores = 0
@@ -224,6 +250,12 @@ def main() -> int:
             print("Uso: scripts/verbos.py --inmutables <rama o commit de base>", file=sys.stderr)
             return 2
         return inmutables_desde(args[i + 1])
+    if "--inmutable" in args:
+        i = args.index("--inmutable")
+        if i + 1 >= len(args):
+            print("Uso: scripts/verbos.py --inmutable <archivo>", file=sys.stderr)
+            return 2
+        return es_inmutable(args[i + 1])
 
     solo = None
     if "--parte" in args:
