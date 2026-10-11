@@ -34,6 +34,9 @@ El kit no es un programa que se instala. Es un conjunto de archivos (instruccion
 | Spec Kit (`specify`) | 1.0 o superior | El motor del proceso: genera specs, planes y tareas |
 | Un agente de código | — | Claude Code, Codex u OpenCode. Al menos uno |
 
+> [!NOTE]
+> Git, `make`, Python, `jq`, `uv`, Spec Kit y el agente de código hacen falta en cualquier proyecto. Docker, Go, Node y las herramientas de Go de esta página son las de un proyecto sin [perfil](perfil-del-proyecto.md). Un proyecto con perfil declara las suyas en [`requisitos`](perfil-del-proyecto.md#los-requisitos-de-la-máquina), y `make doctor` revisa esas.
+
 Además, hay cinco herramientas recomendadas: `golangci-lint`, `govulncheck`, `migrate`, `sqlc` y `gitleaks`. Sin ellas el kit funciona, pero algunos controles se saltan en tu máquina y recién fallan en la [integración continua](integracion-continua.md).
 
 ## Sistema operativo
@@ -151,7 +154,7 @@ Cada línea empieza con un símbolo:
 | `!` | Recomendado, pero no obligatorio | Conviene resolverlo; no te bloquea |
 | `✗` | Falta algo necesario | Corrígelo antes de trabajar. El mensaje dice cómo |
 
-Además de las herramientas, `make doctor` revisa cosas que solo aparecen al trabajar: que Docker esté corriendo, que los hooks de git estén activos, que exista el archivo `.env`, que el kit del proyecto esté al día y, en Windows, que no se estén usando por error programas instalados del lado de Windows.
+Además de las herramientas, `make doctor` revisa cosas que solo aparecen al trabajar: que Docker esté corriendo (si el proyecto lo usa), que los hooks de git estén activos, que exista el archivo `.env`, que el kit del proyecto esté al día y, en Windows, que no se estén usando por error programas instalados del lado de Windows.
 
 La instalación está completa cuando termina con:
 

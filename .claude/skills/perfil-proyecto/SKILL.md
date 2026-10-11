@@ -30,6 +30,10 @@ description: Cómo redactar o corregir el perfil del proyecto (equipo/perfil.jso
         "generar": null
       }
     }
+  ],
+  "requisitos": [
+    {"comando": "go", "nombre": "Go", "minima": "1.26", "version": "go version"},
+    {"comando": "golangci-lint", "opcional": true, "instalar": "go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0"}
   ]
 }
 ```
@@ -61,6 +65,30 @@ Cada comando recibe dos variables de entorno: `PERFIL_RAIZ` (ruta completa de la
 
 Si un verbo necesita un script propio del proyecto, va en `tools/`, en la raíz, y el comando lo llama con `bash "$PERFIL_RAIZ/tools/<script>.sh"`. Nunca en `scripts/`: es del kit. `tools/` no es una parte del proyecto, aunque la detección la liste como carpeta con código.
 
+## Los requisitos
+
+`requisitos` va fuera de `partes`: es del proyecto entero. Lista los programas que una máquina necesita para trabajar en él, y es lo que revisa `make doctor`. Sin esa lista, `make doctor` no revisa nada de la tecnología del proyecto.
+
+| Campo | Qué es |
+|---|---|
+| `comando` | El programa, tal como se escribe en la terminal (`go`, `php`, `docker`). Sin espacios ni rutas. El único obligatorio |
+| `nombre` | Cómo se muestra. Si falta, el del comando |
+| `minima` | Versión mínima, entre comillas (`"1.26"`) |
+| `version` | El comando que imprime la versión, si no es `<comando> --version` (ej. `go version`, `java -version 2>&1`) |
+| `opcional` | `true`: si falta es un aviso y no un problema. Para lo que solo algunos del equipo usan |
+| `instalar` | Cómo se instala, en una línea. Se muestra cuando falta |
+
+Un elemento puede ser solo el nombre del programa (`"php"`).
+
+Cómo llenarla:
+
+- **Sale de los verbos y de cómo se levanta el proyecto.** Cada programa que un comando de `verbos` llama es un requisito, y también lo que haga falta para levantar el entorno local. Si los verbos corren dentro de Docker, el requisito es `docker`, no el lenguaje.
+- **No repitas lo que el kit ya revisa siempre:** `git`, `python3`, `make`, `jq`, `uv`, `specify`, `gitleaks` y el agente de código. Docker tampoco hace falta si el proyecto tiene archivo de Docker Compose: `make doctor` lo revisa solo.
+- **La versión mínima sale del proyecto**, no de tu memoria: de su archivo de versión (`go.mod`, `engines` de `package.json`, `composer.json`, `.tool-versions`). Si no está escrita en ningún lado, pregúntala; si la persona no la sabe, deja el requisito sin `minima`.
+- **Ejecuta el comando de versión antes de darlo por bueno.** `make doctor` toma el primer número con forma de versión que imprima: hay programas que no aceptan `--version` (`go version`) y otros que imprimen antes otra versión (`govulncheck` imprime primero la de Go). Si ningún comando da la del programa, deja el requisito sin `minima`: se comprueba solo que esté instalado.
+- `instalar` solo con un comando que conozcas con certeza o que el proyecto ya documente. Ninguno es mejor que uno inventado.
+- Obligatorio es lo que hace falta para que `make ci` corra entero; lo demás, `opcional`.
+
 ## Cómo redactarlo
 
 1. Parte de los hechos: la salida de `make profile DETECTAR=1` y lo que leas en el código (archivos de configuración, `README`, scripts existentes). Un archivo de tecnología que trae `dentro_de_carpeta_a_confirmar` suele ser de una biblioteca copiada dentro del proyecto: no lo tomes por la tecnología del proyecto sin mirar la carpeta.
@@ -84,7 +112,7 @@ El kit no instala nada que dependa de la tecnología. Al redactar el perfil, rev
 ## Entrega
 
 - El JSON propuesto.
-- Un resumen en lenguaje simple: partes, tecnología de cada una, roles que la trabajan, verbos definidos y verbos sin definir.
+- Un resumen en lenguaje simple: partes, tecnología de cada una, roles que la trabajan, verbos definidos y verbos sin definir, y lo que cada máquina debe tener instalado.
 - Las preguntas abiertas.
 
-Después de escribirlo, `make profile` lo valida y `make instalar-kit` trae sus skills y regenera los roles con lo que el perfil dice de cada parte (sin ese paso, el commit se rechaza porque los archivos generados no están al día). El commit lo confirma una persona con `APROBADO_PERFIL=1`; un agente nunca usa esa variable.
+Después de escribirlo, `make profile` lo valida, `make doctor` dice si la máquina cumple los requisitos y `make instalar-kit` trae sus skills y regenera los roles con lo que el perfil dice de cada parte (sin ese paso, el commit se rechaza porque los archivos generados no están al día). El commit lo confirma una persona con `APROBADO_PERFIL=1`; un agente nunca usa esa variable.

@@ -13,6 +13,30 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.19.0] - 2026-10-11
+
+Segundo paso (C2) de la entrega C de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.
+
+`make doctor` deja de exigir Go y Node a todos los proyectos: revisa lo que cada proyecto declara en su perfil.
+
+### Agregado
+- **`requisitos`, campo nuevo del perfil** (`equipo/perfil.json`, fuera de `partes`): los programas que una máquina necesita para trabajar en el proyecto. De cada uno, el `comando` y, si hace falta, `nombre`, `minima` (versión mínima), `version` (el comando que la imprime), `opcional` e `instalar` (cómo se instala, que se muestra cuando falta). `/bowser-profile` lo llena a partir de los comandos de los verbos y de los archivos de versión del proyecto.
+- `make profile` muestra los requisitos y rechaza los mal escritos.
+- Pruebas automáticas de `make doctor` (`pruebas/nucleo/prueba_doctor.py`): hasta ahora no tenía ninguna.
+
+### Cambiado
+- **`make doctor`, con perfil, revisa los `requisitos` del perfil** en vez de Go, Node, `golangci-lint`, `govulncheck`, `migrate` y `sqlc`. Lo que el kit necesita en cualquier proyecto (Git, Python, `uv`, `jq`, `make`, Spec Kit y `gitleaks`) se sigue revisando siempre. Sin perfil, revisa lo mismo que antes.
+- **Docker ya no es obligatorio para todos.** `make doctor` lo revisa (instalado y corriendo) solo si el proyecto tiene un archivo de Docker Compose en la raíz o si su perfil lo pide. Vale también sin perfil.
+- En WSL, la comprobación de "versiones de Windows" mira las herramientas base y las del perfil.
+
+### Límites
+- `make doctor` revisa lo que el perfil declara, no si la lista está completa: un programa que un verbo usa y nadie anotó no se detecta.
+- Lo demás que `make doctor` revisa (WSL, hooks, `.env`, kit, Spec Kit) no cambió y sigue sin pruebas automáticas.
+- `/bowser-profile` no se probó todavía llenando `requisitos` dentro de una herramienta real.
+
+### Al actualizar
+- Si el proyecto tiene perfil, `make doctor` avisará que no declara requisitos. Ejecuta `/bowser-profile` para que los proponga, o agrégalos a mano (ver `docs/perfil-del-proyecto.md`). El cambio del perfil se confirma con `APROBADO_PERFIL=1`, como siempre.
+
 ## [1.18.0] - 2026-10-10
 
 Primer paso (C1) de la entrega C de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.

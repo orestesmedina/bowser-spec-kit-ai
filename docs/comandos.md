@@ -99,7 +99,16 @@ Registra el consumo de IA nuevo en la funcionalidad de la rama actual y muestra 
 
 ### `make doctor`
 
-Revisa que tu máquina y el proyecto tengan todo: herramientas y sus versiones, Docker corriendo, hooks activos, `.env`, kit al día y Spec Kit inicializado. En Windows, además, que no se estén usando programas del lado de Windows.
+Revisa que tu máquina y el proyecto tengan todo: herramientas y sus versiones, hooks activos, `.env`, kit al día y Spec Kit inicializado. En Windows, además, que no se estén usando programas del lado de Windows.
+
+Las herramientas van en dos grupos:
+
+| Grupo | Qué revisa | De dónde sale |
+|---|---|---|
+| Herramientas base | Git, Python, `uv`, `jq`, `make`, Spec Kit y `gitleaks` | Fijo: es lo que el kit necesita en cualquier proyecto |
+| Herramientas del proyecto | Las de su tecnología | De los [`requisitos`](perfil-del-proyecto.md#los-requisitos-de-la-máquina) del perfil. Sin perfil, Go, Node y las herramientas de Go |
+
+Docker (instalado y corriendo) se revisa solo si el proyecto tiene un archivo de Docker Compose en la raíz o si su perfil lo pide.
 
 - **Cuándo:** después de instalar, al clonar un proyecto, y siempre que algo falle de forma rara. Es el primer paso de cualquier diagnóstico.
 - **Más:** [Instalación](instalacion.md#verificar-la-instalación).

@@ -25,7 +25,7 @@ Así el Pull Request se revisa con los mismos comandos que usa el equipo, y camb
 
 ## Cómo redactarlo
 
-1. **Parte de los hechos.** `make profile` (partes, carpetas y el comando de cada verbo) y `make ci-check` (qué ejecuta ya algún workflow). Lee los comandos de los verbos: cada programa que nombran tiene que estar instalado en el job.
+1. **Parte de los hechos.** `make profile` (partes, carpetas y el comando de cada verbo) y `make ci-check` (qué ejecuta ya algún workflow). Lee los comandos de los verbos: cada programa que nombran tiene que estar instalado en el job. Los `requisitos` del perfil (al final de `make profile`) son la lista de lo que el equipo instala en su máquina, con sus versiones mínimas: sirve de guía, pero el job instala solo lo que los verbos de su parte usan.
 2. **Un job por parte que tenga al menos un verbo.** Una parte sin verbos no lleva job: lístala en la entrega como "sin revisar". Dos partes que usan lo mismo pueden compartir job si eso lo hace más corto; sepáralas si una necesita un servicio que la otra no.
 3. **En cada job, en este orden:**
    - Descargar el código.

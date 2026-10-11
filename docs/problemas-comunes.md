@@ -33,6 +33,10 @@ Revisa el entorno completo y marca con `✗` lo que falta, indicando cómo corre
 | `make: command not found` | Falta `make`. Es común en Ubuntu y WSL | `sudo apt install -y make build-essential` |
 | `make: *** No rule to make target 'up'` | Estás en otra carpeta | `cd` a la carpeta del proyecto. `ls Makefile` debe encontrarlo |
 | `make doctor` dice que falta `jq` | No está instalado | `sudo apt install -y jq` |
+| `make doctor` me pide Go o Node y mi proyecto no los usa | El proyecto no tiene perfil, y sin perfil el kit supone Go y Node | Crea el perfil con `/bowser-profile`: desde entonces revisa lo que el perfil declara en `requisitos` |
+| `make doctor` dice "El perfil no declara requisitos" | Es un aviso: no sabe qué herramientas usa la tecnología del proyecto | `/bowser-profile`, o agrega `requisitos` al perfil. Ver [Los requisitos de la máquina](perfil-del-proyecto.md#los-requisitos-de-la-máquina) |
+| `make doctor` dice "El perfil tiene errores" | `equipo/perfil.json` está mal escrito | `make profile` dice qué corregir |
+| `make doctor` ya no revisa Docker | El proyecto no tiene archivo de Docker Compose ni lo pide su perfil | Nada, si el proyecto no usa Docker. Si lo usa, agrégalo a `requisitos` |
 | `golangci-lint`, `migrate` o `sqlc`: "command not found" | `GOPATH/bin` no está en el `PATH` | Agrega `export PATH="$PATH:$(go env GOPATH)/bin"` a tu `~/.bashrc` o `~/.zshrc` |
 | "Docker no está corriendo" | Docker Desktop está cerrado | Ábrelo y espera a que arranque |
 | `make: docker: No such file or directory` | Docker no está instalado en Ubuntu, o falta la integración con WSL | Docker Desktop con **WSL Integration → Ubuntu** activado. Reabre la terminal |

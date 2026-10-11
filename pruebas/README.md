@@ -45,6 +45,7 @@ Las pruebas de `nucleo/`:
 | `prueba_costos.py` | `make costos` con OpenCode 1.x y 2.x, avisos y costo cerrado |
 | `prueba_catalogo.py` | Catálogo de skills: que esté bien escrito, que sin perfil lleguen las tres de siempre y con perfil solo las que nombra, el rechazo del commit cuando el perfil y las skills instaladas no coinciden, y los avisos (skill inexistente, skill solo redactada, perfil ilegible) |
 | `prueba_roles.py` | Roles sin tecnología: que ningún rol del kit nombre una, que cada rol generado reciba del perfil sus partes, skills, comandos y límites (y sin perfil, la estructura de siempre), que cambiar el perfil sin regenerar bloquee el commit, y qué pasa con un perfil ilegible |
+| `prueba_doctor.py` | `make doctor`: sin perfil revisa Go y Node; con perfil, los `requisitos` (instalado, versión mínima, opcional, cómo se instala); Docker solo si hace falta; requisitos mal escritos |
 | `prueba_perfil.py` | Perfil del proyecto: `make` ejecuta los verbos de cada parte, perfiles mal escritos, varios roles por parte, las variables `PERFIL_RAIZ` y `PERFIL_TERCEROS`, el resumen de `make ci`, controles del commit (confirmación, inmutables, formato), `make profile DETECTAR=1`, `make ci-check` y el control de inmutables de la integración continua |
 
 Las pruebas de `go/`:
@@ -89,4 +90,4 @@ Después de escribir una prueba, **rompe a propósito lo que comprueba** y mira 
 - El workflow `ci.yml` que se copia a los proyectos solo se prueba de verdad en GitHub.
 - La prueba de actualización necesita los tags del repositorio. En un clon sin tags se omite: `git fetch --tags`.
 - `make generar` se prueba con `sqlc` real y con un generador de tipos mínimo, no con el de un proyecto real. Que falte `sqlc` en la máquina no se prueba.
-- `make doctor`, `make estado` y `make actualizar-modelos` todavía no tienen pruebas automáticas.
+- `make estado` y `make actualizar-modelos` todavía no tienen pruebas automáticas. De `make doctor` se prueban las herramientas (base, del perfil y Docker); lo de WSL, los hooks, `.env` y el kit, a mano.

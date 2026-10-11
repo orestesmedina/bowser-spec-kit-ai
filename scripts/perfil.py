@@ -22,6 +22,11 @@ El perfil vive en equipo/perfil.json y es del proyecto (el kit no lo instala ni 
           "cobertura": null                   null o ausente: el proyecto todavía no lo tiene
         }
       }
+    ],
+    "requisitos": [                           opcional: lo que la máquina necesita para trabajar en el proyecto
+      "php",                                    solo el programa, o
+      {"comando": "go", "nombre": "Go", "minima": "1.26", "version": "go version"},
+      {"comando": "golangci-lint", "opcional": true, "instalar": "go install …"}
     ]
   }
 
@@ -31,12 +36,18 @@ Cada comando recibe dos variables de entorno: PERFIL_RAIZ (ruta absoluta de la r
 PERFIL_TERCEROS (las carpetas de terceros de la parte, una por línea). Los scripts propios del proyecto que
 un verbo necesite van en tools/ (scripts/ es del kit).
 
+"requisitos" es lo que revisa `make doctor`, además de las herramientas que el kit necesita siempre. De cada uno:
+"comando" (el programa que debe estar en el PATH), "nombre" (cómo se muestra), "minima" (versión mínima),
+"version" (el comando que imprime la versión; por defecto, `<comando> --version`), "opcional" (true: si falta es
+un aviso y no un problema) e "instalar" (cómo se instala, para mostrarlo cuando falta).
+
 Sin perfil, el kit se comporta como antes de tenerlo (Go en backend/ y React en frontend/).
 
 Uso:
   python3 scripts/perfil.py              muestra el perfil y lo valida
   python3 scripts/perfil.py --verificar  solo valida (para hooks y CI)
   python3 scripts/perfil.py --detectar   mira el proyecto y muestra, en JSON, lo que encontró (no escribe nada)
+  python3 scripts/perfil.py --requisitos los requisitos, uno por línea, para scripts/doctor.sh
 
 Solo usa la biblioteca estándar de Python 3.9+.
 """
@@ -83,6 +94,9 @@ SIN_PERFIL = {"partes": [
 ]}
 CAMPOS = {"nombre", "carpeta", "descripcion", "rol", "roles", "skills", "terceros", "inmutables", "verbos"}
 NOMBRE = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
+CAMPOS_REQUISITO = {"comando", "nombre", "minima", "version", "opcional", "instalar"}
+PROGRAMA = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+-]*")
+VERSION_MINIMA = re.compile(r"\d+(\.\d+){0,3}")
 
 
 class ErrorPerfil(Exception):
@@ -118,9 +132,59 @@ def lista_de_textos(valor) -> bool:
     return isinstance(valor, list) and all(isinstance(x, str) and x.strip() for x in valor)
 
 
+def una_linea(valor) -> bool:
+    return isinstance(valor, str) and bool(valor.strip()) and not any(ord(c) < 32 for c in valor)
+
+
+def validar_requisitos(perfil: dict) -> list[str]:
+    requisitos = perfil.get("requisitos", [])
+    if not isinstance(requisitos, list):
+        return ["\"requisitos\" debe ser una lista de programas (ej. [\"php\", {\"comando\": \"go\", \"minima\": \"1.26\"}])"]
+    errores: list[str] = []
+    vistos: set[str] = set()
+    for i, r in enumerate(requisitos, 1):
+        if isinstance(r, str):
+            r = {"comando": r}
+        if not isinstance(r, dict):
+            errores.append(f"el requisito {i} debe ser el nombre de un programa o un objeto con \"comando\"")
+            continue
+        comando = r.get("comando")
+        if not isinstance(comando, str) or not PROGRAMA.fullmatch(comando):
+            errores.append(f"el requisito {i}: \"comando\" debe ser el nombre de un programa, sin espacios ni rutas (ej. go, php)")
+            continue
+        quien = f"el requisito «{comando}»"
+        if comando in vistos:
+            errores.append(f"{quien} está dos veces")
+        vistos.add(comando)
+        for clave in r:
+            if clave not in CAMPOS_REQUISITO and not clave.startswith("_"):
+                errores.append(f"{quien}: campo desconocido «{clave}» (campos: {', '.join(sorted(CAMPOS_REQUISITO))})")
+        if "minima" in r and not (isinstance(r["minima"], str) and VERSION_MINIMA.fullmatch(r["minima"])):
+            errores.append(f"{quien}: \"minima\" debe ser una versión entre comillas (ej. \"1.26\")")
+        for clave in ("nombre", "version", "instalar"):
+            if clave in r and not una_linea(r[clave]):
+                errores.append(f"{quien}: \"{clave}\" debe ser un texto de una sola línea")
+        if not isinstance(r.get("opcional", False), bool):
+            errores.append(f"{quien}: \"opcional\" debe ser true o false")
+    return errores
+
+
+def requisitos_de(perfil: dict) -> list[dict]:
+    """Lo que la máquina necesita para trabajar en el proyecto, con todos sus campos. Para un perfil ya validado."""
+    resultado = []
+    for r in perfil.get("requisitos", []):
+        r = {"comando": r} if isinstance(r, str) else r
+        resultado.append({
+            "comando": r["comando"], "nombre": r.get("nombre") or r["comando"], "minima": r.get("minima", ""),
+            "version": r.get("version") or f"{r['comando']} --version", "opcional": bool(r.get("opcional")),
+            "instalar": r.get("instalar", ""),
+        })
+    return resultado
+
+
 def validar(perfil: dict, raiz: Path = RAIZ) -> tuple[list[str], list[str]]:
     """Devuelve (errores, avisos). Con errores, el perfil no se usa."""
-    errores: list[str] = []
+    errores: list[str] = validar_requisitos(perfil)
     avisos: list[str] = []
     partes = perfil.get("partes")
     if not isinstance(partes, list) or not partes:
@@ -310,6 +374,14 @@ def mostrar(perfil: dict) -> None:
     if sin_convenciones:
         print(f"Sin convenciones propias: {', '.join(sin_convenciones)}. Las skills del catálogo dicen el estándar de cada "
               "tecnología; lo propio del proyecto se redacta con /bowser-conventions.")
+    requisitos = requisitos_de(perfil)
+    if requisitos:
+        print("Requisitos de la máquina (los revisa make doctor): " + "  ·  ".join(
+            r["nombre"] + (f" {r['minima']} o superior" if r["minima"] else "") + (" (recomendado)" if r["opcional"] else "")
+            for r in requisitos))
+    else:
+        print("Sin requisitos: make doctor no revisa las herramientas de la tecnología del proyecto. "
+              "Se declaran en \"requisitos\" (/bowser-profile).")
 
 
 # ---------------------------------------------------------------- detección
@@ -510,6 +582,15 @@ def main() -> int:
     except ErrorPerfil as e:
         print(f"✗ {e}", file=sys.stderr)
         return 1
+    if "--requisitos" in args:
+        # Para scripts/doctor.sh: un requisito por línea, con los campos separados por el carácter 0x1F.
+        if perfil is None:
+            return 0
+        if validar(perfil)[0]:
+            return 1
+        for r in requisitos_de(perfil):
+            print("\x1f".join([r["comando"], r["nombre"], r["minima"], r["version"], "1" if r["opcional"] else "", r["instalar"]]))
+        return 0
     if perfil is None:
         if "--verificar" in args:
             print("Sin perfil: no hay nada que verificar.")

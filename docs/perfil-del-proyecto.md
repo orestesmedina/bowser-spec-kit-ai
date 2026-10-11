@@ -7,6 +7,7 @@
 - [Los verbos](#los-verbos)
 - [Lo que recibe cada comando](#lo-que-recibe-cada-comando)
 - [Scripts propios del proyecto](#scripts-propios-del-proyecto)
+- [Los requisitos de la máquina](#los-requisitos-de-la-máquina)
 - [Crear el perfil](#crear-el-perfil)
 - [Ver y validar el perfil](#ver-y-validar-el-perfil)
 - [El resumen de make ci](#el-resumen-de-make-ci)
@@ -18,7 +19,7 @@
 
 ## Introducción
 
-El perfil es un archivo, `equipo/perfil.json`, en el que el proyecto se describe a sí mismo: qué partes tiene, en qué carpeta está cada una, con qué tecnología está hecha y qué comando hay que ejecutar para probarla, revisarla o formatearla.
+El perfil es un archivo, `equipo/perfil.json`, en el que el proyecto se describe a sí mismo: qué partes tiene, en qué carpeta está cada una, con qué tecnología está hecha, qué comando hay que ejecutar para probarla, revisarla o formatearla, y qué programas necesita una máquina para trabajar en él.
 
 Es del proyecto, no del kit: el kit no lo instala ni lo reemplaza al actualizarse. Lo redacta un agente mirando el código y lo aprueba una persona.
 
@@ -33,7 +34,7 @@ Con perfil, el kit deja de suponer. Cuando alguien escribe `make test`, busca en
 
 ## Qué contiene
 
-Una lista de **partes**. Una parte es algo que se construye, se prueba o se despliega por separado: una API, un panel web, una aplicación móvil. Un proyecto pequeño puede tener una sola.
+Una lista de **partes** y, aparte, los [requisitos de la máquina](#los-requisitos-de-la-máquina). Una parte es algo que se construye, se prueba o se despliega por separado: una API, un panel web, una aplicación móvil. Un proyecto pequeño puede tener una sola.
 
 ```json
 {
@@ -66,9 +67,16 @@ Una lista de **partes**. Una parte es algo que se construye, se prueba o se desp
         "revisar": "bash \"$PERFIL_RAIZ/tools/sintaxis-php.sh\""
       }
     }
+  ],
+  "requisitos": [
+    { "comando": "go", "nombre": "Go", "minima": "1.26", "version": "go version" },
+    { "comando": "govulncheck", "opcional": true, "instalar": "go install golang.org/x/vuln/cmd/govulncheck@v1.8.0" },
+    "php"
   ]
 }
 ```
+
+De cada parte:
 
 | Campo | Qué es | Obligatorio |
 |---|---|---|
@@ -160,6 +168,49 @@ Y en el perfil, el verbo lo llama desde la raíz:
 
 El script corre dentro de la carpeta de la parte, así que el mismo sirve para varias partes: cada una le pasa sus propios terceros. `tools/` es del proyecto: el kit no la crea ni la toca.
 
+## Los requisitos de la máquina
+
+`requisitos` es la lista de programas que una máquina necesita para trabajar en el proyecto. Va fuera de `partes`, porque es del proyecto entero: Docker o Node suelen servir a más de una parte.
+
+Sirve para que [`make doctor`](comandos.md#make-doctor) revise lo que **este** proyecto usa, y no una lista fija. Quien se une al equipo ejecuta `make doctor` y ve qué le falta, en qué versión y cómo se instala.
+
+```json
+"requisitos": [
+  { "comando": "go", "nombre": "Go", "minima": "1.26", "version": "go version" },
+  { "comando": "govulncheck", "opcional": true, "instalar": "go install golang.org/x/vuln/cmd/govulncheck@v1.8.0" },
+  "php"
+]
+```
+
+| Campo | Qué es | Obligatorio |
+|---|---|---|
+| `comando` | El programa, como se escribe en la terminal. Sin espacios ni rutas | Sí |
+| `nombre` | Cómo lo muestra `make doctor`. Si falta, usa el del comando | No |
+| `minima` | La versión mínima, entre comillas: `"1.26"` | No |
+| `version` | El comando que imprime la versión, cuando no es `<comando> --version`. Por ejemplo, `go version` | No |
+| `opcional` | `true`: si falta es un aviso (`!`) y no un problema (`✗`) | No |
+| `instalar` | Cómo se instala, en una línea. Se muestra cuando falta | No |
+
+Un elemento puede ser solo el nombre del programa: `"php"` es lo mismo que `{ "comando": "php" }`.
+
+Con ese perfil, en una máquina sin `govulncheck` y con un Go antiguo:
+
+```text
+Herramientas del proyecto (según su perfil)
+  ✗ Go 1.24.2 (se requiere 1.26 o superior)
+  ! govulncheck no está instalado (recomendado). Se instala con: go install golang.org/x/vuln/cmd/govulncheck@v1.8.0
+  ✓ php 8.4.1
+```
+
+Tres cosas a saber:
+
+- **No hace falta repetir lo que el kit revisa siempre:** Git, Python, `make`, `jq`, `uv`, Spec Kit, `gitleaks` y el agente de código.
+- **Docker se revisa solo** cuando el proyecto tiene un archivo de Docker Compose en la raíz. Decláralo en `requisitos` únicamente si el proyecto usa Docker sin ese archivo (por ejemplo, un verbo que corre dentro de un contenedor).
+- **Un perfil sin `requisitos` es válido**, pero `make doctor` avisa: no puede revisar las herramientas de la tecnología del proyecto.
+
+> [!WARNING]
+> El comando de `version` se ejecuta en la máquina de cada persona, igual que los de los verbos. Es una de las razones por las que un cambio en el perfil [lo confirma una persona](#aprobar-un-cambio-en-el-perfil).
+
 ## Crear el perfil
 
 En el chat de tu herramienta:
@@ -172,7 +223,7 @@ En el chat de tu herramienta:
 
 1. Ejecuta `make profile DETECTAR=1`, que mira el proyecto y lista lo que encuentra: carpetas con código y en qué lenguaje, archivos que delatan una tecnología (`go.mod`, `composer.json`, `package.json`), archivos de SQL con su motor probable, y carpetas que parecen de terceros. Si uno de esos archivos está dentro de una carpeta dudosa (por ejemplo `libraries/PHPMailer/composer.json`), lo marca con `dentro_de_carpeta_a_confirmar`: suele ser de una biblioteca copiada, no la tecnología del proyecto. Solo lee.
 2. Le pasa esos hechos al `arquitecto`, que redacta el perfil.
-3. Te pregunta lo que no puede saber mirando el código: cómo se prueba, qué versión se usa, si una carpeta dudosa es de terceros.
+3. Te pregunta lo que no puede saber mirando el código: cómo se prueba, qué versión se usa, si una carpeta dudosa es de terceros. Los `requisitos` los saca de los comandos de los verbos y de los archivos de versión del proyecto.
 4. Te muestra la propuesta en lenguaje simple y espera tu aprobación.
 5. Con tu "sí", escribe `equipo/perfil.json` y lo valida.
 6. Ejecuta `make instalar-kit`, que trae del catálogo las skills que el perfil nombra y retira las que no.
@@ -216,6 +267,7 @@ Perfil del proyecto (equipo/perfil.json): 2 partes
     generar    — sin definir
     terceros:   libraries
 
+Requisitos de la máquina (los revisa make doctor): Go 1.26 o superior  ·  govulncheck (recomendado)  ·  php
 OK: perfil válido (2 partes).
 ```
 
@@ -256,6 +308,7 @@ Con perfil, `make ci` ejecuta todos los verbos aunque uno falle, para que el res
 | `make security` | `govulncheck` y `npm audit` | El verbo `auditar` |
 | `make generar`, `make verificar-generados` | sqlc y los tipos de la API | El verbo `generar` |
 | `make ci` | Los cinco comandos anteriores, uno tras otro; se detiene en el primer error | Todos los verbos, y al final [un resumen](#el-resumen-de-make-ci) |
+| `make doctor` | Go, Node y las herramientas de Go | Los [requisitos](#los-requisitos-de-la-máquina) del perfil |
 | Commit: formato | `gofmt` y `prettier` | El verbo `formato`, solo en las partes que el commit toca |
 | Commit: archivos que no se modifican | `backend/migrations/*.sql` | Los `inmutables` de cada parte |
 | Lo que cada agente sabe del proyecto | `backend/` es de `dev-backend` (con la base de datos) y `frontend/` de `dev-frontend`, con las tres skills de siempre | Las partes, skills y comandos que el perfil asigna a cada rol. Ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto) |
@@ -284,6 +337,10 @@ Antes de confirmarlo, lee los comandos con `make profile`. Un agente nunca usa e
 | `la carpeta «x» no existe` | La parte apunta a una carpeta que no está, o se renombró | Corrige `carpeta` |
 | `verbo desconocido «x»` | Solo existen los seis verbos de la tabla | Usa uno de ellos. Un comando propio del proyecto va en `proyecto.mk` |
 | `el rol «x» no existe en equipo/agentes/` | El nombre del rol está mal escrito | Mira los disponibles en `equipo/agentes/` |
+| `el requisito N: "comando" debe ser el nombre de un programa` | El `comando` de un requisito falta, o trae espacios o una ruta | Deja solo el programa (`go`); el comando que imprime la versión va en `version` |
+| `el requisito «x»: "minima" debe ser una versión entre comillas` | Se escribió como número (`1.26`) | `"minima": "1.26"` |
+| `El perfil no declara requisitos` (en `make doctor`) | Es un aviso: el perfil no tiene `requisitos` | `/bowser-profile`, o escríbelos a mano |
+| `El perfil tiene errores: no se sabe qué necesita el proyecto` (en `make doctor`) | El perfil no pasa la validación | `make profile` dice qué corregir |
 | `usa "roles" (lista) o "rol" (uno solo), no los dos` | La parte tiene los dos campos | Deja solo `roles` |
 | `el rol «x» está dos veces` | El mismo rol aparece repetido en los `roles` de una parte | Déjalo una vez, con todas sus skills |
 | `la skill «x» no está en .agents/skills/ ni en el catálogo del kit` | Es un aviso: el agente trabajará sin esa skill | Corrige el nombre (`make skills` lista las del catálogo), quítala del perfil o agrega la skill al proyecto |
@@ -301,7 +358,8 @@ Con un perfil inválido el kit no ejecuta ningún verbo y bloquea los commits ha
 ## Límites
 
 - **La integración continua no se actualiza sola.** El workflow del proyecto ejecuta los verbos, así que cambiar el comando de un verbo no exige tocarlo. Pero una parte nueva, o un verbo que necesita una herramienta que el workflow no instala, sí: `make ci-check` avisa de lo que nadie ejecuta y `/bowser-ci` lo corrige. Ver [Integración continua](integracion-continua.md#el-workflow-del-proyecto).
-- **`make doctor` y la constitución todavía hablan de Go, React y PostgreSQL.** Los roles y los archivos iniciales ya no: el kit no instala servicios, variables de entorno ni reglas de `.gitignore` de ninguna tecnología, y cada uno recibe del perfil sus partes, skills y comandos (ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto)). Lo demás es de entregas posteriores.
+- **`make doctor` no comprueba que `requisitos` esté completo.** Revisa lo que el perfil declara; si un verbo llama a un programa que nadie anotó, lo descubre quien no lo tiene, al ejecutar ese verbo.
+- **La constitución todavía habla de Go, React y PostgreSQL.** Los roles, los archivos iniciales y `make doctor` ya no: el kit no instala servicios, variables de entorno ni reglas de `.gitignore` de ninguna tecnología, y cada uno recibe del perfil sus partes, skills y comandos (ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto)). Lo demás es de entregas posteriores.
 - **Cambiar el perfil obliga a regenerar los roles.** Lo que cada agente sabe del proyecto queda escrito en sus instrucciones al generarlas, así que un perfil nuevo sin `make instalar-kit` (o `make sincronizar`, si las skills no cambiaron) deja el commit bloqueado con `La configuración de agentes está desactualizada`.
 - **El hook de Claude Code sigue protegiendo `backend/migrations/`**, no los `inmutables` del perfil. El control del commit sí usa el perfil, y es el que vale para las tres herramientas.
 - **`make verificar-generados` revisa toda la carpeta de la parte.** Si tienes otros cambios sin commit en ella, los toma por código generado desactualizado.
