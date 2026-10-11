@@ -129,7 +129,7 @@ Tres ajustes que se hacen en el repositorio, no en archivos:
 |---|---|---|
 | Proteger la rama `main` y exigir la aprobación de Code Owners | Settings → Branches | Para que `CODEOWNERS` tenga efecto y nada entre sin pasar por la integración continua |
 | Secreto `KIT_TOKEN` | Settings → Secrets and variables → Actions → Secrets | Solo si tu copia del kit es un repositorio privado: un token con permiso de lectura, para que la integración continua pueda descargar el submódulo |
-| Variables de versión | Settings → Secrets and variables → Actions → Variables | Opcional. Cambian la versión de una herramienta en la integración continua sin tocar `ci.yml`. Ver [Integración continua](integracion-continua.md#cambiar-la-versión-de-una-herramienta) |
+| Secretos y variables del proyecto | Settings → Secrets and variables → Actions | Los que necesite el workflow del proyecto. `/bowser-ci` los lista al entregarlo. Ver [Integración continua](integracion-continua.md#el-workflow-del-proyecto) |
 
 ## Siguientes pasos
 

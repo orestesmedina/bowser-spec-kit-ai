@@ -23,7 +23,7 @@ def perfil_con(p, skills: list, roles: list | None = None) -> None:
 
 def instaladas(p) -> list[str]:
     return sorted(x.name for x in p.archivo(".agents/skills").iterdir()
-                  if not x.name.startswith(("bowser-", "equipo-", "perfil-")) and x.name != "convenciones-proyecto")
+                  if not x.name.startswith(("bowser-", "equipo-", "perfil-")) and x.name not in ("convenciones-proyecto", "ci-proyecto"))
 
 
 @prueba("el catálogo del kit está bien escrito, y una skill sin madurez o con otro nombre se rechaza")

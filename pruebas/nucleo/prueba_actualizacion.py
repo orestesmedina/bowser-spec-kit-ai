@@ -13,6 +13,7 @@ def desde_la_anterior(e):
     afirmar(version_vieja != e.version, f"la versión anterior ({anterior}) es la misma que se prueba")
     p.escribir("proyecto.mk", "e2e: ## Pruebas end-to-end del proyecto\n\t@echo e2e-del-proyecto\n")
     config_antes = p.leer("equipo/config.json")
+    ci_antes = p.leer(".github/workflows/ci.yml") if p.existe(".github/workflows/ci.yml") else None
     # La versión anterior traía reglas de Go y Node en su bloque de .gitignore. Una de ellas, además, ya era del proyecto.
     contiene(p.leer(".gitignore"), "frontend/node_modules/", "el bloque del kit anterior")
     p.escribir(".gitignore", "frontend/dist/\n\n" + p.leer(".gitignore") + "\n# Del proyecto\n*.log\n")
@@ -43,6 +44,13 @@ def desde_la_anterior(e):
     afirmar(gitignore.count("\n.env\n") == 1, "pasó al proyecto una regla que el bloque sigue trayendo")
     afirmar(antes == "frontend/dist/\n\n" and despues.endswith("\n# Del proyecto\n*.log\n"),
             "la actualización cambió lo que el proyecto tenía escrito en su .gitignore")
+    # La integración continua que el kit traía pasa a ser del proyecto: no se borra, y deja de estar en el manifiesto.
+    if ci_antes is not None:
+        contiene(r.salida, ".github/workflows/ci.yml ya no viene del kit")
+        afirmar(p.leer(".github/workflows/ci.yml") == ci_antes, "la actualización borró o cambió el ci.yml del proyecto")
+    manifiesto = json.loads(p.leer(".kit-manifest.json"))["archivos"]
+    afirmar(".github/workflows/ci.yml" not in manifiesto, "ci.yml sigue figurando como archivo del kit")
+    afirmar(".github/workflows/bowser.yml" in manifiesto, "el workflow del kit (bowser.yml) no llegó al actualizar")
     p.escribir("frontend/node_modules/x/index.js", "x\n")
     afirmar(all("node_modules" not in l for l in p.pendientes()),
             "git empezó a ver frontend/node_modules/ después de actualizar")
@@ -124,3 +132,26 @@ def novedades(e):
     contiene(r.salida, f"Kit instalado: {e.version}")
     contiene(r.salida, f"[{e.version}]")
     contiene(p.make("novedades", "DESDE=no-es-version", espera=1).salida, "Versión no válida")
+
+
+@prueba("un archivo que el kit entrega al proyecto (ci.yml) no se borra al actualizar, aunque tenga cambios locales")
+def entregados(e):
+    p = e.proyecto()
+    ci = ".github/workflows/ci.yml"
+    afirmar(not p.existe(ci), "el kit sigue instalando un ci.yml: la integración continua es del proyecto")
+    # Como lo dejó una versión anterior: el archivo en el proyecto y su hash en el manifiesto.
+    p.escribir(ci, "name: CI\n# con un paso que agregó el proyecto\n")
+    manifiesto = json.loads(p.leer(".kit-manifest.json"))
+    manifiesto["archivos"][ci] = "0" * 64
+    p.escribir(".kit-manifest.json", json.dumps(manifiesto, indent=2, ensure_ascii=False) + "\n")
+    contiene(p.verificar_kit(espera=1).salida, ci)
+
+    r = p.make("instalar-kit")
+    contiene(r.salida, f"{ci} ya no viene del kit: se conservó tal como estaba y desde ahora es del proyecto.")
+    contiene(p.leer(ci), "un paso que agregó el proyecto", "el ci.yml del proyecto")
+    afirmar(ci not in json.loads(p.leer(".kit-manifest.json"))["archivos"], "ci.yml sigue en el manifiesto")
+    p.verificar_kit()
+    # Ya es un archivo cualquiera del proyecto: se edita y entra al historial sin que el kit se queje.
+    p.agregar(ci, "# otro cambio\n")
+    p.commit("ci: integración continua del proyecto")
+    contiene(p.make("instalar-kit").salida, "Sin cambios: el proyecto ya estaba al día.")

@@ -37,7 +37,7 @@ Cuanto antes se detiene un error, menos cuesta corregirlo. Cuanto más tarde est
 | **Instrucciones** | `AGENTS.md`, roles, skills, constitución | Mientras el agente piensa | Errores de criterio | Sí: el agente puede equivocarse |
 | **[Hooks del agente](hooks-del-agente.md)** | `equipo/adaptadores/claude/hooks/` | Cuando el agente intenta editar un archivo | Ediciones a archivos protegidos | Solo existen en Claude Code |
 | **[Hooks de git](hooks-de-git.md)** | `.githooks/` | En cada commit | Secretos, migraciones editadas, formato, mensajes mal escritos, archivos del kit modificados | Con `--no-verify`, o si no están activos |
-| **[Integración continua](integracion-continua.md)** | `.github/workflows/ci.yml` | En cada Pull Request | Todo lo anterior, más pruebas, cobertura, código generado y vulnerabilidades | No |
+| **[Integración continua](integracion-continua.md)** | `.github/workflows/` (`bowser.yml`, del kit, y el workflow del proyecto) | En cada Pull Request | Todo lo anterior, más pruebas, cobertura, código generado y vulnerabilidades | No |
 | **CODEOWNERS** | `.github/CODEOWNERS` | Al aprobar un Pull Request | Cambios a las reglas y a los agentes sin la aprobación de quien decide | No, si la rama está protegida |
 | **[Aprobación de una persona](aprobaciones.md)** | El chat y GitHub | En las cuatro puertas | Que se construya algo que nadie pidió | No |
 
@@ -82,7 +82,7 @@ La regla es la misma en todas las capas: **se corrige la causa, no el control**.
 | `git commit --no-verify` | La integración continua repite la comprobación. Solo se pospone el rechazo |
 | Desactivar o debilitar una prueba | La prueba estaba diciendo algo. Ahora nadie lo va a oír |
 | Editar un archivo generado para que coincida | La próxima generación lo borra |
-| Quitar un paso de la integración continua | `ci.yml` viene del kit: el hook lo detecta |
+| Quitar un paso de la integración continua | Los controles de `bowser.yml` vienen del kit: el hook lo detecta. Los del workflow del proyecto los cuida `CODEOWNERS`, y `make ci-check` avisa si un verbo dejó de ejecutarse |
 | Pedirle al agente que "lo resuelva como sea" | Va a encontrar la forma de que el control pase, que no es lo mismo que resolver el problema |
 
 Si un control está mal (rechaza algo que debería aceptar), eso es un error del kit: se reporta y se corrige en el kit. Ver [Cómo contribuir](contribuir.md).

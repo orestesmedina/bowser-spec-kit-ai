@@ -42,8 +42,7 @@ La instalación toca solo los archivos que el kit gestiona. Si alguno ya existí
 |---|---|
 | `Makefile` | **Se reemplaza** por el del kit. Respaldo en `.kit-respaldo/` |
 | `AGENTS.md` | **Se reemplaza.** Respaldo en `.kit-respaldo/` |
-| `.github/workflows/ci.yml` | **Se reemplaza.** Respaldo en `.kit-respaldo/` |
-| Otros workflows en `.github/workflows/` | Se respetan |
+| Tus workflows en `.github/workflows/` | Se respetan, también `ci.yml`. El kit agrega el suyo, `bowser.yml` |
 | `.github/CODEOWNERS`, `.env.example` | Se respetan si ya existen. Si no existen, el kit copia los suyos (`.env.example`, vacío) |
 | `docker-compose.yml` y el resto de tu entorno local | No se tocan: el kit no trae ninguno |
 | `README.md`, `CHANGELOG.md` | Se respetan: son del producto |
@@ -84,8 +83,7 @@ Se usa `make -f …` para ejecutar el `Makefile` del kit y no el de tu proyecto.
 ```
 Kit 1.7.1 instalado en mi-proyecto/
    38 nuevos
-    3 reemplazados (existían antes)
-        .github/workflows/ci.yml
+    2 reemplazados (existían antes)
         AGENTS.md
         Makefile
     2 semillas (ahora son del proyecto)
@@ -100,7 +98,7 @@ Revisa cada archivo de `.kit-respaldo/` y lleva lo que necesites a su nuevo luga
 |---|---|
 | Comandos propios en el `Makefile` | En `proyecto.mk`, que el `Makefile` del kit incluye automáticamente. Si un comando tuyo se llama igual que uno del kit, cámbiale el nombre |
 | Instrucciones para los agentes en `AGENTS.md` | Si son reglas de código, en una [skill](skills.md) propia. Si son reglas del proyecto, en la [constitución](la-constitucion.md) o en la documentación del proyecto |
-| Pasos propios en `ci.yml` | En un workflow aparte, por ejemplo `.github/workflows/proyecto.yml`. El kit solo gestiona `ci.yml` |
+| Tu integración continua | Se queda donde está: es del proyecto. Cuando tengas perfil, `/bowser-ci` la ajusta para que ejecute los verbos. Si repite lo que ya hace `bowser.yml` (buscar secretos), quítalo de la tuya |
 
 Si prefieres conservar tu propia versión de alguno de esos archivos, agrégalo a `"kit.excluir"` en `equipo/config.json` y restáuralo desde el respaldo. El kit deja de tocarlo, y también deja de actualizarlo. Ver [Personalizar un proyecto](personalizar.md).
 
@@ -123,7 +121,7 @@ Antes de integrar la rama, ejecuta lo mismo que hará la integración continua:
 make ci
 ```
 
-Si falla por reglas que tu código actual no cumple (por ejemplo, la cobertura mínima), decide con tu equipo si se corrige el código o si esa parte del `ci.yml` se excluye del kit.
+Si falla por reglas que tu código actual no cumple (por ejemplo, la cobertura mínima), decide con tu equipo si se corrige el código o si se cambia la regla en el perfil del proyecto.
 
 ## Si la estructura del proyecto es distinta
 
@@ -131,12 +129,10 @@ Los controles del kit buscan el código en rutas fijas. Cuando una ruta no exist
 
 | Si no existe | Se omite |
 |---|---|
-| `backend/go.mod` | Todo el trabajo de backend en la integración continua |
-| `frontend/package.json` | Todo el trabajo de frontend en la integración continua |
 | `backend/sqlc.yaml` o el script `api:gen` | La verificación de [código generado](cobertura-y-codigo-generado.md) |
 | Archivos `service*.go` en `backend/internal/` | La medición de cobertura |
 
-Eso significa que un proyecto con otra organización de carpetas instala sin errores, pero queda **sin esos controles**. Para tenerlos hay dos caminos: mover el código a la estructura que el kit espera, o mantener una versión propia de `ci.yml` y del `Makefile` mediante `kit.excluir`.
+Eso significa que un proyecto con otra organización de carpetas instala sin errores, pero queda **sin esos controles**. Para tenerlos hay dos caminos: mover el código a la estructura que el kit espera, o, mejor, crear el [perfil del proyecto](perfil-del-proyecto.md), que le dice al kit dónde está cada parte y cómo se revisa. La integración continua no entra en esto: es del proyecto y la redacta `/bowser-ci`.
 
 ## Si el stack es distinto
 
@@ -149,7 +145,7 @@ El kit nació para React, Go y PostgreSQL y está dejando de depender de ellas. 
 - **Los archivos iniciales no traen tecnología:** el kit no instala base de datos ni servicios, `.env.example` llega vacío y su bloque de `.gitignore` solo cubre secretos, editores y archivos del kit.
 - **La constitución y la integración continua** todavía suponen React, Go y PostgreSQL. Mientras eso cambia, un proyecto con otras tecnologías mantiene su versión de esos archivos mediante `kit.excluir`.
 
-Así que el primer paso con otro stack es crear el perfil, `/bowser-profile`, y el segundo, las convenciones, `/bowser-conventions`. El proceso, el estado, los costos y la instalación no dependen del stack. La página [Cómo contribuir](contribuir.md) explica cómo está organizado el kit por dentro.
+Así que el primer paso con otro stack es crear el perfil, `/bowser-profile`; el segundo, las convenciones, `/bowser-conventions`; y el tercero, la integración continua, `/bowser-ci`. El proceso, el estado, los costos y la instalación no dependen del stack. La página [Cómo contribuir](contribuir.md) explica cómo está organizado el kit por dentro.
 
 ## Adoptar el proceso con código ya escrito
 

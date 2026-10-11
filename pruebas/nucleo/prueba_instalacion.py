@@ -118,7 +118,9 @@ def proyecto_existente(e):
     contiene(r.salida, "reemplazados (existían antes)")
     contiene(r.salida, "Respaldo de lo reemplazado: .kit-respaldo/")
 
-    reemplazados = ("Makefile", "AGENTS.md", ".github/workflows/ci.yml")
+    # La integración continua es del proyecto: su ci.yml no se toca, y el workflow del kit llega con otro nombre.
+    afirmar(p.existe(".github/workflows/bowser.yml"), "no llegó el workflow del kit")
+    reemplazados = ("Makefile", "AGENTS.md")
     respaldos = list(p.archivo(".kit-respaldo").iterdir())
     afirmar(len(respaldos) == 1, "debe haber una sola carpeta de respaldo")
     for rel in reemplazados:

@@ -39,13 +39,13 @@ Las pruebas de `nucleo/`:
 |---|---|
 | `prueba_repositorio.py` | Archivos generados al día, `VERSION` con su entrada en el `CHANGELOG`, lista del instalador y enlaces internos de la documentación |
 | `prueba_instalacion.py` | Instalación en un proyecto nuevo y en uno existente, qué llega y qué no llega al proyecto, que lo que llega no traiga tecnología (servicios, variables, reglas de `.gitignore`), y permisos de los hooks |
-| `prueba_actualizacion.py` | Actualización desde la versión anterior con el `Makefile` viejo, las reglas de `.gitignore` que salen del bloque del kit y quedan en el proyecto, archivos editados en el proyecto, `kit.excluir`, archivos retirados y novedades |
+| `prueba_actualizacion.py` | Actualización desde la versión anterior con el `Makefile` viejo, las reglas de `.gitignore` que salen del bloque del kit y quedan en el proyecto, archivos editados en el proyecto, `kit.excluir`, archivos retirados, archivos que el kit entrega al proyecto (`ci.yml`) y novedades |
 | `prueba_controles.py` | Mensajes de commit, secretos, constitución, migraciones, falta de `python3` y el hook de Claude Code |
 | `prueba_comandos.py` | Comandos del chat: generados para las tres herramientas, retirados al desactivar una, los de Spec Kit intactos, comandos propios, errores de formato y llegada al actualizar |
 | `prueba_costos.py` | `make costos` con OpenCode 1.x y 2.x, avisos y costo cerrado |
 | `prueba_catalogo.py` | Catálogo de skills: que esté bien escrito, que sin perfil lleguen las tres de siempre y con perfil solo las que nombra, el rechazo del commit cuando el perfil y las skills instaladas no coinciden, y los avisos (skill inexistente, skill solo redactada, perfil ilegible) |
 | `prueba_roles.py` | Roles sin tecnología: que ningún rol del kit nombre una, que cada rol generado reciba del perfil sus partes, skills, comandos y límites (y sin perfil, la estructura de siempre), que cambiar el perfil sin regenerar bloquee el commit, y qué pasa con un perfil ilegible |
-| `prueba_perfil.py` | Perfil del proyecto: `make` ejecuta los verbos de cada parte, perfiles mal escritos, varios roles por parte, las variables `PERFIL_RAIZ` y `PERFIL_TERCEROS`, el resumen de `make ci`, controles del commit (confirmación, inmutables, formato) y `make profile DETECTAR=1` |
+| `prueba_perfil.py` | Perfil del proyecto: `make` ejecuta los verbos de cada parte, perfiles mal escritos, varios roles por parte, las variables `PERFIL_RAIZ` y `PERFIL_TERCEROS`, el resumen de `make ci`, controles del commit (confirmación, inmutables, formato), `make profile DETECTAR=1`, `make ci-check` y el control de inmutables de la integración continua |
 
 Las pruebas de `go/`:
 

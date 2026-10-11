@@ -344,3 +344,88 @@ def detectar(e):
     afirmar(not [s for s in d["skills_disponibles"] if s.startswith(("bowser-", "equipo-", "perfil-"))],
             f"ofreció como skill de tecnología una que no lo es: {d['skills_disponibles']}")
     afirmar(d["repositorio_git"] is True and d["perfil_actual"] is None, "estado del repositorio o del perfil mal informado")
+
+
+WORKFLOW = """name: CI
+on: [pull_request]
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # - run: make ci PARTE=panel   (comentado: no cuenta)
+      - run: %s
+"""
+
+
+@prueba("make ci-check: dice qué verbos del perfil ejecuta la integración continua del proyecto y avisa de los que nadie ejecuta")
+def ci_del_proyecto(e):
+    p = e.proyecto()
+    contiene(p.make("ci-check").salida, "no tiene perfil")
+    p.escribir("servidor/index.php", "<?php\n")
+    p.escribir("web/panel/index.html", "<html></html>\n")
+    perfil = base()
+    perfil["partes"][0]["verbos"]["formato"] = "true"
+    perfil["partes"][1]["verbos"] = {"revisar": "true"}
+    escribir_perfil(p, perfil)
+
+    # Sin workflow propio: el del kit no ejecuta verbos.
+    r = p.make("ci-check")
+    contiene(r.salida, "Ningún workflow del proyecto ejecuta estos verbos del perfil (api: formato, probar; panel: revisar)")
+    contiene(r.salida, "/bowser-ci")
+    p.correr("python3", "scripts/ci.py", "--verificar", espera=1)
+    contiene(p.correr("python3", "scripts/ci.py", extra={"GITHUB_ACTIONS": "true"}).salida, "::warning::Ningún workflow")
+
+    # Una parte por make y solo un verbo de la otra: lo comentado y lo que no es un verbo no cuentan.
+    p.escribir(".github/workflows/ci.yml", WORKFLOW % "make ci PARTE=api")
+    r = p.make("ci-check")
+    contiene(r.salida, ".github/workflows/ci.yml\n  api: formato, probar\n")
+    contiene(r.salida, "estos verbos del perfil (panel: revisar)")
+    p.escribir(".github/workflows/ci.yml", WORKFLOW % "make test PARTE=api && make up")
+    contiene(p.make("ci-check").salida, "(api: formato; panel: revisar)")
+
+    # Las dos formas de ejecutar un verbo, en dos archivos; una parte que no existe no cubre nada.
+    p.escribir(".github/workflows/ci.yml", WORKFLOW % "make lint PARTE=api && make test PARTE=api")
+    p.escribir(".github/workflows/panel.yaml", WORKFLOW % "python3 scripts/verbos.py revisar --parte otra")
+    contiene(p.make("ci-check").salida, "(panel: revisar)")
+    p.escribir(".github/workflows/panel.yaml", WORKFLOW % "python3 scripts/verbos.py formato revisar --parte panel")
+    r = p.make("ci-check")
+    contiene(r.salida, ".github/workflows/panel.yaml\n  panel: revisar\n")
+    contiene(r.salida, "✓ La integración continua ejecuta los 3 verbos que el perfil define.")
+    p.correr("python3", "scripts/ci.py", "--verificar")
+
+    # Sin nombrar la parte (o con una que se resuelve al ejecutar), vale para todas.
+    p.archivo(".github/workflows/panel.yaml").unlink()
+    p.escribir(".github/workflows/ci.yml", WORKFLOW % "make ci PARTE=${{ matrix.parte }}")
+    contiene(p.make("ci-check").salida, "✓ La integración continua ejecuta los 3 verbos")
+
+
+@prueba("verbos.py --inmutables: en la integración continua, la rama no modifica los archivos inmutables del perfil (sin perfil, las migraciones)")
+def inmutables_en_ci(e):
+    p = con_perfil(e)
+    p.escribir("servidor/cambios/001_inicio.sql", "CREATE TABLE a (id int);\n")
+    p.escribir("backend/migrations/000001_inicio.up.sql", "CREATE TABLE a (id int);\n")
+    p.commit("feat(db): primer cambio de esquema")
+    p.git("checkout", "-q", "-b", "rama")
+    p.escribir("servidor/cambios/002_columna.sql", "ALTER TABLE a ADD b int;\n")
+    p.agregar("backend/migrations/000001_inicio.up.sql", "-- con perfil, esta carpeta no es especial\n")
+    p.commit("feat(db): agrega una columna")
+    contiene(p.correr("python3", "scripts/verbos.py", "--inmutables", "main").salida, "OK: ningún archivo inmutable")
+
+    # Lo que el hook del commit habría detenido, hecho con --no-verify: la integración continua lo ve igual.
+    p.git("mv", "servidor/cambios/001_inicio.sql", "servidor/cambios/001_otro.sql")
+    p.git("commit", "-qm", "chore(db): renombra", "--no-verify")
+    r = p.correr("python3", "scripts/verbos.py", "--inmutables", "main", espera=1, extra={"GITHUB_ACTIONS": "true"})
+    contiene(r.salida, "::error::Estos archivos de la parte «api» no se modifican una vez versionados")
+    contiene(r.salida, "servidor/cambios/001_inicio.sql")
+    p.correr("python3", "scripts/verbos.py", "--inmutables", "no-existe", espera=None)
+
+    # Sin perfil se cuidan las migraciones de siempre.
+    q = e.proyecto()
+    q.escribir("backend/migrations/000001_inicio.up.sql", "CREATE TABLE a (id int);\n")
+    q.commit("feat(db): primera migración")
+    q.git("checkout", "-q", "-b", "rama")
+    q.agregar("backend/migrations/000001_inicio.up.sql", "ALTER TABLE a ADD b int;\n")
+    q.git("commit", "-qam", "fix(db): edita la migración", "--no-verify")
+    contiene(q.correr("python3", "scripts/verbos.py", "--inmutables", "main", espera=1).salida,
+             "backend/migrations/000001_inicio.up.sql")

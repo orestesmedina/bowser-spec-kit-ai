@@ -71,7 +71,7 @@ Este commit ya pasa por los [hooks de git](hooks-de-git.md). Si alguno lo bloque
 
 Las herramientas leen sus archivos en la raíz del proyecto, no dentro del submódulo. Por eso `make instalar-kit`:
 
-1. **Copió a la raíz los archivos del kit:** las instrucciones de los agentes, los roles, las skills, los hooks, la integración continua, la constitución, los scripts y el `Makefile`. Quedan registrados en `.kit-manifest.json`.
+1. **Copió a la raíz los archivos del kit:** las instrucciones de los agentes, los roles, las skills, los hooks, los controles de la integración continua que no dependen de la tecnología (`bowser.yml`), la constitución, los scripts y el `Makefile`. Quedan registrados en `.kit-manifest.json`.
 2. **Copió las semillas:** `equipo/config.json`, `.github/CODEOWNERS` y `.env.example` (vacío). Son un punto de partida; desde ahora son del proyecto.
 3. **Agregó un bloque del kit a `.gitignore`**, solo con lo que no depende de la tecnología: secretos, editores y archivos del propio kit.
 4. **Generó la configuración de cada herramienta** (`CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`).

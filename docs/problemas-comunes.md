@@ -102,10 +102,14 @@ Qué revisa cada comprobación y por qué: [Hooks de git](hooks-de-git.md).
 | Síntoma | Causa probable | Solución |
 |---|---|---|
 | Falla al descargar el submódulo | El repositorio del kit es privado | Configura el secreto `KIT_TOKEN` en el repositorio del proyecto |
-| Falla en `golangci-lint` con "the Go language version (…) used to build golangci-lint is lower than the targeted Go version" | El proyecto usa un Go más nuevo que el que soporta el linter fijado | `make actualizar-kit`. Si el kit aún no lo trae, crea la variable `GOLANGCI_LINT_VERSION` en GitHub |
+| Aviso "Ningún workflow del proyecto ejecuta estos verbos del perfil" | El proyecto no tiene su workflow, o no cubre una parte o un verbo nuevos | `/bowser-ci`. Para ver el detalle: `make ci-check` |
+| "Estos archivos de la parte … no se modifican una vez versionados" | El Pull Request edita, renombra o borra un archivo que el perfil declara inmutable | Deshaz ese cambio y crea un archivo nuevo |
+| Un verbo falla en GitHub con "command not found" | El workflow del proyecto no instala esa herramienta | `/bowser-ci`, o agrega el paso a tu `ci.yml` |
+| Una herramienta fijada en el workflow ya no soporta la versión del lenguaje (por ejemplo, un linter anterior al lenguaje que usa el proyecto) | El proyecto subió de versión y el workflow no | Sube la versión de la herramienta en tu `ci.yml` |
+| Después de actualizar el kit, algunas comprobaciones corren dos veces | Tu `ci.yml` venía del kit y repite lo que ahora hace `bowser.yml` | Borra de `ci.yml` los grupos `agentes`, `controles` y `secretos` |
 | "El código generado no está al día" | Se cambió una consulta SQL, una migración o el contrato de la API sin regenerar | `make generar` y agrega el resultado al commit |
 | "Cobertura de servicio … por debajo del mínimo" | La capa de servicio tiene menos de 80 % cubierto | Pide las pruebas que faltan. `make cobertura` muestra el porcentaje por archivo |
-| Pasa en mi máquina y falla en GitHub | Versiones distintas de las herramientas, o un archivo sin subir | Instala las versiones de la página de [Instalación](instalacion.md#herramientas-de-go) y revisa `git status` |
+| Pasa en mi máquina y falla en GitHub | Versiones distintas de las herramientas, o un archivo sin subir | Instala las versiones que fija el workflow del proyecto y revisa `git status` |
 
 Más: [Integración continua](integracion-continua.md#cuando-falla).
 

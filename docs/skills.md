@@ -252,7 +252,7 @@ Describen el paso a paso de cada tipo de trabajo. Las ejecuta el orquestador.
 
 Estas skills son las que hacen que el proceso sea el mismo cada vez. El orquestador no improvisa el orden de las fases: lo lee.
 
-Hay dos skills más, que no son de una tecnología ni de un flujo. `perfil-proyecto` explica el formato del [perfil del proyecto](perfil-del-proyecto.md) y cómo redactarlo; la usa el `arquitecto` cuando alguien escribe `/bowser-profile`. `convenciones-proyecto` explica cómo redactar las [convenciones propias del proyecto](convenciones-del-proyecto.md) leyendo su código; la usa con `/bowser-conventions`.
+Hay tres skills más, que no son de una tecnología ni de un flujo. `perfil-proyecto` explica el formato del [perfil del proyecto](perfil-del-proyecto.md) y cómo redactarlo; la usa el `arquitecto` cuando alguien escribe `/bowser-profile`. `convenciones-proyecto` explica cómo redactar las [convenciones propias del proyecto](convenciones-del-proyecto.md) leyendo su código; la usa con `/bowser-conventions`. `ci-proyecto` explica cómo redactar la [integración continua del proyecto](integracion-continua.md#el-workflow-del-proyecto) para que ejecute los verbos del perfil; la usa `devops` con `/bowser-ci`.
 
 ## El formato de una skill
 

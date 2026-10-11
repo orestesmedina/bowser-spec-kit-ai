@@ -1,7 +1,7 @@
 # Makefile del kit. En los proyectos lo gestiona `make instalar-kit`: no lo edites ahí.
 # Para agregar comandos propios de un proyecto, créalos en proyecto.mk (se incluye al final).
 
-.PHONY: help estado costos novedades doctor profile skills modelos actualizar-modelos sincronizar verificar-agentes instalar-hooks instalar-kit actualizar-kit verificar-kit up down db-migrate generar verificar-generados test test-backend test-frontend cobertura lint security ci
+.PHONY: help estado costos novedades doctor profile skills ci-check modelos actualizar-modelos sincronizar verificar-agentes instalar-hooks instalar-kit actualizar-kit verificar-kit up down db-migrate generar verificar-generados test test-backend test-frontend cobertura lint security ci
 
 # Carpeta del submódulo del kit: la del `make -f <carpeta>/Makefile` usado, o la guardada al instalar,
 # o el nombre por defecto. Se puede forzar con `make ... KIT=<carpeta>`.
@@ -85,6 +85,9 @@ profile: ## Muestra y valida el perfil del proyecto (DETECTAR=1: qué tecnologí
 
 skills: ## Catálogo de skills de tecnología del kit: madurez de cada una y cuáles tiene el proyecto
 	@python3 scripts/catalogo.py
+
+ci-check: ## Qué verbos del perfil ejecuta la integración continua del proyecto, y cuáles no ejecuta nadie
+	@python3 scripts/ci.py
 
 # Con perfil (equipo/perfil.json), cada comando ejecuta el verbo que el proyecto declaró para cada parte
 # (PARTE=nombre lo limita a una). Sin perfil, se comportan como siempre: Go en backend/ y React en frontend/.

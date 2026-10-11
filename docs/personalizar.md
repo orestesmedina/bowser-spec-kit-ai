@@ -65,9 +65,9 @@ Lo más frecuente es una skill con las convenciones de algo propio del proyecto:
 
 ## Workflows propios
 
-El kit gestiona un solo archivo de `.github/workflows/`: `ci.yml`. Cualquier otro workflow en esa carpeta es del proyecto, por ejemplo uno de despliegue.
+El kit gestiona un solo archivo de `.github/workflows/`: `bowser.yml`, con los controles que no dependen de la tecnología. Cualquier otro workflow en esa carpeta es del proyecto: el de su integración continua (`ci.yml`, que redacta `/bowser-ci`), uno de despliegue o los que hagan falta.
 
-Para cambiar la versión de una herramienta dentro de `ci.yml` no hace falta tocar el archivo: se hace con variables del repositorio. Ver [Integración continua](integracion-continua.md#cambiar-la-versión-de-una-herramienta).
+Para cambiar la versión de una herramienta o agregar un paso a la integración continua del proyecto, edita su `ci.yml` o pídeselo a `/bowser-ci`. Ver [Integración continua](integracion-continua.md#el-workflow-del-proyecto).
 
 ## Tu propia versión de un archivo del kit
 

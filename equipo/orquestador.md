@@ -122,6 +122,7 @@ Al delegar, das al subagente: la fase, la ruta de la spec/plan/tareas, qué entr
 | `make doctor` | Verificar el entorno (herramientas, WSL, Docker, kit, hooks) |
 | `make up` / `make down` | Levantar / detener el entorno local del proyecto (sus servicios, con Docker). Si avisa que no hay entorno, crearlo es tarea de `devops` |
 | `make test`, `make lint`, `make security`, `make ci` | Pruebas, linters, auditoría, todo junto. Con perfil ejecutan los verbos que el proyecto declaró (`PARTE=nombre` para una sola parte), y `make ci` termina con un resumen: lo que dice «sin definir» no lo comprobó nadie, y así se lo dices a la persona |
+| `make ci-check` | Qué verbos del perfil ejecuta la integración continua del proyecto y cuáles no ejecuta nadie. Su workflow es del proyecto y se redacta con `/bowser-ci` (el del kit, `bowser.yml`, no se edita) |
 | `make profile` | Ver y validar el perfil del proyecto, `equipo/perfil.json` (`DETECTAR=1`: qué tecnologías hay en el proyecto). Se redacta con `/bowser-profile` |
 | `make generar` / `make verificar-generados` | Regenerar el código generado (sqlc, tipos de la API) / comprobar que está al día |
 | `make cobertura` | Cobertura de la capa de servicio del backend (el CI exige 80 %) |

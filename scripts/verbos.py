@@ -13,6 +13,7 @@ Uso:
   python3 scripts/verbos.py generar --verificar    además falla si la parte quedó con cambios sin commit
   python3 scripts/verbos.py formato probar --resumen   al final, qué se comprobó y qué quedó sin comprobar (make ci)
   python3 scripts/verbos.py --pre-commit           controles del perfil en cada commit (lo llama el hook de git)
+  python3 scripts/verbos.py --inmutables origin/main   falla si la rama modifica archivos inmutables (integración continua)
 
 Solo usa la biblioteca estándar de Python 3.9+.
 """
@@ -23,7 +24,7 @@ import os
 import subprocess
 import sys
 
-from perfil import RAIZ, RUTA, VERBOS, ErrorPerfil, cargar, comando_de, perfil_valido, validar
+from perfil import RAIZ, RUTA, SIN_PERFIL, VERBOS, ErrorPerfil, cargar, comando_de, perfil_valido, validar
 
 
 def correr(comando: str, parte: dict) -> int:
@@ -131,6 +132,39 @@ def ejecutar(perfil: dict, verbos: list[str], solo: str | None, verificar: bool,
 
 # ---------------------------------------------------------------- controles del commit
 
+def inmutables_tocados(perfil: dict, tocados: list[str]) -> list[str]:
+    """Un mensaje por cada parte con archivos inmutables (ej. migraciones) entre los modificados o eliminados."""
+    mensajes = []
+    for parte in perfil["partes"]:
+        patrones = parte.get("inmutables", [])
+        violan = []
+        for archivo in tocados:
+            rel = dentro_de(archivo, parte["carpeta"])
+            if rel is not None and any(fnmatch.fnmatchcase(rel, patron) for patron in patrones):
+                violan.append(archivo)
+        if violan:
+            mensajes.append(f"Estos archivos de la parte «{parte['nombre']}» no se modifican una vez versionados; "
+                            "crea uno nuevo: " + " ".join(violan))
+    return mensajes
+
+
+def inmutables_desde(base: str) -> int:
+    """Para la integración continua: lo mismo que revisa el commit, sobre todo lo que la rama cambió desde `base`.
+    Sin perfil se usa la estructura supuesta (las migraciones de backend/), como antes de existir el perfil."""
+    perfil = perfil_valido() or SIN_PERFIL
+    r = subprocess.run(["git", "diff", "--name-only", "--no-renames", "--diff-filter=MD", f"{base}...HEAD"],
+                       cwd=RAIZ, capture_output=True)
+    if r.returncode != 0:
+        print(f"✗ No se pudo comparar con «{base}»: {r.stderr.decode('utf-8', 'replace').strip()}", file=sys.stderr)
+        return 2
+    mensajes = inmutables_tocados(perfil, [l for l in r.stdout.decode("utf-8", "replace").splitlines() if l])
+    for m in mensajes:
+        print(f"::error::{m}" if os.environ.get("GITHUB_ACTIONS") else f"✗ {m}", file=sys.stderr)
+    if not mensajes:
+        print("OK: ningún archivo inmutable modificado.")
+    return 1 if mensajes else 0
+
+
 def pre_commit() -> int:
     """Controles del perfil en cada commit. Escribe un «✗» por problema y termina con 1 si hay alguno."""
     errores = 0
@@ -161,16 +195,8 @@ def pre_commit() -> int:
 
     # 2. Archivos que no se modifican una vez versionados (ej. migraciones): se crea uno nuevo.
     tocados = git("diff", "--cached", "--name-only", "--no-renames", "--diff-filter=MD")
-    for parte in perfil["partes"]:
-        patrones = parte.get("inmutables", [])
-        violan = []
-        for archivo in tocados:
-            rel = dentro_de(archivo, parte["carpeta"])
-            if rel is not None and any(fnmatch.fnmatchcase(rel, patron) for patron in patrones):
-                violan.append(archivo)
-        if violan:
-            fallar(f"Estos archivos de la parte «{parte['nombre']}» no se modifican una vez versionados; crea uno nuevo: "
-                   + " ".join(violan))
+    for mensaje in inmutables_tocados(perfil, tocados):
+        fallar(mensaje)
 
     # 3. Formato, solo en las partes que el commit toca.
     nuevos = git("diff", "--cached", "--name-only", "--no-renames", "--diff-filter=ACM")
@@ -192,6 +218,12 @@ def main() -> int:
     args = sys.argv[1:]
     if "--pre-commit" in args:
         return pre_commit()
+    if "--inmutables" in args:
+        i = args.index("--inmutables")
+        if i + 1 >= len(args):
+            print("Uso: scripts/verbos.py --inmutables <rama o commit de base>", file=sys.stderr)
+            return 2
+        return inmutables_desde(args[i + 1])
 
     solo = None
     if "--parte" in args:

@@ -34,7 +34,8 @@ mi-proyecto/
 ├── .agents/skills/                  # Skills: flujos del equipo y las de tecnología que pide el perfil
 ├── .githooks/                       # Controles en cada commit
 ├── .github/
-│   ├── workflows/ci.yml             # Integración continua
+│   ├── workflows/bowser.yml         # Integración continua: los controles del kit
+│   ├── workflows/ci.yml             # Integración continua del proyecto (la crea /bowser-ci)
 │   └── CODEOWNERS                   # Quién aprueba los cambios a las reglas
 ├── scripts/                         # Los programas detrás de los comandos make
 ├── Makefile                         # Comandos del kit
@@ -94,7 +95,8 @@ Todo archivo que no es código del producto pertenece a una de estas clases. Sab
 | Archivo | Qué es | Clase |
 |---|---|---|
 | `.githooks/` | Revisan cada commit. Ver [Hooks de git](hooks-de-git.md) | Del kit |
-| `.github/workflows/ci.yml` | Lo que GitHub revisa en cada Pull Request. Ver [Integración continua](integracion-continua.md) | Del kit |
+| `.github/workflows/bowser.yml` | Lo que GitHub revisa en cada Pull Request y no depende de la tecnología. Ver [Integración continua](integracion-continua.md) | Del kit |
+| `.github/workflows/ci.yml` | Las pruebas, el análisis y la auditoría de cada parte, en GitHub. Lo redacta `/bowser-ci` desde el perfil | Tuyo |
 | `.github/CODEOWNERS` | Quién debe aprobar los cambios a las reglas y a los agentes | Semilla |
 | `scripts/` | Los programas que ejecutan los comandos `make` | Del kit |
 | `Makefile` | La lista de [comandos](comandos.md) del kit | Del kit |

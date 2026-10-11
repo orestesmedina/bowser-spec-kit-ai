@@ -13,6 +13,35 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.18.0] - 2026-10-10
+
+Primer paso (C1) de la entrega C de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.
+
+La integración continua pasa a ser del proyecto. El kit conserva un workflow pequeño con los controles que no dependen de la tecnología.
+
+### Agregado
+- **`.github/workflows/bowser.yml`**, el workflow del kit: archivos del kit, agentes y perfil al día; archivos inmutables del perfil sin modificar; aviso si cambia la constitución; búsqueda de secretos. No instala ningún lenguaje ni levanta ningún servicio.
+- **`/bowser-ci`**: redacta o actualiza el workflow del proyecto (`.github/workflows/ci.yml`) a partir del perfil y lo propone para aprobación. Lo trabaja el rol `devops` con la skill nueva `ci-proyecto`. El workflow no repite los comandos de los verbos: instala lo que cada parte necesita y ejecuta `make ci PARTE=<parte>`, lo mismo que el equipo en su máquina.
+- **`make ci-check`** (`scripts/ci.py`): dice qué verbos de qué partes ejecuta algún workflow del proyecto y avisa de los que no ejecuta ninguno. `bowser.yml` muestra el mismo aviso en cada Pull Request. Con `python3 scripts/ci.py --verificar` falla en vez de avisar.
+- `python3 scripts/verbos.py --inmutables <base>`: el control de archivos inmutables del commit, sobre todo lo que una rama cambió. Es lo que usa `bowser.yml`; sin perfil sigue cuidando `backend/migrations/`.
+
+### Cambiado
+- **El kit ya no trae `ci.yml`.** Era un workflow de Go, React y PostgreSQL que llegaba a todos los proyectos y se reemplazaba en cada actualización, así que un proyecto no podía agregarle un servicio.
+- **Al actualizar, el `ci.yml` que el proyecto tenía no se borra:** `make instalar-kit` lo conserva tal como estaba, lo saca de `.kit-manifest.json` y avisa que desde ahora es del proyecto.
+- En un proyecto que ya tenía su propio `ci.yml` antes de instalar el kit, la instalación ya no lo reemplaza.
+
+### Límites
+- Un proyecto nuevo ya no recibe ninguna integración continua para su código hasta que tenga perfil y ejecute `/bowser-ci`. Los controles de `bowser.yml` sí corren desde el primer día.
+- `make ci-check` es un aviso, no un bloqueo, y solo ve si los verbos se ejecutan: no si el workflow instala lo necesario.
+- Solo GitHub Actions.
+- `/bowser-ci` no se probó todavía dentro de una herramienta real, y `bowser.yml` solo se prueba de verdad en GitHub.
+
+### Al actualizar
+- Tu `.github/workflows/ci.yml` sigue funcionando, y ya lo puedes editar. Bórrale los grupos `agentes`, `controles` y `secretos` (ahora los ejecuta `bowser.yml`) y el comentario que dice que lo gestiona el kit.
+- Si protegiste la rama principal exigiendo comprobaciones por nombre, agrega las de `bowser.yml` ("Kit, agentes y perfil al día", "Archivos inmutables y constitución", "Búsqueda de secretos") y quita las que borraste de `ci.yml`.
+- Si cambiabas versiones con variables del repositorio (`GOLANGCI_LINT_VERSION` y las demás), siguen valiendo mientras tu `ci.yml` las lea; desde ahora también puedes editarlas en el archivo.
+- Si el proyecto tiene perfil, ejecuta `/bowser-ci` para que su workflow ejecute los verbos, y `make ci-check` para ver qué quedó sin revisar.
+
 ## [1.17.2] - 2026-10-10
 
 Ajustes que dejó la prueba de `/bowser-conventions` en OpenCode real, sobre las copias de los dos proyectos de validación (paso B6). Vive en la rama `etapa-2`.

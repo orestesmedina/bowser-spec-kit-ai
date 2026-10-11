@@ -48,7 +48,7 @@ GESTIONADOS = [
     "Makefile",
     ".agents/skills/",
     ".githooks/",
-    ".github/workflows/",
+    ".github/workflows/bowser.yml",
     ".specify/memory/constitution.md",
     "equipo/agentes/",
     "equipo/comandos/",
@@ -70,6 +70,9 @@ sys.path.pop(0)
 # Se copian una sola vez; después pertenecen al proyecto.
 # Ninguna trae tecnología: el entorno local (docker-compose.yml) lo crea el proyecto según su perfil.
 SEMILLAS = ["equipo/config.json", ".github/CODEOWNERS", ".env.example"]
+# Archivos que el kit gestionaba y ahora son del proyecto: al actualizar salen del manifiesto y no se borran.
+# La integración continua depende de la tecnología: la redacta el proyecto desde su perfil (comando bowser-ci).
+ENTREGADOS = [".github/workflows/ci.yml"]
 
 INICIO_GITIGNORE = "# >>> bowser-spec-kit-ai (gestionado por make instalar-kit; no editar este bloque)"
 FIN_GITIGNORE = "# <<< bowser-spec-kit-ai"
@@ -285,7 +288,8 @@ def analizar(excluir: list[str]) -> dict:
     del_catalogo, avisos = archivos_del_catalogo(excluir, anterior)
     kit.update(del_catalogo)
     r = {"kit": kit, "nuevos": [], "actualizar": [], "iguales": [], "conflictos": [],
-         "previos": [], "eliminar": [], "eliminar_modificados": [], "catalogo": set(del_catalogo), "avisos": avisos}
+         "previos": [], "eliminar": [], "eliminar_modificados": [], "entregados": [],
+         "catalogo": set(del_catalogo), "avisos": avisos}
 
     for rel, origen in sorted(kit.items()):
         destino = DESTINO / rel
@@ -308,6 +312,9 @@ def analizar(excluir: list[str]) -> dict:
             continue
         destino = DESTINO / rel
         if not destino.exists():
+            continue
+        if rel in ENTREGADOS:
+            r["entregados"].append(rel)
             continue
         (r["eliminar"] if sha256(destino) == hash_anterior else r["eliminar_modificados"]).append(rel)
     return r
@@ -403,6 +410,8 @@ def instalar(forzar: bool) -> int:
             print(f"        {rel}")
     if respaldo:
         print(f"  Respaldo de lo reemplazado: {respaldo.relative_to(DESTINO)}/")
+    for rel in a["entregados"]:
+        print(f"  ! {rel} ya no viene del kit: se conservó tal como estaba y desde ahora es del proyecto.")
     if heredadas:
         print(f"  ! El bloque del kit en .gitignore ya no trae {len(heredadas)} reglas de tecnología. "
               "Se conservaron debajo del bloque: ahora son del proyecto.")
@@ -414,7 +423,7 @@ def instalar(forzar: bool) -> int:
         if disponibles[nombre]["madurez"] != "probada":
             print(f"  ! La skill «{nombre}» está {catalogo.MADUREZ[disponibles[nombre]['madurez']]}. "
                   "Revisa con más cuidado lo que los agentes hagan con ella.")
-    if not (a["nuevos"] or a["actualizar"] or a["previos"] or eliminados or semillas or heredadas or (forzar and a["conflictos"])):
+    if not (a["nuevos"] or a["actualizar"] or a["previos"] or eliminados or semillas or heredadas or a["entregados"] or (forzar and a["conflictos"])):
         print("  Sin cambios: el proyecto ya estaba al día.")
     # El Makefile del kit muestra las novedades al final (--resumen-novedades). Un Makefile anterior no lo hace:
     # en ese caso se muestran aquí.
@@ -456,7 +465,7 @@ def verificar() -> int:
         print("✗ Archivos del kit modificados en el proyecto (llévalos al kit o agrégalos a kit.excluir):", file=sys.stderr)
         for rel in a["conflictos"] + a["previos"]:
             print(f"    {rel}", file=sys.stderr)
-    pendientes = a["nuevos"] + a["actualizar"] + a["eliminar"]
+    pendientes = a["nuevos"] + a["actualizar"] + a["eliminar"] + a["entregados"]
     disponibles, _ = catalogo.leer(KIT / catalogo.CARPETA)
     if pendientes and anterior.get("version") == version_kit() and all(skill_de(rel) in disponibles for rel in pendientes):
         # Misma versión del kit y solo cambian skills del catálogo: lo que cambió es el perfil del proyecto.

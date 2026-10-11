@@ -138,12 +138,7 @@ Si el error es `Falta sqlc` o `Faltan las dependencias del frontend`, no es un p
 
 ## En la integración continua
 
-En cada Pull Request, GitHub ejecuta estas comprobaciones por su cuenta:
-
-| Dónde | Qué comprueba |
-|---|---|
-| Backend | Que el código de sqlc esté al día, y que la cobertura de la capa de servicio llegue al 80 % |
-| Frontend | Que los tipos de la API estén al día |
+En cada Pull Request, GitHub ejecuta estas comprobaciones por su cuenta, si el workflow del proyecto las incluye. Con perfil son los verbos `generar` y `cobertura`, que `make ci` ejecuta junto a los demás. Ver [Integración continua](integracion-continua.md#el-workflow-del-proyecto).
 
 Si alguna falla, el Pull Request queda en rojo y no se puede integrar hasta corregirlo.
 

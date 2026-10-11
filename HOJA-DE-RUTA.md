@@ -2,7 +2,7 @@
 
 Hacia dónde va el kit, por qué, y en qué punto estamos. Este archivo es la memoria del plan: cualquier persona o sesión de IA que retome el trabajo empieza por aquí.
 
-**Estado actual:** versión 1.17.2 en la rama `etapa-2` (en `main`, la 1.12.2). Etapa 0 hecha. Etapa 1: los seis comandos están hechos y probados en OpenCode; la prueba a mano en Claude Code y Codex queda aplazada. **Etapa 2 en curso** (núcleo sin tecnología): diseño aprobado; hecha la entrega A (perfil del proyecto y verbos), que no rompe los proyectos actuales, y validada sobre copias de los dos proyectos. La entrega B va en la rama `etapa-2`: hechos los pasos B1, B2 (catálogo de skills), B3 (roles sin tecnología y rol `dev-dba`) y B4 (las skills del catálogo pasan a ser el estándar oficial de cada tecnología, tres skills nuevas y `/bowser-conventions` para lo propio de cada proyecto) y B5 (lo que el kit instala ya no trae tecnología), el B6 (validación en las dos copias) está en curso: hecha la parte sin agentes, que destapó y corrigió el borrado de los comandos de Spec Kit; y probados en OpenCode real `/bowser-profile` y `/bowser-conventions` sobre las dos copias; falta el cambio real en cada copia (pasos en la [etapa 2](#etapa-2-núcleo-sin-tecnología-y-perfil-del-proyecto-versión-20)).
+**Estado actual:** versión 1.18.0 en la rama `etapa-2` (en `main`, la 1.12.2). Etapa 0 hecha. Etapa 1: los seis comandos están hechos y probados en OpenCode; la prueba a mano en Claude Code y Codex queda aplazada. **Etapa 2 en curso** (núcleo sin tecnología): diseño aprobado; hecha la entrega A (perfil del proyecto y verbos), que no rompe los proyectos actuales, y validada sobre copias de los dos proyectos. La entrega B va en la rama `etapa-2`: hechos los pasos B1, B2 (catálogo de skills), B3 (roles sin tecnología y rol `dev-dba`) y B4 (las skills del catálogo pasan a ser el estándar oficial de cada tecnología, tres skills nuevas y `/bowser-conventions` para lo propio de cada proyecto) y B5 (lo que el kit instala ya no trae tecnología), el B6 (validación en las dos copias) está en curso: hecha la parte sin agentes, que destapó y corrigió el borrado de los comandos de Spec Kit; y probados en OpenCode real `/bowser-profile` y `/bowser-conventions` sobre las dos copias; falta el cambio real en la copia de `simiente-santa-webside`; el de p2p Controller pasó a la entrega D. **La entrega C empezó** con el B6 todavía abierto (decisión de Orestes): hecho el paso C1 (la integración continua es del proyecto), siguen el C2, el C3 y el C4 (pasos en la [etapa 2](#etapa-2-núcleo-sin-tecnología-y-perfil-del-proyecto-versión-20)).
 **Última actualización:** 2026-10-10.
 
 - [El norte](#el-norte)
@@ -96,7 +96,7 @@ Cada etapa es una versión que se puede publicar y usar sola.
 |---|---|---|
 | 0 | Pruebas automáticas del kit | Hecha (1.10.1) |
 | 1 | Comandos dentro de la herramienta | Primera entrega hecha (1.11.0). Prueba a mano en Claude Code y Codex: aplazada |
-| 2 | Núcleo sin tecnología y perfil del proyecto (versión 2.0) | **En curso** (entrega A: 1.12.0) |
+| 2 | Núcleo sin tecnología y perfil del proyecto (versión 2.0) | **En curso** (entrega A: 1.12.0; B: falta el cambio real del B6; C: hecho el paso C1) |
 | 2b | Catálogo de skills y contribuciones | Pendiente |
 | 3 | Memoria del producto, con diagramas | Pendiente |
 | 4 | Descubrimiento de proyectos existentes | Pendiente |
@@ -150,8 +150,8 @@ Detalles que salieron al implementar (2026-10-04):
 | Entrega | Contenido | Estado |
 |---|---|---|
 | A | Perfil del proyecto (`equipo/perfil.json`), los seis verbos, `make profile`, `/bowser-profile` con detección automática, y los controles del commit según el perfil. Sin perfil, todo se comporta como antes | Hecha (1.12.0) |
-| B | Roles sin tecnología, rol nuevo de base de datos, skills asignadas por el perfil y catálogo de skills: cada proyecto recibe solo las suyas | Pendiente |
-| C | La integración continua pasa a ser del proyecto, generada desde el perfil; el kit conserva un workflow pequeño con los controles que no dependen de la tecnología. Constitución en dos partes (falta la aprobación de Orestes). `make doctor` y el hook de Claude Code según el perfil | Pendiente |
+| B | Roles sin tecnología, rol nuevo de base de datos, skills asignadas por el perfil y catálogo de skills: cada proyecto recibe solo las suyas | Hechos los pasos B1 a B5; el B6, en curso |
+| C | La integración continua pasa a ser del proyecto, generada desde el perfil; el kit conserva un workflow pequeño con los controles que no dependen de la tecnología. Constitución en dos partes (falta la aprobación de Orestes). `make doctor` y el hook de Claude Code según el perfil | **En curso**: hecho el paso C1 (1.18.0) |
 | D | Comandos de `make` en inglés con los nombres viejos como alias, comando de migración a la 2.0, documentación, y validación en los dos proyectos (versión 2.0.0) | Pendiente |
 
 La entrega A se publica sola en `main`. B, C y D rompen proyectos existentes: se trabajan en una rama hasta que los dos proyectos de validación funcionen (acordado con Orestes el 2026-10-05).
@@ -192,7 +192,7 @@ Pasos de la entrega B, en orden (rama `etapa-2`, que sale de `main` con la 1.12.
 | B3 | Roles sin tecnología: `dev-backend`, `dev-frontend`, `arquitecto`, `qa-tester`, `devops` y el resto dejan de nombrar Go, React y PostgreSQL y leen el perfil (carpetas, skills y verbos); rol nuevo de base de datos; `sincronizar.py` ya no saca las skills del rol sino del perfil; orquestador y `AGENTS.md` al día | Hecho (1.15.0, 2026-10-09) |
 | B4 | Skills `php`, `mysql` y `web-sin-framework`, redactadas con la documentación oficial. Las tres originales, reescritas con el mismo criterio. Comando `/bowser-conventions`, que redacta las convenciones propias de cada proyecto leyendo su código | Hecho (1.16.0, 2026-10-09) |
 | B5 | Semillas sin tecnología: `docker-compose.yml`, `.env.example` y el bloque de `.gitignore` dejan de traer PostgreSQL, Go y Node a quien no los usa | Hecho (1.17.0, 2026-10-09) |
-| B6 | Repetir la validación de las dos copias con la rama y un cambio pequeño de verdad en cada una | **En curso** (1.17.2): hecha la parte sin agentes y probados los dos comandos en OpenCode real; falta el cambio real en cada copia |
+| B6 | Repetir la validación de las dos copias con la rama y un cambio pequeño de verdad en la de `simiente-santa-webside` (el de p2p Controller pasó a la entrega D) | **En curso** (1.17.2): hecha la parte sin agentes y probados los dos comandos en OpenCode real; falta el cambio real en la copia de `simiente-santa-webside` |
 
 Detalles que salieron al implementar el paso B1 (2026-10-08):
 
@@ -278,6 +278,38 @@ Comandos ejecutados por Orestes en OpenCode 2.0.26 real, sobre las dos copias (2
 - **Ajustes al kit que dejó la prueba, hechos en la 1.17.2:** el límite de tamaño de una convención estaba en líneas ("unas 150") y el agente lo cumplió con líneas muy largas (la de backend de simiente pesa unos 3 300 tokens, contra unos 1 900 de una skill del catálogo): ahora es de unos 7 000 caracteres. `dev-dba` recibe entera la convención de la parte que comparte con `dev-backend`: la skill pide una sección "Base de datos" aparte (aprobado por Orestes; no se tocó el generador). Las skills de un rol salen siempre con el estándar primero y las convenciones después. El agente sí preguntó antes de elegir entre dos formas inconsistentes (confirmado por Orestes): el paso 4 de la skill funciona. Las convenciones de las copias se escribieron con la skill anterior: la de backend de simiente sigue larga y sin la sección nueva.
 - **PHP para levantar p2p:** se sigue con 7.4 (decisión de Orestes, 2026-10-10); lo que falle por las funciones retiradas se arregla después.
 
+Alcance del B6 recortado (decisión de Orestes, 2026-10-10):
+
+- **El cambio real se hace solo en la copia de `simiente-santa-webside`.** Es lo único que falta ver del B3: un agente real trabajando con los roles generados, el orquestador repartiendo entre `dev-dba` y `dev-backend`, y las tareas marcadas por parte. Ya tiene entorno y cuesta una sesión corta.
+- **El de p2p Controller pasa a la entrega D**, que ya pide la validación completa de los dos proyectos. Armar su Docker (PHP 7.4 y MySQL, con código que usa funciones retiradas) es caro, y las entregas C y D obligan a repetir la validación de todos modos. Lo que dependía del kit ya salió bien ahí: perfil, skills y convenciones.
+- Consecuencia: `php`, `mysql` y `web-sin-framework` siguen `redactada` hasta la D. Las tres de `simiente-santa-webside` pueden pasar a `probada` cuando su cambio salga bien.
+- No se hace commit previo en las copias: la lista de lo que ya estaba modificado quedó en `~/validacion-kit/simiente-antes-del-cambio.txt`, para separar después lo que tocó el agente. El perfil de la copia sigue sin `APROBADO_PERFIL=1`: si el flujo se frena por eso, es un hallazgo.
+- `/bowser-conventions backend` se repitió con la skill de la 1.17.2 (Orestes, OpenCode real, 2026-10-10): la convención quedó en 6 924 caracteres y con su sección "Base de datos"; las dos verificaciones dan OK. Hallazgo menor, sin decidir: el costo de esas sesiones queda cargado a la funcionalidad de la rama en la que se esté (ahí, la 002).
+- **La copia podía tocar el proyecto real, y se aisló (2026-10-10).** Su `origin` era la carpeta real (un `git push` habría reescrito la rama `002` de ahí) y usaba los mismos puertos que los contenedores reales: una migración o una prueba de integración contra `localhost:5432` habría caído en la base de desarrollo real, y esas pruebas vacían las tablas. Hecho: se quitó el `origin` y la copia tiene un `.env` con proyecto de Compose y puertos propios (55432, 56379, 58080, 55173). `make` y `go test` no leen el `.env` solos, y `platform/config` usa `localhost:5432` si falta `DATABASE_URL`: por eso **la prueba se hace con los contenedores reales apagados**. Queda pendiente para cuando Orestes pueda apagarlos un rato.
+- Para la etapa 4 y la entrega D: una copia de validación nace aislada (sin remoto y con puertos propios); conviene que quede escrito en `docs/` cuando se documente la migración.
+- Cambio propuesto: la deuda S1 de la funcionalidad 002 (el registro de auditoría es inmutable solo por convención): que la base de datos rechace modificar o borrar filas de `login_events` y `admin_actions`, con su prueba de integración.
+
+Pasos de la entrega C (diseño aprobado por Orestes el 2026-10-10; misma rama `etapa-2`). Cada paso termina con `make test-kit` en verde:
+
+| Paso | Contenido | Estado |
+|---|---|---|
+| C1 | Integración continua: el kit conserva `bowser.yml`, con lo que no depende de la tecnología; `ci.yml` pasa a ser del proyecto y lo redacta `/bowser-ci` desde el perfil; `make ci-check` avisa de los verbos que ningún workflow ejecuta | Hecho (1.18.0, 2026-10-10) |
+| C2 | `make doctor` según el perfil: herramientas base fijas; las de tecnología salen de un campo nuevo del perfil, `requisitos`, que llena `/bowser-profile`; Docker solo si hay archivo de Compose | Pendiente |
+| C3 | Hook de Claude Code según el perfil: protege los `inmutables` y no `backend/migrations`; permisos de `settings.json` sin `go` ni `npm`; **se quita el formateo automático** al guardar (decisión de Orestes: el pre-commit ya rechaza lo mal formateado y OpenCode nunca lo tuvo) | Pendiente |
+| C4 | Constitución en dos partes: principios del kit (archivo gestionado) y reglas del proyecto (archivo del proyecto, con `APROBADO_CONSTITUCION=1`); `.specify/memory/constitution.md` se genera con las dos. Al actualizar, las reglas que nombran tecnología se le entregan al proyecto | Pendiente: Orestes aprueba el texto de los principios línea por línea |
+
+Detalles que salieron al implementar el paso C1 (2026-10-10):
+
+- **El workflow del proyecto no copia los comandos de los verbos: ejecuta `make ci PARTE=<parte>`.** Lo único que depende de la tecnología es preparar el entorno (lenguaje, herramientas, servicios). Así el Pull Request se revisa con lo mismo que usa el equipo, y `make ci-check` puede saber qué se ejecuta con solo leer el archivo.
+- `/bowser-ci` sigue el patrón de `/bowser-profile`: un comando, una skill con el método (`ci-proyecto`) y un rol que ya existía (`devops`). Sin agente nuevo.
+- Lo que falta en la integración continua es un aviso y no un fallo: un proyecto recién instalado todavía no tiene su workflow. Quien quiera exigirlo usa `python3 scripts/ci.py --verificar`.
+- **Para no romper a quien actualiza:** el `ci.yml` que el kit había instalado no se borra; sale del manifiesto y queda como del proyecto (lista `ENTREGADOS` del instalador, el mismo criterio que las reglas de `.gitignore` del B5). Costo: le quedan tres grupos repetidos con `bowser.yml` (`agentes`, `controles`, `secretos`), que se borran a mano.
+- Costo asumido: un proyecto nuevo no tiene integración continua para su código hasta que tenga perfil y ejecute `/bowser-ci`.
+- Probado sobre copias desechables de las dos copias de validación (las de `~/validacion-kit/` no se tocaron, para no alterar el B6): en las dos el `ci.yml` se conservó, llegó `bowser.yml` y las verificaciones dan OK. `make ci-check` avisa en las dos, como corresponde: el `ci.yml` heredado de `simiente-santa-webside` hace las mismas comprobaciones, pero con los comandos copiados y no con los verbos.
+- No se probó: `/bowser-ci` dentro de una herramienta real, ni `bowser.yml` en GitHub.
+- **Para la entrega D:** ejecutar `/bowser-ci` de verdad en las dos copias. En la de `simiente-santa-webside` debe conservar el PostgreSQL de las pruebas y el paso de migraciones, y quitar los tres grupos repetidos. En la de p2p Controller el `ci.yml` heredado es de Go y React y no revisa nada: debe reemplazarlo por uno que ejecute `revisar` (sintaxis de PHP 7.4, que hoy corre dentro de Docker). El `ci.yml` heredado llama a `scripts/generar.sh` y `scripts/cobertura.py`: cuando esos scripts se retiren en la 2.0, la migración tiene que avisarlo.
+- **Para el C4:** `bowser.yml` avisa si cambia `.specify/memory/constitution.md`; cuando ese archivo sea generado, el aviso debe mirar el archivo de reglas del proyecto.
+
 **Validación:** un proyecto existente de Orestes en **PHP puro, con HTML, CSS y JavaScript puros, y MySQL** (decidido el 2026-10-04): **p2p Controller**, en `D:\IA\environment\wsl\code\p2p Controller` (en WSL, `/mnt/d/IA/environment/wsl/code/p2p Controller`), con el script de MySQL en `api.p2pcontroller/@database/p2pcontroller.sql`. No es para meter esa combinación en el kit, sino para comprobar que el núcleo funciona sin la tecnología original: otro lenguaje, otra base de datos y un proyecto que no tiene la forma "backend y frontend separados". De ahí salen además las primeras skills que no son de Go. Como es un proyecto existente, es también el caso de prueba de la etapa 4.
 **Lo que se encontró en p2p Controller (2026-10-05, solo lectura):** dos carpetas hermanas (`api.p2pcontroller`, la API, y `p2pcontroller.com/http`, el panel web), unas 13 000 líneas de PHP propio, 25 tablas y 67 procedimientos almacenados. No es un repositorio de git, y no tiene pruebas, Composer, formateador ni Docker. Trae bibliotecas de terceros copiadas dentro (`libraries/`, `bower_components/`). Consecuencias para el diseño: un verbo puede no estar definido en un proyecto, el perfil debe declarar las carpetas de terceros, y reglas como "80 % de cobertura" son del proyecto, no del núcleo. Se trabaja siempre sobre una copia.
 **Migración:** `simiente-santa-webside` debe poder pasar a la 2.0 con un comando, probado antes contra una copia.
@@ -347,6 +379,8 @@ Comandos ejecutados por Orestes en OpenCode 2.0.26 real, sobre las dos copias (2
 | 2026-10-09 | Cuando el estándar y la convención del proyecto se contradicen: manda el proyecto, salvo en seguridad, donde manda siempre el estándar | Propuesto por Claude; aprobado por Orestes |
 | 2026-10-09 | `dev-dba` se queda con el modelo del nivel medio (en OpenCode, `glm-5.3-flash`), sin modelo propio | Propuesto por Claude; confirmado por Orestes |
 | 2026-10-09 | Paso B5: lo que el kit instala es neutral siempre (sin `docker-compose.yml`, `.env.example` vacío, bloque de `.gitignore` sin tecnología), y las reglas que salen del bloque se le entregan al proyecto. `make db-migrate` queda para la entrega D | Propuesto por Claude; aprobado por Orestes |
+| 2026-10-10 | Paso B6: el cambio real de validación se hace solo en la copia de `simiente-santa-webside`; el de p2p Controller pasa a la entrega D | Propuesto por Claude; aprobado por Orestes |
+| 2026-10-10 | Entrega C en cuatro pasos (C1 a C4), empezando con el B6 todavía abierto. La integración continua es del proyecto y la redacta `/bowser-ci`; el kit conserva `bowser.yml`. Se quita el formateo automático del hook de Claude Code. La constitución se parte en dos archivos y el que lee Spec Kit se genera (el texto se aprueba en el C4) | Propuesto por Claude; aprobado por Orestes |
 | 2026-10-04 | **El nombre se queda en "bowser" por ahora** (es el nombre de su perro). Los comandos usan el prefijo `/bowser-`. Si más adelante aparece un nombre mejor, se cambia | Orestes |
 
 ## Decisiones abiertas
@@ -354,7 +388,7 @@ Comandos ejecutados por Orestes en OpenCode 2.0.26 real, sobre las dos copias (2
 | Decisión | Bloquea | Notas |
 |---|---|---|
 | La documentación en inglés, además de en español | Nada | Ampliaría el alcance de las contribuciones |
-| Partir la constitución en principios universales (del kit) y reglas del proyecto, generando el archivo que lee Spec Kit | La entrega C de la etapa 2 | Cambia la constitución: necesita la aprobación explícita de Orestes sobre un texto concreto |
+| El texto de los principios del kit, al partir la constitución (el mecanismo ya está aprobado: dos archivos y uno generado) | El paso C4 de la etapa 2 | Cambia la constitución: necesita la aprobación explícita de Orestes sobre un texto concreto |
 | Cómo levantar p2p Controller para la validación | La validación de la etapa 2 (entrega D) | Orestes, 2026-10-05: corre en XAMPP con PHP 7.4 y no lo tiene instalado en local. Acordado ese día: Docker con PHP 7.4 y MySQL, sobre una copia temporal con su propio repositorio de git local (sin GitHub). La carpeta original no se toca |
 
 ### Sobre el nombre

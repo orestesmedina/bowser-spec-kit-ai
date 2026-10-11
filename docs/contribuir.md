@@ -36,7 +36,7 @@ Qué llega a los proyectos lo decide `scripts/instalar_kit.py`, en dos listas: l
 | Agregar un rol | Un archivo nuevo en `equipo/agentes/` |
 | Agregar o cambiar un comando del chat (`/bowser-…`) | `equipo/comandos/<nombre>.md`, y su fila en `docs/comandos.md` |
 | Cambiar cómo coordina el orquestador | `equipo/orquestador.md` y `AGENTS.md` |
-| Que algo no pueda pasar nunca | `.githooks/pre-commit` **y** `.github/workflows/ci.yml` |
+| Que algo no pueda pasar nunca | `.githooks/pre-commit` **y** `.github/workflows/bowser.yml`. Solo si no depende de ninguna tecnología |
 | Cambiar una regla del código | La constitución. Es la decisión más pesada: afecta a todos los proyectos |
 | Soportar otro agente de código | Una función `generar_<herramienta>` en `scripts/sincronizar.py` |
 | Agregar un comando | El `Makefile` y, si hace falta, un script en `scripts/` |
@@ -105,7 +105,7 @@ En GitHub las mismas pruebas corren solas en cada Pull Request y en cada push a 
 > Las pruebas no lo cubren todo. `make doctor`, `make estado` y `make actualizar-modelos` todavía se prueban a mano, y `make costos` se prueba contra un OpenCode simulado.
 
 > [!NOTE]
-> Lo que cambia en `.github/workflows/ci.yml` solo se prueba de verdad en GitHub. Valida el cambio en un proyecto real antes de darlo por bueno.
+> Lo que cambia en `.github/workflows/bowser.yml` solo se prueba de verdad en GitHub. Valida el cambio en un proyecto real antes de darlo por bueno.
 
 ## Publicar una versión
 

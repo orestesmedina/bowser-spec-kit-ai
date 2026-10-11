@@ -300,7 +300,7 @@ Con un perfil inválido el kit no ejecuta ningún verbo y bloquea los commits ha
 
 ## Límites
 
-- **La integración continua todavía no lee el perfil.** El `ci.yml` que trae el kit sigue buscando `backend/go.mod` y `frontend/package.json`. Un proyecto con otra forma necesita por ahora su propio workflow. Se resuelve en una entrega posterior.
+- **La integración continua no se actualiza sola.** El workflow del proyecto ejecuta los verbos, así que cambiar el comando de un verbo no exige tocarlo. Pero una parte nueva, o un verbo que necesita una herramienta que el workflow no instala, sí: `make ci-check` avisa de lo que nadie ejecuta y `/bowser-ci` lo corrige. Ver [Integración continua](integracion-continua.md#el-workflow-del-proyecto).
 - **`make doctor` y la constitución todavía hablan de Go, React y PostgreSQL.** Los roles y los archivos iniciales ya no: el kit no instala servicios, variables de entorno ni reglas de `.gitignore` de ninguna tecnología, y cada uno recibe del perfil sus partes, skills y comandos (ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto)). Lo demás es de entregas posteriores.
 - **Cambiar el perfil obliga a regenerar los roles.** Lo que cada agente sabe del proyecto queda escrito en sus instrucciones al generarlas, así que un perfil nuevo sin `make instalar-kit` (o `make sincronizar`, si las skills no cambiaron) deja el commit bloqueado con `La configuración de agentes está desactualizada`.
 - **El hook de Claude Code sigue protegiendo `backend/migrations/`**, no los `inmutables` del perfil. El control del commit sí usa el perfil, y es el que vale para las tres herramientas.
