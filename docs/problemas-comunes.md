@@ -75,14 +75,14 @@ La base de datos y los demás servicios locales los define cada proyecto en su a
 |---|---|---|
 | "Mensaje de commit inválido" | No sigue el formato Conventional Commits | Usa `feat: …`, `fix: …`, `docs: …`, etc. |
 | "No se permite commitear '.env'" | Se intentó subir un archivo con secretos | Sácalo del commit: `git restore --staged .env` |
-| "La constitución cambió" | Se modificó `constitution.md` | Revierte el cambio. Solo lo aprueba quien decide sobre las reglas |
+| "La constitución cambió" | El commit modifica las reglas del proyecto (`equipo/reglas.md`) o los principios (`equipo/principios.md`) | Revierte el cambio. Si dirección técnica aprueba el de las reglas: `APROBADO_CONSTITUCION=1 git commit ...`. Ver [La constitución](la-constitucion.md#si-algo-falla) |
 | "No modifiques migraciones existentes" | Se editó una migración ya versionada | Revierte y crea una migración nueva |
 | "Archivos Go sin formato" | Código sin formatear | `gofmt -w <archivo>` |
 | "El perfil del proyecto (equipo/perfil.json) cambió" | El commit crea, cambia o elimina el perfil y nadie lo confirmó | Revísalo con `make profile` y repite el commit con `APROBADO_PERFIL=1 git commit ...` |
 | "Estos archivos de la parte «…» no se modifican una vez versionados" | El commit cambia, renombra o borra un archivo que el perfil declara inmutable (por ejemplo, una migración) | Deja el archivo como estaba y crea uno nuevo |
 | "La parte «…» no pasa la revisión de formato" | El verbo `formato` del perfil falló en una parte que el commit toca | Formatea el código de esa parte y repite el commit |
 | `equipo/perfil.json:` seguido de un error | El perfil está mal escrito, y con un perfil inválido no entra ningún commit | `make profile` dice qué corregir. Ver [El perfil del proyecto](perfil-del-proyecto.md#cuando-algo-falla) |
-| "La configuración de agentes está desactualizada" | Alguien cambió `equipo/` (los roles, la configuración o el perfil del proyecto) o `.agents/` sin regenerar | `make sincronizar` y agrega el resultado al commit |
+| "La configuración de agentes o la constitución generada están desactualizadas" | Alguien cambió `equipo/` (los roles, la configuración, el perfil o las reglas del proyecto) o `.agents/` sin regenerar, o editó a mano `.specify/memory/constitution.md` | `make sincronizar` y agrega el resultado al commit |
 | "Los archivos del kit no coinciden con .bowser-spec-kit-ai/" | Se editó a mano un archivo del kit, o se actualizó el submódulo sin instalar | `make verificar-kit` para ver cuál. Revierte el cambio, o ejecuta `make instalar-kit` |
 | "El costo de … ya está cerrado" | Se modificó el `costos.json` de una funcionalidad terminada | Revierte el cambio: `git checkout -- <archivo>` |
 | ⚠ "sin actualizar estado.md" | Cambió la especificación, el plan o las tareas, y el estado no | Es un aviso, no bloquea. Actualiza `estado.md` y agrégalo al commit |

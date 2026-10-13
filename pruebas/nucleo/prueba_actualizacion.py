@@ -1,7 +1,7 @@
 """Actualizar un proyecto: desde la versión anterior publicada, con cambios locales y con archivos retirados."""
 import json
 
-from apoyo import SUBMODULO, afirmar, contiene, prueba
+from apoyo import SUBMODULO, Omitida, afirmar, contiene, prueba
 
 
 @prueba("actualización desde la versión anterior, con el Makefile viejo del proyecto")
@@ -14,6 +14,7 @@ def desde_la_anterior(e):
     p.escribir("proyecto.mk", "e2e: ## Pruebas end-to-end del proyecto\n\t@echo e2e-del-proyecto\n")
     config_antes = p.leer("equipo/config.json")
     ci_antes = p.leer(".github/workflows/ci.yml") if p.existe(".github/workflows/ci.yml") else None
+    constitucion_entera = not p.existe("equipo/principios.md")   # la anterior traía la constitución en un solo archivo
     # La versión anterior traía reglas de Go y Node en su bloque de .gitignore. Una de ellas, además, ya era del proyecto.
     contiene(p.leer(".gitignore"), "frontend/node_modules/", "el bloque del kit anterior")
     p.escribir(".gitignore", "frontend/dist/\n\n" + p.leer(".gitignore") + "\n# Del proyecto\n*.log\n")
@@ -51,6 +52,18 @@ def desde_la_anterior(e):
     manifiesto = json.loads(p.leer(".kit-manifest.json"))["archivos"]
     afirmar(".github/workflows/ci.yml" not in manifiesto, "ci.yml sigue figurando como archivo del kit")
     afirmar(".github/workflows/bowser.yml" in manifiesto, "el workflow del kit (bowser.yml) no llegó al actualizar")
+    # La constitución se parte en dos: los principios llegan del kit y las reglas de tecnología que traía quedan en el proyecto.
+    if constitucion_entera:
+        contiene(r.salida, "Las reglas de tecnología que traía quedaron en equipo/reglas.md")
+        generada = p.leer(".specify/memory/constitution.md")
+        afirmar(generada.startswith("<!-- GENERADO"), "la constitución del proyecto no se regeneró al actualizar")
+        for texto in ("principios del kit", "salvo que las reglas del proyecto digan otro alcance", "`handler → service → repository`",
+                      "cobertura mínima DEBE ser 80%", "`pgx` / `sqlc`", "`docker compose up`"):
+            contiene(generada, texto, "la constitución generada después de actualizar")
+        contiene(p.leer("equipo/reglas.md"), "cobertura mínima DEBE ser 80%", "las reglas que quedaron en el proyecto")
+    afirmar(".specify/memory/constitution.md" not in manifiesto and "equipo/reglas.md" not in manifiesto,
+            "la constitución generada o las reglas del proyecto figuran como archivos del kit")
+    afirmar("equipo/principios.md" in manifiesto, "los principios no llegaron al actualizar")
     # El hook que formateaba al editar se retira, y la configuración de Claude Code deja de llamarlo.
     afirmar(not p.existe("equipo/adaptadores/claude/hooks/formatear.sh"), "el hook de formateo no se retiró al actualizar")
     afirmar("formatear.sh" not in p.leer(".claude/settings.json"), ".claude/settings.json sigue llamando al hook de formateo")
@@ -60,6 +73,34 @@ def desde_la_anterior(e):
     p.commit(f"chore: actualiza kit a {e.version}")
     afirmar(not p.pendientes(), f"quedaron archivos sin commit después de actualizar: {p.pendientes()}")
     contiene(p.make("instalar-kit").salida, "Sin cambios: el proyecto ya estaba al día.")
+
+
+@prueba("al partir la constitución, la que un proyecto había hecho suya queda completa en sus reglas")
+def constitucion_propia(e):
+    constitucion, reglas = ".specify/memory/constitution.md", "equipo/reglas.md"
+    e.version_anterior()
+    kit = e.kit("anterior")
+    p = e.proyecto(kit)
+    if p.existe("equipo/principios.md"):
+        raise Omitida("la versión anterior ya traía la constitución en dos partes")
+    config = json.loads(p.leer("equipo/config.json"))
+    config.setdefault("kit", {})["excluir"] = [constitucion]
+    p.escribir("equipo/config.json", json.dumps(config, indent=2, ensure_ascii=False) + "\n")
+    p.agregar(constitucion, "\n- Regla propia: los informes DEBEN salir en PDF.\n")
+    p.make("instalar-kit")
+    p.commit("docs: constitución propia del proyecto", extra={"APROBADO_CONSTITUCION": "1"})
+
+    e.pasar_kit_a(kit, "actual")
+    contiene(p.make("actualizar-kit").salida, f"quedó completa en {reglas}")
+    for texto in ("Regla propia: los informes DEBEN salir en PDF.", "`handler → service → repository`"):
+        contiene(p.leer(reglas), texto, "las reglas del proyecto")
+        contiene(p.leer(constitucion), texto, "la constitución generada")
+    contiene(p.leer(constitucion), "principios del kit", "la constitución generada")
+    p.verificar_kit()
+    p.commit(f"chore: actualiza kit a {e.version}")
+    antes = p.leer(reglas)
+    contiene(p.make("instalar-kit").salida, "Sin cambios: el proyecto ya estaba al día.")
+    afirmar(p.leer(reglas) == antes, "instalar otra vez cambió las reglas del proyecto")
 
 
 @prueba("un archivo del kit editado en el proyecto detiene la actualización y ofrece las tres salidas")

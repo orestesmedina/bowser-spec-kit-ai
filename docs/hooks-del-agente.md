@@ -37,7 +37,7 @@ Antes de cada edición, el hook revisa la ruta del archivo. Si coincide con algu
 | Archivo | Por qué está protegido |
 |---|---|
 | `.env`, `.env.*`, `secrets/`, `*.pem`, `*.key` | Pueden contener secretos. `.env.example` sí se puede editar, porque no lleva valores reales |
-| La constitución | Solo la cambia una persona con autoridad. Ver [La constitución](la-constitucion.md) |
+| La constitución: los principios (`equipo/principios.md`), las reglas del proyecto (`equipo/reglas.md`) y el archivo que se genera con los dos | Solo la cambia una persona con autoridad. El agente propone el texto. Ver [La constitución](la-constitucion.md) |
 | Todo dentro del submódulo del kit | Los cambios al kit se hacen en su repositorio |
 | Los archivos listados en `.kit-manifest.json` | Vienen del kit y se reemplazan al actualizarlo |
 | Los archivos inmutables del proyecto que ya están en git | No se editan una vez versionados: se crea uno nuevo. Ver [abajo](#los-archivos-inmutables-del-proyecto) |

@@ -31,7 +31,7 @@ def solo_del_kit(e):
             "en docs/ del proyecto solo debe estar plantillas/")
     afirmar(p.existe(f"{SUBMODULO}/docs/aprobaciones.md"), "la documentación debe leerse desde el submódulo")
     # Las semillas sí llegan, una sola vez.
-    for rel in ("equipo/config.json", ".github/CODEOWNERS", ".env.example"):
+    for rel in ("equipo/config.json", "equipo/reglas.md", ".github/CODEOWNERS", ".env.example"):
         afirmar(p.existe(rel), f"falta la semilla {rel}")
 
 
@@ -53,6 +53,32 @@ def semillas_sin_tecnologia(e):
     r = p.make("test-kit", espera=1)
     contiene(r.salida, "test-kit", "el error de make")
     afirmar("test-kit" not in p.make("help").salida, "make help ofrece test-kit en un proyecto")
+
+
+@prueba("la plantilla de constitución que deja Spec Kit no se toma por reglas del proyecto; una escrita a mano, sí")
+def constitucion_que_ya_existia(e):
+    constitucion, reglas = ".specify/memory/constitution.md", "equipo/reglas.md"
+    p = e.proyecto_vacio()
+    p.escribir(constitucion, "# [PROJECT_NAME] Constitution\n\n## Core Principles\n\n### [PRINCIPLE_1_NAME]\n[PRINCIPLE_1_DESCRIPTION]\n")
+    p.git("submodule", "add", "-q", str(e.kit()), SUBMODULO)
+    p.instalar_kit()
+    contiene(p.leer(reglas), "todavía no tiene reglas propias", "las reglas de un proyecto nuevo")
+    afirmar("PRINCIPLE_1_NAME" not in p.leer(reglas) + p.leer(constitucion), "la plantilla de Spec Kit quedó en la constitución")
+    afirmar(p.leer(constitucion).startswith("<!-- GENERADO"), "la constitución no se generó sobre la plantilla de Spec Kit")
+    p.commit("chore: instala kit")
+
+    q = e.proyecto_vacio()
+    q.escribir(constitucion, "# Constitución de mi equipo\n\n- Los informes DEBEN salir en PDF.\n")
+    q.git("submodule", "add", "-q", str(e.kit()), SUBMODULO)
+    contiene(q.instalar_kit().salida, f"quedó completa en {reglas}")
+    contiene(q.leer(reglas), "Los informes DEBEN salir en PDF.", "las reglas del proyecto")
+    contiene(q.leer(constitucion), "Los informes DEBEN salir en PDF.", "la constitución generada")
+    contiene(q.leer(constitucion), "principios del kit", "la constitución generada")
+    q.commit("chore: instala kit")
+    # Las reglas ya son del proyecto: instalar de nuevo no las toca.
+    q.agregar(reglas, "\n- Otra regla.\n")
+    q.make("instalar-kit")
+    contiene(q.leer(reglas), "Otra regla.", "las reglas del proyecto después de instalar otra vez")
 
 
 @prueba("los hooks y los scripts de shell quedan ejecutables, en git y en el proyecto")

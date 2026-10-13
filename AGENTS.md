@@ -15,7 +15,7 @@ Las dice el perfil del proyecto, `equipo/perfil.json`: qué partes tiene, en qu�
 
 Sin perfil, se supone la estructura con la que nació el kit: `backend/` (Go y PostgreSQL) y `frontend/` (React). Esa suposición se retira en la versión 2.0: si el proyecto no tiene perfil, propón crearlo con `/bowser-profile`.
 
-Las reglas no negociables están en `.specify/memory/constitution.md`. Léela antes de cada fase.
+Las reglas no negociables están en `.specify/memory/constitution.md`: los principios del kit y las reglas de este proyecto. Léela antes de cada fase.
 
 ## Dónde está cada cosa
 - `equipo/agentes/` — definición de cada subagente, sin tecnología (fuente única; los formatos por herramienta se generan con `make sincronizar`, que le agrega a cada uno lo que el perfil dice del proyecto).

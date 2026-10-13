@@ -16,10 +16,15 @@ case "$FILE" in
     ;;
 esac
 
-# 2. La constitución solo la cambia un humano
+# 2. La constitución solo la cambia un humano: ni sus dos fuentes (principios y reglas del proyecto) ni el
+#    archivo que se genera con ellas
 case "$FILE" in
+  */equipo/principios.md|*/equipo/reglas.md)
+    echo "Bloqueado: la constitución (principios y reglas del proyecto) solo se modifica con aprobación de la dirección técnica. Propón el texto para que una persona lo aplique." >&2
+    exit 2
+    ;;
   */.specify/memory/constitution.md)
-    echo "Bloqueado: la constitución solo se modifica con aprobación de la dirección técnica." >&2
+    echo "Bloqueado: la constitución se genera con equipo/principios.md y equipo/reglas.md, que solo se modifican con aprobación de la dirección técnica." >&2
     exit 2
     ;;
 esac

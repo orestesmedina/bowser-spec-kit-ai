@@ -13,6 +13,40 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.21.0] - 2026-10-11
+
+Cuarto y último paso (C4) de la entrega C de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.
+
+La constitución deja de nombrar Go, React y PostgreSQL. Se parte en dos: los principios, que son del kit y valen con cualquier tecnología, y las reglas, que son de cada proyecto.
+
+### Cambiado
+- **La constitución se escribe en dos archivos y el que leen los agentes se genera.** `equipo/principios.md` es del kit y llega con cada actualización. `equipo/reglas.md` es del proyecto. `make sincronizar` (y `make instalar-kit`) escribe `.specify/memory/constitution.md` con los principios y, debajo, las reglas. Los agentes y Spec Kit siguen leyendo el mismo archivo de siempre.
+- **Los principios no nombran ninguna tecnología** (texto aprobado por Orestes el 2026-10-11). Lo que era de Go, React o PostgreSQL salió: capas `handler → service → repository`, OpenAPI, 80 % de cobertura, `pgx`/`sqlc`, `gofmt`, TypeScript estricto, columnas obligatorias, `log/slog`, `docker compose up`. Las exigencias de formato, revisión y auditoría ahora remiten a los verbos del perfil.
+- **Tres principios nuevos o distintos:**
+  - Las pruebas siguen siendo obligatorias, **salvo que las reglas del proyecto digan otro alcance**. Un proyecto puede escribir "sin pruebas en el panel"; tiene que quedar en sus reglas, aprobado.
+  - Las reglas del proyecto pueden agregar o endurecer los principios, y solo reducirlos donde el principio lo permite (hoy, solo el de pruebas). Los de seguridad no se reducen.
+  - En un proyecto existente, lo que hoy no cumple un principio se registra como deuda y el código nuevo debe cumplirlo.
+- **El commit pide `APROBADO_CONSTITUCION=1` cuando cambian las reglas del proyecto** (`equipo/reglas.md`), y rechaza que la constitución generada no coincida con sus fuentes. Los principios que llegan con una actualización del kit pasan sin pedirla.
+- El hook de Claude Code bloquea los tres archivos: los principios, las reglas y la constitución generada.
+- `bowser.yml` avisa en el Pull Request cuando cambian los principios o las reglas, no el archivo generado.
+- El rol `arquitecto` propone las reglas del proyecto en `plan.md` ("Reglas propuestas para el proyecto") cuando el plan fija algo que vale para todo el proyecto. No las escribe en `equipo/reglas.md`: lo hace una persona.
+- El mensaje del commit "La configuración de agentes está desactualizada" ahora dice "La configuración de agentes o la constitución generada están desactualizadas".
+
+### Agregado
+- `equipo/reglas.md`, semilla nueva: llega sin ninguna regla y desde entonces es del proyecto.
+- Al instalar sobre un proyecto que tenía una constitución de Spec Kit escrita a mano, esa constitución pasa completa a `equipo/reglas.md`. La plantilla sin llenar que deja `specify init` no cuenta: se reemplaza.
+
+### Límites
+- Ningún control comprueba que las reglas de un proyecto no contradigan un principio: lo revisa quien aprueba el cambio.
+- "Deuda" no tiene fecha: nada obliga a pagarla.
+- En Claude Code los agentes no pueden escribir en `equipo/reglas.md` (proponen el texto). En OpenCode y Codex pueden editarlo, y el control es el del commit.
+- No se probó dentro de una herramienta real que el `arquitecto` proponga reglas, ni `bowser.yml` en GitHub.
+
+### Al actualizar
+- **Revisa `equipo/reglas.md` después de actualizar.** Las reglas de tecnología que traía la constitución anterior (Go, React, PostgreSQL) quedan ahí, ahora como reglas de tu proyecto: conserva las que le sirven y borra las que no. Un proyecto con otra tecnología debe borrarlas todas. El commit que las cambie necesita `APROBADO_CONSTITUCION=1`, después de `make sincronizar`.
+- Si el proyecto tenía la constitución en `kit.excluir`, esa línea ya no hace nada: quítala de `equipo/config.json`. Su constitución quedó completa en `equipo/reglas.md`: borra de ahí lo que ya dicen los principios.
+- En `.github/CODEOWNERS`, la línea de `/.specify/memory/constitution.md` sigue sirviendo (el archivo generado cambia cuando cambian las reglas) y `/equipo/` ya cubre las dos fuentes: no hay que tocarlo.
+
 ## [1.20.0] - 2026-10-11
 
 Tercer paso (C3) de la entrega C de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.

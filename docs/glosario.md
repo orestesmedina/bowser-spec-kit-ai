@@ -18,7 +18,7 @@ Los términos que aparecen en esta documentación, en orden alfabético. Cada un
 
 **CODEOWNERS.** El archivo que le dice a GitHub quién debe aprobar un cambio según los archivos que toca. Ver [Configuración](configuracion.md#codeowners).
 
-**Constitución.** Las reglas no negociables que todo el código debe cumplir. Ver [La constitución](la-constitucion.md).
+**Constitución.** Las reglas no negociables que todo el código debe cumplir. Tiene dos partes: los principios, que son del kit y valen con cualquier tecnología, y las reglas del proyecto. Ver [La constitución](la-constitucion.md).
 
 **Contrato de la API.** El archivo `openapi.yaml`, que describe qué le ofrece el backend al frontend. Se escribe antes que el código.
 

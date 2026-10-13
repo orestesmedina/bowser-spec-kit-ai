@@ -7,7 +7,8 @@ en la raíz del proyecto, no dentro del submódulo. Este script:
   1. Copia a la raíz los archivos GESTIONADOS por el kit (se reemplazan en cada actualización).
   2. Copia del catálogo (catalogo/skills/) a .agents/skills/ solo las skills de tecnología que nombra el perfil
      del proyecto (equipo/perfil.json); sin perfil, las tres de siempre. También quedan gestionadas.
-  3. Copia las SEMILLAS solo si no existen (después son del proyecto: config.json, CODEOWNERS…).
+  3. Copia las SEMILLAS solo si no existen (después son del proyecto: config.json, reglas.md, CODEOWNERS…).
+     Si el proyecto tenía una constitución escrita a mano, sus reglas pasan a equipo/reglas.md.
   4. Mantiene un bloque del kit dentro de .gitignore (solo lo que no depende de la tecnología).
   5. Registra en .kit-manifest.json qué archivos vienen del kit y su hash, para:
        - borrar los que el kit eliminó,
@@ -49,11 +50,11 @@ GESTIONADOS = [
     ".agents/skills/",
     ".githooks/",
     ".github/workflows/bowser.yml",
-    ".specify/memory/constitution.md",
     "equipo/agentes/",
     "equipo/comandos/",
     "equipo/adaptadores/",
     "equipo/orquestador.md",
+    "equipo/principios.md",
     "scripts/",
     "docs/plantillas/",
 ]
@@ -63,16 +64,30 @@ NUNCA = {"scripts/instalar_kit.py", ".github/workflows/kit.yml"}
 # Tampoco se copian los comandos que sincronizar.py genera para Codex dentro de .agents/skills/:
 # cada proyecto genera los suyos según las herramientas que tenga activas.
 sys.path.insert(0, str(KIT / "scripts"))
-from sincronizar import COMANDOS_CODEX as GENERADO_EN_FUENTES  # noqa: E402
+from sincronizar import COMANDOS_CODEX as GENERADO_EN_FUENTES, CONSTITUCION, PRINCIPIOS, REGLAS, es_generada  # noqa: E402
 import catalogo  # noqa: E402
 import perfil as perfil_proyecto  # noqa: E402
 sys.path.pop(0)
 # Se copian una sola vez; después pertenecen al proyecto.
 # Ninguna trae tecnología: el entorno local (docker-compose.yml) lo crea el proyecto según su perfil.
-SEMILLAS = ["equipo/config.json", ".github/CODEOWNERS", ".env.example"]
+SEMILLAS = ["equipo/config.json", REGLAS, ".github/CODEOWNERS", ".env.example"]
 # Archivos que el kit gestionaba y ahora son del proyecto: al actualizar salen del manifiesto y no se borran.
 # La integración continua depende de la tecnología: la redacta el proyecto desde su perfil (comando bowser-ci).
-ENTREGADOS = [".github/workflows/ci.yml"]
+# La constitución ya no se copia: se genera en cada proyecto con los principios del kit y sus propias reglas.
+ENTREGADOS = [".github/workflows/ci.yml", CONSTITUCION]
+# Las constituciones que el kit instaló alguna vez (sha256 del texto, con saltos de línea de Unix) y el archivo con
+# las reglas que traían y que no son principios: al partirla en dos, esas reglas se le entregan al proyecto.
+CONSTITUCIONES_DEL_KIT = {
+    "a734bca34e234a6bd58b377193a3034be9ec53c424b1d2bd0fa71980f7b0b83b": "migracion/reglas-de-la-constitucion-1.0.0.md",
+}
+# Así se reconoce la plantilla de constitución que deja `specify init` (specify 1.0.12, 2026-10-11): no es de nadie.
+PLANTILLA_SPEC_KIT = "[PROJECT_NAME]"
+REGLAS_PROPIAS = f"""# Constitución: reglas del proyecto
+
+Esta es, completa, la constitución que el proyecto tenía antes de que el kit la partiera en principios (del kit,
+en `{PRINCIPIOS}`) y reglas (del proyecto, en este archivo). Borra lo que ya dicen los principios y conserva lo propio.
+
+"""
 
 INICIO_GITIGNORE = "# >>> bowser-spec-kit-ai (gestionado por make instalar-kit; no editar este bloque)"
 FIN_GITIGNORE = "# <<< bowser-spec-kit-ai"
@@ -279,6 +294,26 @@ def gitignore_con_bloque(actual: str) -> tuple[str, list[str]]:
     return actual + separador + bloque, []
 
 
+def entregar_reglas() -> str | None:
+    """Si el proyecto tiene una constitución que no generó el kit y todavía no tiene reglas propias, le deja en
+    equipo/reglas.md lo que esa constitución decía y los principios no dicen. Devuelve el aviso para el resumen.
+    Va antes de las semillas: si no, la semilla vacía ocuparía el lugar de las reglas."""
+    reglas, vieja = DESTINO / REGLAS, DESTINO / CONSTITUCION
+    if reglas.exists() or not vieja.exists():
+        return None
+    texto = vieja.read_text(encoding="utf-8")   # los saltos de línea llegan ya como los de Unix
+    if es_generada(texto) or PLANTILLA_SPEC_KIT in texto:
+        return None
+    heredadas = CONSTITUCIONES_DEL_KIT.get(hashlib.sha256(texto.encode()).hexdigest())
+    contenido = (KIT / heredadas).read_text(encoding="utf-8") if heredadas else REGLAS_PROPIAS + texto.strip() + "\n"
+    reglas.parent.mkdir(parents=True, exist_ok=True)
+    reglas.write_bytes(contenido.encode())
+    aviso = f"La constitución ahora se genera con los principios del kit ({PRINCIPIOS}) y las reglas del proyecto. "
+    if heredadas:
+        return aviso + f"Las reglas de tecnología que traía quedaron en {REGLAS}: ahora son del proyecto."
+    return aviso + f"La que este proyecto tenía quedó completa en {REGLAS}: revísala y borra lo que ya dicen los principios."
+
+
 # ---------------------------------------------------------------- análisis
 
 def analizar(excluir: list[str]) -> dict:
@@ -371,6 +406,7 @@ def instalar(forzar: bool) -> int:
             padre.rmdir()
             padre = padre.parent
 
+    reglas_entregadas = entregar_reglas()
     semillas = []
     for rel in SEMILLAS:
         origen, destino = KIT / rel, DESTINO / rel
@@ -410,7 +446,9 @@ def instalar(forzar: bool) -> int:
             print(f"        {rel}")
     if respaldo:
         print(f"  Respaldo de lo reemplazado: {respaldo.relative_to(DESTINO)}/")
-    for rel in a["entregados"]:
+    if reglas_entregadas:
+        print(f"  ! {reglas_entregadas}")
+    for rel in [r for r in a["entregados"] if r != CONSTITUCION]:
         print(f"  ! {rel} ya no viene del kit: se conservó tal como estaba y desde ahora es del proyecto.")
     if heredadas:
         print(f"  ! El bloque del kit en .gitignore ya no trae {len(heredadas)} reglas de tecnología. "
@@ -423,7 +461,7 @@ def instalar(forzar: bool) -> int:
         if disponibles[nombre]["madurez"] != "probada":
             print(f"  ! La skill «{nombre}» está {catalogo.MADUREZ[disponibles[nombre]['madurez']]}. "
                   "Revisa con más cuidado lo que los agentes hagan con ella.")
-    if not (a["nuevos"] or a["actualizar"] or a["previos"] or eliminados or semillas or heredadas or a["entregados"] or (forzar and a["conflictos"])):
+    if not (a["nuevos"] or a["actualizar"] or a["previos"] or eliminados or semillas or heredadas or a["entregados"] or reglas_entregadas or (forzar and a["conflictos"])):
         print("  Sin cambios: el proyecto ya estaba al día.")
     # El Makefile del kit muestra las novedades al final (--resumen-novedades). Un Makefile anterior no lo hace:
     # en ese caso se muestran aquí.

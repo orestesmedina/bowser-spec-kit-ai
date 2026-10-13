@@ -36,7 +36,7 @@ git add . && git commit -m "chore: inicializa spec kit"
 Ejecuta `specify init` una vez por cada herramienta que vaya a usar el equipo. Los nombres disponibles se ven con `specify integration list`.
 
 > [!NOTE]
-> Spec Kit se inicializa **antes** de instalar el kit. El kit reemplaza la plantilla de constitución que trae Spec Kit por la suya, y deja un respaldo en `.kit-respaldo/`.
+> Spec Kit se inicializa **antes** de instalar el kit. El kit escribe la constitución sobre la plantilla vacía que trae Spec Kit.
 
 ### 2. Agregar el kit
 
@@ -71,8 +71,8 @@ Este commit ya pasa por los [hooks de git](hooks-de-git.md). Si alguno lo bloque
 
 Las herramientas leen sus archivos en la raíz del proyecto, no dentro del submódulo. Por eso `make instalar-kit`:
 
-1. **Copió a la raíz los archivos del kit:** las instrucciones de los agentes, los roles, las skills, los hooks, los controles de la integración continua que no dependen de la tecnología (`bowser.yml`), la constitución, los scripts y el `Makefile`. Quedan registrados en `.kit-manifest.json`.
-2. **Copió las semillas:** `equipo/config.json`, `.github/CODEOWNERS` y `.env.example` (vacío). Son un punto de partida; desde ahora son del proyecto.
+1. **Copió a la raíz los archivos del kit:** las instrucciones de los agentes, los roles, las skills, los hooks, los controles de la integración continua que no dependen de la tecnología (`bowser.yml`), los principios de la constitución, los scripts y el `Makefile`. Quedan registrados en `.kit-manifest.json`.
+2. **Copió las semillas:** `equipo/config.json`, `equipo/reglas.md` (las reglas del proyecto, sin ninguna todavía), `.github/CODEOWNERS` y `.env.example` (vacío). Son un punto de partida; desde ahora son del proyecto.
 3. **Agregó un bloque del kit a `.gitignore`**, solo con lo que no depende de la tecnología: secretos, editores y archivos del propio kit.
 4. **Generó la configuración de cada herramienta** (`CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`).
 5. **Activó los hooks de git.**
@@ -87,7 +87,7 @@ La instalación deja valores genéricos en tres lugares:
 |---|---|
 | `equipo/config.json` | Deja en `"herramientas"` solo las que use tu equipo y revisa los modelos de cada agente. Ver [Configuración](configuracion.md) |
 | `.github/CODEOWNERS` | Reemplaza `@tu-org/direccion-tecnica` por el usuario o equipo de GitHub que debe aprobar los cambios a las reglas |
-| `.specify/memory/constitution.md` | Son las reglas del kit. Si tu equipo necesita otras, lee [La constitución](la-constitucion.md) antes de cambiarlas |
+| `equipo/reglas.md` | Llega vacío. Ahí van las reglas propias del proyecto (arquitectura, mínimos de prueba), y cambiarlo pide la aprobación de dirección técnica. Lee [La constitución](la-constitucion.md) |
 
 Después de cambiar `equipo/config.json`, ejecuta `make sincronizar`.
 

@@ -63,7 +63,7 @@ Revisa únicamente los archivos incluidos en el commit. Hace estas comprobacione
 |---|---|---|
 | Que no haya secretos: archivos `.env`, `*.pem`, `*.key` o dentro de `secrets/`. Si `gitleaks` está instalado, además busca claves y contraseñas dentro del contenido | Un secreto subido a git queda en el historial para siempre, aunque después se borre | Saca el archivo del commit. `.env.example` sí está permitido, porque no lleva valores reales |
 | Que los archivos del kit coincidan con el submódulo | Los archivos que vienen del kit no se editan en el proyecto: la siguiente actualización los pisaría | `make verificar-kit` muestra cuál cambió. Revierte el cambio, o ejecuta `make instalar-kit` si actualizaste el submódulo sin instalar |
-| Que la constitución no haya cambiado | Son las reglas no negociables del proyecto; cambiarlas requiere una decisión de dirección técnica | Revierte el cambio. Si el cambio llega por una actualización del kit, pasa sin problema |
+| Que la constitución no haya cambiado | Son las reglas no negociables; cambiarlas requiere una decisión de dirección técnica. Mira sus dos fuentes: las reglas del proyecto (`equipo/reglas.md`) y los principios (`equipo/principios.md`) | Revierte el cambio, o repite el commit con la aprobación. Los principios que llegan por una actualización del kit pasan sin problema. Ver [La constitución](la-constitucion.md) |
 | Que no se modifique ni se borre una migración existente | Una migración ya aplicada en otra base de datos no se puede "corregir": esa base quedaría distinta al código | Deja la migración como estaba y crea una nueva |
 | Que el código Go esté formateado | Un formato único evita diferencias que no son cambios reales | `gofmt -w <archivo>` |
 | Que el código del frontend esté formateado | Lo mismo, para TypeScript y CSS | `cd frontend && npx prettier --write .` |
@@ -121,7 +121,7 @@ Tres comprobaciones admiten una confirmación explícita, pensada para que la to
 
 | Situación | Cómo se autoriza |
 |---|---|
-| Cambiar la constitución | `APROBADO_CONSTITUCION=1 git commit ...` |
+| Cambiar la constitución (las reglas del proyecto) | `APROBADO_CONSTITUCION=1 git commit ...` |
 | Corregir un `costos.json` ya cerrado | `APROBADO_COSTOS=1 git commit ...` |
 | Crear, cambiar o eliminar el perfil del proyecto | `APROBADO_PERFIL=1 git commit ...` |
 

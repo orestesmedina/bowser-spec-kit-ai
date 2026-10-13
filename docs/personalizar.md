@@ -31,6 +31,7 @@ La idea central: **lo que tú agregas es tuyo, y el kit nunca lo toca**. Solo ha
 | Servicios locales (base de datos, colas…) | El archivo de Docker Compose de la raíz | No: es del proyecto, el kit no trae ninguno |
 | Qué ignora git | `.gitignore`, fuera del bloque del kit | No |
 | Quién aprueba los cambios a las reglas | `.github/CODEOWNERS` | No: es una semilla |
+| Las reglas no negociables propias del proyecto | `equipo/reglas.md` (ver [La constitución](la-constitucion.md)) | No: es una semilla |
 | Versiones de las herramientas en la integración continua | Variables del repositorio en GitHub | No |
 
 ## Comandos propios
@@ -71,7 +72,7 @@ Para cambiar la versión de una herramienta o agregar un paso a la integración 
 
 ## Tu propia versión de un archivo del kit
 
-A veces el proyecto necesita que un archivo del kit sea distinto: un paso extra en el hook, una convención diferente en una skill, una constitución con otras reglas.
+A veces el proyecto necesita que un archivo del kit sea distinto: un paso extra en el hook, una convención diferente en una skill. (Las reglas propias de la constitución no necesitan esto: van en `equipo/reglas.md`, que ya es del proyecto.)
 
 Editarlo sin más no funciona: el [hook de git](hooks-de-git.md) rechaza el commit, y la siguiente actualización se detiene al encontrarlo modificado. La forma correcta es declararlo.
 

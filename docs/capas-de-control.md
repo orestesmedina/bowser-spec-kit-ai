@@ -51,7 +51,7 @@ Las reglas más importantes están protegidas en varias capas a la vez:
 |---|:-:|:-:|:-:|:-:|
 | No subir secretos | ✓ | ✓ | ✓ | ✓ |
 | No modificar una migración aplicada | ✓ | ✓ | ✓ | ✓ |
-| No editar la constitución | ✓ | ✓ | ✓ | Avisa |
+| No editar la constitución (principios y reglas del proyecto) | ✓ | ✓ | ✓ | Avisa |
 | No editar archivos del kit | ✓ | ✓ | ✓ | ✓ |
 | No editar `costos.json` a mano | ✓ | ✓ | Si está cerrado | |
 | Configuración de agentes al día | ✓ | | ✓ | ✓ |

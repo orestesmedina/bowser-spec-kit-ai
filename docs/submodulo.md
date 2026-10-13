@@ -40,7 +40,7 @@ El kit copia dos clases de archivos, y las trata de forma muy distinta:
 
 | | Gestionados | Semillas |
 |---|---|---|
-| Cuáles | `AGENTS.md`, `Makefile`, `.agents/skills/` (con las skills del catálogo que pide el perfil), `.githooks/`, `.github/workflows/bowser.yml`, la constitución, `equipo/agentes/`, `equipo/adaptadores/`, `equipo/orquestador.md`, `scripts/`, `docs/plantillas/` | `equipo/config.json`, `.github/CODEOWNERS`, `.env.example` |
+| Cuáles | `AGENTS.md`, `Makefile`, `.agents/skills/` (con las skills del catálogo que pide el perfil), `.githooks/`, `.github/workflows/bowser.yml`, `equipo/agentes/`, `equipo/comandos/`, `equipo/adaptadores/`, `equipo/orquestador.md`, `equipo/principios.md` (los principios de la constitución), `scripts/`, `docs/plantillas/` | `equipo/config.json`, `equipo/reglas.md` (las reglas del proyecto), `.github/CODEOWNERS`, `.env.example` |
 | Cuándo se copian | En cada instalación y en cada actualización | Una sola vez, si no existen |
 | De quién son | Del kit | Del proyecto, desde que se copian |
 | ¿Se editan en el proyecto? | No | Sí |

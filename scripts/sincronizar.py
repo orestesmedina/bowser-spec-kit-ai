@@ -9,11 +9,14 @@ Fuente única (lo que el equipo edita):
   .agents/skills/           skills compartidas (estándar SKILL.md); las de tecnología llegan del catálogo del kit
   equipo/config.json        herramientas activas y modelos (por nivel, por agente y del orquestador)
   equipo/adaptadores/       archivos propios de cada herramienta (ej. permisos y hooks de Claude Code)
+  equipo/principios.md      la parte de la constitución que es del kit (igual en todos los proyectos)
+  equipo/reglas.md          la parte de la constitución que es del proyecto
 
 Salida (generada, no editar a mano):
   Claude Code  -> CLAUDE.md, .claude/agents/, .claude/skills/ (skills y comandos), .claude/settings.json
   Codex        -> .codex/agents/*.toml, .agents/skills/bowser-*/ (comandos; lee AGENTS.md y .agents/skills/ directamente)
   OpenCode     -> .opencode/agents/*.md, .opencode/commands/*.md, opencode.json (si hay modelo de orquestador o adaptador)
+  Spec Kit     -> .specify/memory/constitution.md (los principios y, debajo, las reglas del proyecto)
 
 Uso:
   python3 scripts/sincronizar.py              genera los archivos
@@ -54,6 +57,12 @@ GESTIONADOS = {
 # no se borra, no se copia de una herramienta a otra y no cuenta al verificar.
 DE_SPEC_KIT = "speckit"
 PREFIJOS = {"claude": (".claude", "CLAUDE"), "codex": (".codex", COMANDOS_CODEX), "opencode": (".opencode", "opencode.json")}
+
+# La constitución que leen Spec Kit y los agentes se genera con dos fuentes: los principios, que son del kit, y las
+# reglas, que son del proyecto. No depende de la herramienta: se genera siempre.
+PRINCIPIOS = "equipo/principios.md"
+REGLAS = "equipo/reglas.md"
+CONSTITUCION = ".specify/memory/constitution.md"
 
 ACCESOS = {"lectura", "documentos", "completo"}
 NIVELES = {"alto", "medio", "bajo"}
@@ -364,6 +373,20 @@ def json_bytes(datos: dict) -> bytes:
 
 # ---------------------------------------------------------------- generadores
 
+def es_generada(constitucion: str) -> bool:
+    """True si ese texto de la constitución lo escribió este script (y no una persona ni Spec Kit)."""
+    return constitucion.startswith("<!-- GENERADO")
+
+
+def generar_constitucion() -> dict[str, bytes]:
+    """Los principios del kit y, debajo, las reglas del proyecto. Sin principios no se genera nada."""
+    if not (RAIZ / PRINCIPIOS).exists():
+        return {}
+    partes = [(RAIZ / f).read_text(encoding="utf-8").strip() for f in (PRINCIPIOS, REGLAS) if (RAIZ / f).exists()]
+    aviso = AVISO.format(fuente=f"{PRINCIPIOS} y {REGLAS}")
+    return {CONSTITUCION: (f"<!-- {aviso} -->\n" + "\n\n".join(partes) + "\n").encode()}
+
+
 def es_repositorio_del_kit() -> bool:
     """True en el repositorio del kit (tiene el instalador y MANTENER-KIT.md, y no es un proyecto con el kit instalado)."""
     return ((RAIZ / "scripts/instalar_kit.py").exists() and (RAIZ / "MANTENER-KIT.md").exists()
@@ -614,6 +637,8 @@ def archivos_actuales() -> dict[str, bytes]:
             p = RAIZ / f
             if p.exists():
                 actuales[f] = p.read_bytes()
+    if (RAIZ / PRINCIPIOS).exists() and (RAIZ / CONSTITUCION).exists():
+        actuales[CONSTITUCION] = (RAIZ / CONSTITUCION).read_bytes()
     return actuales
 
 
@@ -663,7 +688,7 @@ def main() -> int:
             print("Aviso: opencode.json existente movido a equipo/adaptadores/opencode/opencode.json "
                   "(edítalo ahí; los modelos se toman de equipo/config.json).")
 
-    esperado: dict[str, bytes] = {}
+    esperado: dict[str, bytes] = generar_constitucion()
     for h in activas:
         esperado.update(GENERADORES[h](agentes, comandos, config))
 

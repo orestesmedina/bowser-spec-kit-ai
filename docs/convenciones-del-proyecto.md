@@ -117,7 +117,7 @@ Mientras tanto, los agentes trabajan con el estándar de las skills del catálog
 |---|---|---|
 | El agente dice que no hay perfil | Las convenciones se redactan por parte, y las partes las dice el perfil | `/bowser-profile` primero |
 | `la skill «convenciones-de-x» no está en .agents/skills/` | El perfil la nombra y el archivo no existe (se borró, o el nombre de la parte cambió) | Vuelve a ejecutar `/bowser-conventions x`, o quítala del perfil |
-| `Las skills instaladas no son las que pide el perfil` o `La configuración de agentes está desactualizada` | Se cambió el perfil y no se instaló | `make instalar-kit` |
+| `Las skills instaladas no son las que pide el perfil` o `La configuración de agentes o la constitución generada están desactualizadas` | Se cambió el perfil y no se instaló | `make instalar-kit` |
 | Las convenciones describen código de una biblioteca copiada | Esa carpeta no está declarada como de terceros | Agrégala a `terceros` en el perfil y repite |
 | Un agente sigue el estándar donde el proyecto hace otra cosa | Esa costumbre no quedó escrita | Agrégala al archivo, con un ejemplo |
 

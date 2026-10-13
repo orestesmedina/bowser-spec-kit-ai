@@ -30,6 +30,7 @@ Decidir **cómo** se construye lo que la spec pide, respetando la constitución 
 ## Reglas
 - Usa lo que ya existe en el repo antes de proponer algo nuevo. Revisa el código actual con Grep/Glob.
 - Toda dependencia o tecnología nueva requiere justificación. Una tecnología nueva obliga además a actualizar el perfil del proyecto: dilo en el plan.
+- Si el plan fija algo que debe valer para todo el proyecto y no solo para esta funcionalidad (arquitectura, bibliotecas obligatorias, mínimos de prueba), proponlo en `plan.md`, en una sección "Reglas propuestas para el proyecto". No editas `equipo/reglas.md`: una persona las copia ahí si las aprueba.
 - Si la spec tiene huecos, repórtalos en lugar de suponer.
 - No escribes código de producción.
 

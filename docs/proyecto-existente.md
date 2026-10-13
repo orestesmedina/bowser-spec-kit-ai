@@ -143,7 +143,7 @@ El kit nació para React, Go y PostgreSQL y está dejando de depender de ellas. 
 - **Las skills de tecnología** llegan del [catálogo del kit](skills.md#el-catálogo-de-skills-de-tecnología) y traen el estándar de cada una, según su documentación oficial. Hoy tiene las de Go, React, PostgreSQL, PHP, MySQL y web sin framework; para otra tecnología, el proyecto escribe su propia skill en `.agents/skills/` y el perfil la nombra.
 - **Lo propio de tu proyecto** (cómo nombra las cosas, cómo se organiza, qué patrones y bibliotecas usa) lo redacta un agente leyendo el código, con `/bowser-conventions`. Ver [Convenciones del proyecto](convenciones-del-proyecto.md).
 - **Los archivos iniciales no traen tecnología:** el kit no instala base de datos ni servicios, `.env.example` llega vacío y su bloque de `.gitignore` solo cubre secretos, editores y archivos del kit.
-- **La constitución y la integración continua** todavía suponen React, Go y PostgreSQL. Mientras eso cambia, un proyecto con otras tecnologías mantiene su versión de esos archivos mediante `kit.excluir`.
+- **Si el proyecto ya tenía una constitución de Spec Kit escrita a mano**, la instalación la pasa completa a `equipo/reglas.md` y genera la constitución con los principios del kit encima. Revisa ese archivo y borra lo que ya dicen los principios. Ver [La constitución](la-constitucion.md).
 
 Así que el primer paso con otro stack es crear el perfil, `/bowser-profile`; el segundo, las convenciones, `/bowser-conventions`; y el tercero, la integración continua, `/bowser-ci`. El proceso, el estado, los costos y la instalación no dependen del stack. La página [Cómo contribuir](contribuir.md) explica cómo está organizado el kit por dentro.
 
@@ -154,7 +154,7 @@ Instalar el kit no obliga a documentar hacia atrás lo que ya existe. La forma p
 1. **Escribe el roadmap** con lo que viene, no con lo que ya está hecho. Ver [De la idea al roadmap](idea-al-roadmap.md).
 2. **La siguiente funcionalidad nueva** ya sigue el flujo completo: especificación, plan, tareas y validación.
 3. **Los agentes aprenden del código existente.** Copian sus patrones, así que conviene que la primera funcionalidad toque una parte del proyecto que esté bien resuelta.
-4. **Si el código actual no cumple la constitución**, no lo corrijas todo de golpe. Anota las diferencias y decide cuáles se corrigen como funcionalidades propias.
+4. **Si el código actual no cumple la constitución**, no lo corrijas todo de golpe. Los principios lo prevén: lo que hoy no cumple se registra como deuda (en las [convenciones del proyecto](convenciones-del-proyecto.md)) y el código nuevo sí debe cumplir. Decide qué deuda se corrige como funcionalidades propias.
 
 ## Siguientes pasos
 

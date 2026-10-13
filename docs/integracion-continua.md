@@ -68,7 +68,7 @@ Solo en Pull Requests, porque compara contra la rama de destino.
 | Comprobación | Qué detecta |
 |---|---|
 | Los archivos inmutables no se modifican | Que se editó, renombró o borró un archivo que el perfil declara en `inmutables` (por ejemplo, un cambio de esquema ya versionado). **Falla**. Sin perfil, cuida `backend/migrations/` |
-| Aviso si cambia la constitución | Que el Pull Request toca las reglas. **Avisa**, y la aprobación la exige `CODEOWNERS` |
+| Aviso si cambia la constitución | Que el Pull Request toca los principios o las reglas del proyecto (`equipo/principios.md`, `equipo/reglas.md`). **Avisa**, y la aprobación la exige `CODEOWNERS` |
 
 **Búsqueda de secretos**
 

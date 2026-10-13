@@ -6,7 +6,7 @@ Tu prioridad, en este orden: (1) respetar el proceso y los controles, (2) entreg
 
 Documentos que mandan (léelos cuando haga falta; no los contradigas):
 - `AGENTS.md` — reglas del proyecto y tabla de qué flujo aplicar.
-- `.specify/memory/constitution.md` — reglas no negociables del código. Solo lectura.
+- `.specify/memory/constitution.md` — reglas no negociables del código: los principios del kit y, debajo, las reglas de este proyecto. Solo lectura.
 - `.agents/skills/` — flujos del equipo (`equipo-feature`, `equipo-bug`, `equipo-revision`, `equipo-retomar`) y convenciones del stack.
 - `.bowser-spec-kit-ai/docs/` — la documentación del kit para humanos (la carpeta del submódulo está en `.kit-manifest.json` → `ruta_kit`). Las checklists de aprobación están en `aprobaciones.md`; el índice, en `README.md`.
 
@@ -107,7 +107,7 @@ Al delegar, das al subagente: la fase, la ruta de la spec/plan/tareas, qué entr
 
 ## 5. El kit de la empresa
 
-**Fuentes (se editan solo con aprobación de dirección técnica):** `AGENTS.md`, `equipo/agentes/*.md`, `equipo/comandos/*.md`, `equipo/orquestador.md`, `equipo/config.json`, `.agents/skills/` (menos las carpetas `bowser-*`, que son generadas), `.specify/memory/constitution.md`.
+**Fuentes (se editan solo con aprobación de dirección técnica):** `AGENTS.md`, `equipo/agentes/*.md`, `equipo/comandos/*.md`, `equipo/orquestador.md`, `equipo/config.json`, `.agents/skills/` (menos las carpetas `bowser-*`, que son generadas), `equipo/principios.md` y `equipo/reglas.md` (las dos partes de la constitución; `.specify/memory/constitution.md` se genera con ellas).
 
 **Generados (nunca se editan a mano):** `CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json`. Se regeneran con `make sincronizar`.
 
@@ -132,7 +132,7 @@ Al delegar, das al subagente: la fase, la ruta de la spec/plan/tareas, qué entr
 | `make novedades` | Qué cambió en el kit (versión instalada e historial) |
 
 **Controles automáticos** (no se desactivan; si fallan, se corrige la causa):
-- *pre-commit:* bloquea secretos (`.env`, llaves), migraciones ya versionadas editadas, código sin formato, cambios a la constitución sin aprobación, archivos del kit editados a mano y configuración de agentes desactualizada. Bloquea modificar un `costos.json` cerrado. Avisa (sin bloquear) si cambian spec, plan o tareas sin actualizar `estado.md`.
+- *pre-commit:* bloquea secretos (`.env`, llaves), migraciones ya versionadas editadas, código sin formato, cambios a la constitución sin aprobación, archivos del kit editados a mano y configuración de agentes o constitución generada desactualizadas. Bloquea modificar un `costos.json` cerrado. Avisa (sin bloquear) si cambian spec, plan o tareas sin actualizar `estado.md`.
 - *commit-msg:* exige Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`, `ci:`…).
 - *CI:* repite los controles, pruebas con PostgreSQL real, vulnerabilidades y secretos.
 
@@ -144,9 +144,9 @@ Al delegar, das al subagente: la fase, la ruta de la spec/plan/tareas, qué entr
 | "El perfil del proyecto … cambió" | El commit toca `equipo/perfil.json` | No lo fuerces: lo confirma una persona con `APROBADO_PERFIL=1` |
 | "no pasa la revisión de formato" | Falló el verbo `formato` de una parte que el commit toca | Devuélvelo al desarrollador de esa parte |
 | "La parte «…» no define el verbo «…»" | Aviso: esa parte todavía no tiene eso (por ejemplo, pruebas) | No inventes un comando; infórmalo como deuda |
-| "La configuración de agentes está desactualizada" | Cambió una fuente sin regenerar | `make sincronizar` y vuelve a hacer commit |
+| "La configuración de agentes o la constitución generada están desactualizadas" | Cambió una fuente sin regenerar | `make sincronizar` y vuelve a hacer commit |
 | "Los archivos del kit no coinciden" | Se editó un archivo del kit o no se instaló la versión nueva | `make verificar-kit`; informa al humano, no fuerces |
-| "La constitución cambió" | Alguien la modificó | Revierte; solo dirección técnica la cambia |
+| "La constitución cambió" | Alguien modificó `equipo/reglas.md` o `equipo/principios.md` | Revierte; solo dirección técnica la cambia. Si hace falta una regla nueva, propón el texto |
 | "No se encontró python3" | El commit se hace fuera de WSL/Ubuntu | Informa al humano (`.bowser-spec-kit-ai/docs/windows-wsl.md`) |
 | "El costo de … ya está cerrado" | Se intentó modificar el costo de una tarea terminada | Revierte el cambio; el consumo nuevo va en la tarea actual |
 | "⚠ … sin actualizar estado.md" (aviso, no bloquea) | Cambió spec, plan o tareas y el estado no | Actualiza `estado.md` y agrégalo al commit |

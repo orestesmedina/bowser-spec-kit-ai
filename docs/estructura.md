@@ -23,7 +23,7 @@ Un proyecto con el kit instalado tiene bastantes archivos que no son código del
 ```
 mi-proyecto/
 ├── AGENTS.md                        # Instrucciones del orquestador
-├── .specify/memory/constitution.md  # Reglas no negociables del código
+├── .specify/memory/constitution.md  # Reglas no negociables del código (generado)
 ├── equipo/
 │   ├── orquestador.md               # Manual de trabajo del orquestador
 │   ├── agentes/*.md                 # Los 11 roles, sin tecnología
@@ -78,7 +78,9 @@ Todo archivo que no es código del producto pertenece a una de estas clases. Sab
 |---|---|---|
 | `AGENTS.md` | Lo primero que lee el agente al abrir el proyecto: su papel, el stack, el proceso y las reglas de coordinación. Ver [El orquestador](el-orquestador.md) | Del kit |
 | `equipo/orquestador.md` | El manual de trabajo completo del orquestador | Del kit |
-| `.specify/memory/constitution.md` | Las reglas que todo el código debe cumplir. Ver [La constitución](la-constitucion.md) | Del kit |
+| `.specify/memory/constitution.md` | Las reglas que todo el código debe cumplir: los principios y, debajo, las reglas del proyecto. Ver [La constitución](la-constitucion.md) | Generado |
+| `equipo/principios.md` | La parte de la constitución que vale para cualquier proyecto | Del kit |
+| `equipo/reglas.md` | La parte de la constitución que es de este proyecto: arquitectura, mínimos de prueba, bibliotecas | Semilla |
 
 ### El equipo
 
@@ -148,7 +150,8 @@ Cómo funciona esto por dentro está en [El kit como submódulo](submodulo.md).
 | Archivo | ¿Lo editas? |
 |---|---|
 | `specs/`, `docs/producto/`, `backend/`, `frontend/`, `proyecto.mk` | Sí. Es el trabajo de todos los días |
-| `equipo/config.json`, `.github/CODEOWNERS`, `docker-compose.yml`, `.env.example` | Sí, con el acuerdo de quien lidera el proyecto |
+| `equipo/config.json`, `.github/CODEOWNERS`, `.env.example` | Sí, con el acuerdo de quien lidera el proyecto |
+| `equipo/reglas.md` | Sí, con la aprobación de dirección técnica (`APROBADO_CONSTITUCION=1`) |
 | Archivos del kit | No. El cambio se propone en el repositorio del kit, o el archivo se marca como propio. Ver [Personalizar un proyecto](personalizar.md) |
 | Archivos generados | Nunca. Cambia la fuente y ejecuta `make sincronizar` |
 | `specs/**/costos.json` | Nunca. Lo escribe `make costos` |

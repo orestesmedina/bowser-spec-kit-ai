@@ -45,13 +45,22 @@ if [ -f .kit-manifest.json ]; then
   fi
 fi
 
-# 3. La constitución solo cambia con aprobación explícita (agregarla por primera vez está permitido).
-#    Si llega por una actualización del kit (el kit la gestiona y coincide con él), ya fue aprobada en el
-#    repositorio del kit. Si el proyecto la excluyó del kit (kit.excluir), es suya y requiere la aprobación.
-CONSTITUCION=".specify/memory/constitution.md"
-if git diff --cached --name-only --diff-filter=MRD | grep -qx "$CONSTITUCION" && [ "${APROBADO_CONSTITUCION:-}" != "1" ]; then
-  if [ "$KIT_OK" != "1" ] || ! python3 -c "import json, sys; sys.exit(0 if sys.argv[1] in json.load(open('.kit-manifest.json')).get('archivos', {}) else 1)" "$CONSTITUCION" 2>/dev/null; then
-    fallar "La constitución cambió. Requiere aprobación de la dirección técnica: APROBADO_CONSTITUCION=1 git commit ..."
+# 3. La constitución solo cambia con aprobación explícita. Tiene dos fuentes: los principios, que son del kit, y
+#    las reglas, que son del proyecto (agregarlas por primera vez está permitido). El archivo que leen los agentes
+#    (.specify/memory/constitution.md) se genera con las dos, y el control 7 comprueba que esté al día.
+#    Los principios que llegan por una actualización del kit (el kit los gestiona y coinciden con él) ya fueron
+#    aprobados en el repositorio del kit. Si el proyecto los excluyó (kit.excluir), son suyos y requieren la aprobación.
+PRINCIPIOS="equipo/principios.md"
+REGLAS="equipo/reglas.md"
+if [ "${APROBADO_CONSTITUCION:-}" != "1" ]; then
+  CAMBIADOS=$(git diff --cached --name-only --diff-filter=MRD)
+  if echo "$CAMBIADOS" | grep -qx "$REGLAS"; then
+    fallar "La constitución cambió: las reglas del proyecto ($REGLAS). Requiere aprobación de la dirección técnica: APROBADO_CONSTITUCION=1 git commit ..."
+  fi
+  if echo "$CAMBIADOS" | grep -qx "$PRINCIPIOS"; then
+    if [ "$KIT_OK" != "1" ] || ! python3 -c "import json, sys; sys.exit(0 if sys.argv[1] in json.load(open('.kit-manifest.json')).get('archivos', {}) else 1)" "$PRINCIPIOS" 2>/dev/null; then
+      fallar "La constitución cambió: los principios ($PRINCIPIOS). Requiere aprobación de la dirección técnica: APROBADO_CONSTITUCION=1 git commit ..."
+    fi
   fi
 fi
 
@@ -80,9 +89,9 @@ else
 fi
 
 # 7. Archivos generados al día
-FUENTE=$(echo "$STAGED" | grep -E '^(AGENTS\.md|equipo/|\.agents/skills/|CLAUDE\.md|\.claude/|\.codex/|\.opencode/|opencode\.json)' || true)
+FUENTE=$(echo "$STAGED" | grep -E '^(AGENTS\.md|equipo/|\.agents/skills/|CLAUDE\.md|\.claude/|\.codex/|\.opencode/|opencode\.json|\.specify/memory/constitution\.md)' || true)
 if [ -n "$FUENTE" ]; then
-  python3 scripts/sincronizar.py --verificar >/dev/null 2>&1 || fallar "La configuración de agentes está desactualizada. Ejecuta: make sincronizar"
+  python3 scripts/sincronizar.py --verificar >/dev/null 2>&1 || fallar "La configuración de agentes o la constitución generada están desactualizadas. Ejecuta: make sincronizar"
 fi
 
 # 8. El costo de una tarea cerrada no se modifica (specs/**/costos.json con "estado": "cerrado")

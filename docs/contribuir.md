@@ -19,7 +19,7 @@ El repositorio tiene dos clases de archivos:
 
 | Clase | Archivos | Regla |
 |---|---|---|
-| **Fuentes** | `AGENTS.md`, `equipo/orquestador.md`, `equipo/agentes/`, `equipo/comandos/`, `equipo/config.json`, `.agents/skills/`, `catalogo/skills/`, `.specify/memory/constitution.md`, `scripts/`, `.githooks/`, `.github/`, `Makefile`, `docs/` | Se editan a mano |
+| **Fuentes** | `AGENTS.md`, `equipo/orquestador.md`, `equipo/agentes/`, `equipo/comandos/`, `equipo/config.json`, `.agents/skills/`, `catalogo/skills/`, `equipo/principios.md`, `scripts/`, `.githooks/`, `.github/`, `Makefile`, `docs/` | Se editan a mano |
 | **Solo del kit** | `pruebas/`, `kit.mk`, `.github/workflows/kit.yml` | Se editan a mano. No llegan a los proyectos |
 | **Generados** | `CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json` | Nunca se editan. Se regeneran con `make sincronizar` |
 
@@ -37,7 +37,7 @@ Qué llega a los proyectos lo decide `scripts/instalar_kit.py`, en dos listas: l
 | Agregar o cambiar un comando del chat (`/bowser-…`) | `equipo/comandos/<nombre>.md`, y su fila en `docs/comandos.md` |
 | Cambiar cómo coordina el orquestador | `equipo/orquestador.md` y `AGENTS.md` |
 | Que algo no pueda pasar nunca | `.githooks/pre-commit` **y** `.github/workflows/bowser.yml`. Solo si no depende de ninguna tecnología |
-| Cambiar una regla del código | La constitución. Es la decisión más pesada: afecta a todos los proyectos |
+| Cambiar una regla del código | Los principios de la constitución (`equipo/principios.md`). Es la decisión más pesada: afecta a todos los proyectos, y no puede nombrar ninguna tecnología |
 | Soportar otro agente de código | Una función `generar_<herramienta>` en `scripts/sincronizar.py` |
 | Agregar un comando | El `Makefile` y, si hace falta, un script en `scripts/` |
 | Agregar un comando que solo sirve para mantener el kit | `kit.mk`, que no se copia a los proyectos |

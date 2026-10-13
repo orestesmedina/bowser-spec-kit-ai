@@ -1,12 +1,14 @@
 """Los controles que no dependen de que el agente obedezca: hooks de git y hook de Claude Code."""
 import json
 import os
+import re
 import shutil
 import subprocess
 
 from apoyo import afirmar, contiene, prueba
 
 CONSTITUCION = ".specify/memory/constitution.md"
+PRINCIPIOS, REGLAS = "equipo/principios.md", "equipo/reglas.md"
 
 
 @prueba("el mensaje de commit debe seguir Conventional Commits")
@@ -36,32 +38,81 @@ def secretos(e):
     p.commit("docs: documenta una variable de entorno")
 
 
-@prueba("la constitución no cambia sin aprobación; la que llega con una actualización del kit sí pasa")
-def constitucion(e):
+@prueba("la constitución se genera con los principios del kit y las reglas del proyecto, y no nombra ninguna tecnología")
+def constitucion_en_dos_partes(e):
+    p = e.proyecto()
+    generada, principios, reglas = p.leer(CONSTITUCION), p.leer(PRINCIPIOS).strip(), p.leer(REGLAS).strip()
+    afirmar(generada.startswith("<!-- GENERADO"), "la constitución no avisa de que es un archivo generado")
+    contiene(generada, principios, "la constitución generada")
+    contiene(generada, reglas, "la constitución generada")
+    afirmar(generada.index(principios) < generada.index(reglas), "las reglas del proyecto deben ir después de los principios")
+    manifiesto = json.loads(p.leer(".kit-manifest.json"))["archivos"]
+    afirmar(PRINCIPIOS in manifiesto, "los principios deben ser un archivo del kit")
+    afirmar(REGLAS not in manifiesto and CONSTITUCION not in manifiesto,
+            "las reglas son del proyecto y la constitución se genera: ninguna de las dos es un archivo del kit")
+    for palabra in ("Go", "React", "TypeScript", "PostgreSQL", "sqlc", "pgx", "gofmt", "golangci-lint", "govulncheck", "npm",
+                    "Vitest", "Playwright", "docker", "slog", "handler", "backend", "frontend", "PHP", "MySQL", "OpenAPI"):
+        afirmar(not re.search(rf"\b{re.escape(palabra)}\b", generada), f"la constitución de un proyecto nuevo nombra «{palabra}»")
+    # Sin reglas, la constitución son solo los principios.
+    p.archivo(REGLAS).unlink()
+    p.make("sincronizar")
+    contiene(p.leer(CONSTITUCION), principios, "la constitución sin reglas del proyecto")
+    afirmar("Constitución: reglas del proyecto" not in p.leer(CONSTITUCION), "la constitución conserva unas reglas que ya no existen")
+
+
+@prueba("las reglas del proyecto no cambian sin aprobación, y la constitución generada tiene que ir al día")
+def reglas_del_proyecto(e):
+    p = e.proyecto()
+    aprobado = {"APROBADO_CONSTITUCION": "1"}
+    p.agregar(REGLAS, "\n- La cobertura mínima DEBE ser 70 %.\n")
+    contiene(p.commit("docs: agrega una regla", espera=1).salida, "La constitución cambió: las reglas del proyecto")
+    # Con la aprobación, falta regenerar: lo que leen los agentes seguiría sin la regla.
+    contiene(p.commit("docs: agrega una regla", espera=1, extra=aprobado).salida, "la constitución generada están desactualizadas")
+    p.make("sincronizar")
+    contiene(p.leer(CONSTITUCION), "La cobertura mínima DEBE ser 70 %.", "la constitución generada")
+    p.commit("docs: agrega una regla", extra=aprobado)
+
+    # El archivo generado no se edita a mano, ni con la aprobación: se cambia la fuente.
+    p.agregar(CONSTITUCION, "\n- regla escrita en el archivo generado\n")
+    contiene(p.commit("docs: cambia la constitución", espera=1, extra=aprobado).salida, "la constitución generada están desactualizadas")
+    p.git("checkout", "-q", "HEAD", "--", CONSTITUCION)
+
+    # Borrar las reglas también es cambiarlas.
+    p.git("rm", "-q", REGLAS)
+    contiene(p.git("commit", "-m", "chore: quita las reglas", espera=1).salida, "La constitución cambió: las reglas del proyecto")
+    afirmar(p.commits() == 2, "un cambio de las reglas sin aprobación entró al historial")
+
+
+@prueba("los principios llegan con la actualización del kit sin pedir aprobación; si el proyecto los hace suyos, sí la piden")
+def principios_del_kit(e):
     kit = e.kit()
     p = e.proyecto(kit)
 
-    p.agregar(CONSTITUCION, "\n- regla agregada a mano\n")
-    contiene(p.commit("docs: cambia la constitución", espera=1).salida, "La constitución cambió")
-    p.git("checkout", "-q", "HEAD", "--", CONSTITUCION)
+    p.agregar(PRINCIPIOS, "\n- principio agregado a mano\n")
+    p.make("sincronizar")
+    r = p.commit("docs: cambia los principios", espera=1)
+    contiene(r.salida, "La constitución cambió: los principios")
+    contiene(r.salida, "Los archivos del kit no coinciden")
+    p.git("checkout", "-q", "HEAD", "--", PRINCIPIOS, CONSTITUCION)
 
-    # El proyecto la declara suya (kit.excluir): desde entonces cada cambio necesita la aprobación.
+    # El proyecto los declara suyos (kit.excluir): desde entonces cada cambio necesita la aprobación.
     config = json.loads(p.leer("equipo/config.json"))
-    config.setdefault("kit", {})["excluir"] = [CONSTITUCION]
+    config.setdefault("kit", {})["excluir"] = [PRINCIPIOS]
     p.escribir("equipo/config.json", json.dumps(config, indent=2, ensure_ascii=False) + "\n")
     p.make("instalar-kit")
-    p.commit("chore: constitución propia del proyecto")
-    p.agregar(CONSTITUCION, "\n- regla propia del proyecto\n")
-    contiene(p.commit("docs: ajusta la constitución", espera=1).salida, "La constitución cambió")
-    p.commit("docs: ajusta la constitución", extra={"APROBADO_CONSTITUCION": "1"})
+    p.commit("chore: principios propios del proyecto")
+    p.agregar(PRINCIPIOS, "\n- principio propio del proyecto\n")
+    p.make("sincronizar")
+    contiene(p.commit("docs: ajusta los principios", espera=1).salida, "La constitución cambió: los principios")
+    p.commit("docs: ajusta los principios", extra={"APROBADO_CONSTITUCION": "1"})
 
-    # Otro proyecto, sin exclusión: la constitución cambia en el kit y llega con la actualización.
+    # Otro proyecto, sin exclusión: los principios cambian en el kit y llegan con la actualización.
     q = e.proyecto(kit)
-    with open(kit / CONSTITUCION, "a", encoding="utf-8") as f:
-        f.write("\n- regla nueva aprobada en el kit\n")
-    e.commit_kit(kit, "cambia la constitución")
+    with open(kit / PRINCIPIOS, "a", encoding="utf-8") as f:
+        f.write("\n- principio nuevo aprobado en el kit\n")
+    e.commit_kit(kit, "cambia los principios")
     q.make("actualizar-kit")
-    contiene(q.leer(CONSTITUCION), "regla nueva aprobada en el kit", "la constitución del proyecto")
+    contiene(q.leer(CONSTITUCION), "principio nuevo aprobado en el kit", "la constitución generada del proyecto")
     q.commit("chore: actualiza kit")
 
 
@@ -127,7 +178,7 @@ def hook_de_claude(e):
     p.commit("feat(db): primera migración")
 
     # Sin perfil, los inmutables son los de la estructura supuesta: las migraciones de backend/.
-    for rel in (".env", "secrets/clave.txt", "certificado.pem", CONSTITUCION, "AGENTS.md", "equipo/orquestador.md",
+    for rel in (".env", "secrets/clave.txt", "certificado.pem", CONSTITUCION, PRINCIPIOS, REGLAS, "AGENTS.md", "equipo/orquestador.md",
                 ".bowser-spec-kit-ai/README.md", "backend/migrations/000001_inicio.up.sql", "specs/001-x/costos.json"):
         se_bloquea(e, p, rel)
     for rel in (".env.example", "src/app.go", "equipo/config.json", "backend/migrations/000002_nueva.up.sql", "specs/001-x/spec.md"):
