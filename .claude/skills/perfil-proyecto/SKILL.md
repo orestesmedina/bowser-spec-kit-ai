@@ -55,9 +55,9 @@ description: Cómo redactar o corregir el perfil del proyecto (equipo/perfil.jso
 | `formato` | Comprobar el formato sin cambiar archivos. Rápido | Cada commit (si el commit toca la parte) y `make lint` |
 | `revisar` | Análisis estático: linters, tipos, sintaxis | `make lint` |
 | `probar` | Ejecutar las pruebas | `make test` |
-| `cobertura` | Medir cobertura y **fallar** bajo el mínimo del proyecto | `make cobertura` |
+| `cobertura` | Medir cobertura y **fallar** bajo el mínimo del proyecto | `make coverage` |
 | `auditar` | Buscar vulnerabilidades en las dependencias | `make security` |
-| `generar` | Regenerar el código generado | `make generar`, `make verificar-generados` |
+| `generar` | Regenerar el código generado | `make generate`, `make check-generated` |
 
 Todo comando termina con código 0 si está bien y distinto de 0 si no.
 
@@ -91,13 +91,13 @@ Cómo llenarla:
 
 ## Cómo redactarlo
 
-1. Parte de los hechos: la salida de `make profile DETECTAR=1` y lo que leas en el código (archivos de configuración, `README`, scripts existentes). Un archivo de tecnología que trae `dentro_de_carpeta_a_confirmar` suele ser de una biblioteca copiada dentro del proyecto: no lo tomes por la tecnología del proyecto sin mirar la carpeta.
+1. Parte de los hechos: la salida de `make profile DETECT=1` y lo que leas en el código (archivos de configuración, `README`, scripts existentes). Un archivo de tecnología que trae `dentro_de_carpeta_a_confirmar` suele ser de una biblioteca copiada dentro del proyecto: no lo tomes por la tecnología del proyecto sin mirar la carpeta.
 2. **Una parte es algo que se construye, se prueba o se despliega por separado.** No dividas por dividir: un proyecto pequeño puede ser una sola parte con `"carpeta": "."`. Si una parte mezcla oficios (por ejemplo, PHP que genera HTML junto a su CSS y su JavaScript), no la partas en carpetas artificiales: dale varios `roles`, cada uno con sus skills.
    **Quién trabaja cada parte.** Los roles no traen tecnología: reciben del perfil sus carpetas, skills y comandos, y una parte sin `roles` no tiene quién la trabaje. `dev-backend`, el lado del servidor; `dev-frontend`, la interfaz; `dev-dba`, la base de datos (esquema, migraciones, consultas, procedimientos). **La base de datos es de `dev-dba`, no de `dev-backend`:** si vive en su propia carpeta, es una parte con ese rol; si sus archivos están dentro de la carpeta del servidor, esa parte lleva los dos roles y la skill del motor va en `dev-dba`. Cualquier otro rol de `roles_disponibles` puede trabajar una parte si el proyecto lo necesita (por ejemplo, `devops` en una carpeta de infraestructura).
 3. Usa solo comandos que el proyecto ya puede ejecutar: herramientas que ya usa o que están en sus archivos de configuración. Si propones una herramienta nueva, dilo aparte como recomendación; no la pongas en el perfil hasta que esté instalada.
 4. **Si el proyecto no tiene algo, el verbo va en `null`.** Un proyecto sin pruebas tiene `"probar": null`, no un comando inventado que siempre pasa. Lista los verbos sin definir como deuda, para que la persona decida.
 5. Lo que no puedas deducir, pregúntalo: cómo se levanta, qué versión del lenguaje usa, si una carpeta dudosa es de terceros.
-6. Asigna solo skills que aparezcan en `skills_disponibles` de la detección: son las del catálogo del kit más las propias del proyecto. Las del catálogo que el perfil nombre las copia `make instalar-kit`, y las que deje de nombrar las retira. Si una es `redactada` (ver `madurez_de_las_skills_del_catalogo`), avisa que todavía no se usó en un proyecto real. Si falta la de una tecnología, dilo: el agente trabajará sin ella.
+6. Asigna solo skills que aparezcan en `skills_disponibles` de la detección: son las del catálogo del kit más las propias del proyecto. Las del catálogo que el perfil nombre las copia `make install-kit`, y las que deje de nombrar las retira. Si una es `redactada` (ver `madurez_de_las_skills_del_catalogo`), avisa que todavía no se usó en un proyecto real. Si falta la de una tecnología, dilo: el agente trabajará sin ella.
 7. Las skills del catálogo dicen el estándar de cada tecnología, no cómo lo hace este proyecto. Lo propio del proyecto (nombres, estructura, patrones, bibliotecas) va en una skill `convenciones-de-<parte>`, que redacta el comando `bowser-conventions` y se nombra aquí junto a la del catálogo. No la inventes al redactar el perfil: si falta, `make profile` lo recuerda.
 8. Nada de secretos en los comandos: las credenciales vienen de variables de entorno.
 
@@ -115,4 +115,4 @@ El kit no instala nada que dependa de la tecnología. Al redactar el perfil, rev
 - Un resumen en lenguaje simple: partes, tecnología de cada una, roles que la trabajan, verbos definidos y verbos sin definir, y lo que cada máquina debe tener instalado.
 - Las preguntas abiertas.
 
-Después de escribirlo, `make profile` lo valida, `make doctor` dice si la máquina cumple los requisitos y `make instalar-kit` trae sus skills y regenera los roles con lo que el perfil dice de cada parte (sin ese paso, el commit se rechaza porque los archivos generados no están al día). El commit lo confirma una persona con `APROBADO_PERFIL=1`; un agente nunca usa esa variable.
+Después de escribirlo, `make profile` lo valida, `make doctor` dice si la máquina cumple los requisitos y `make install-kit` trae sus skills y regenera los roles con lo que el perfil dice de cada parte (sin ese paso, el commit se rechaza porque los archivos generados no están al día). El commit lo confirma una persona con `APPROVED_PROFILE=1`; un agente nunca usa esa variable.

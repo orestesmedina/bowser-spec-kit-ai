@@ -89,7 +89,9 @@ en `{PRINCIPIOS}`) y reglas (del proyecto, en este archivo). Borra lo que ya dic
 
 """
 
-INICIO_GITIGNORE = "# >>> bowser-spec-kit-ai (gestionado por make instalar-kit; no editar este bloque)"
+INICIO_GITIGNORE = "# >>> bowser-spec-kit-ai (gestionado por make install-kit; no editar este bloque)"
+# El inicio del bloque se reconoce por su comienzo: hasta la 1.21.0 nombraba el comando anterior (make instalar-kit).
+CON_INICIO_GITIGNORE = re.compile(r"^# >>> bowser-spec-kit-ai\b.*$", re.MULTILINE)
 FIN_GITIGNORE = "# <<< bowser-spec-kit-ai"
 HEREDADAS_GITIGNORE = "# Estas líneas venían en el bloque del kit; desde ahora son del proyecto: edítalas o bórralas."
 
@@ -141,7 +143,7 @@ def archivos_del_catalogo(excluir: list[str], anterior: dict) -> tuple[dict[str,
         # No se sabe qué pide el proyecto: ni se agregan ni se retiran skills hasta que el perfil se pueda leer.
         pedidas = sorted({skill_de(rel) for rel in anterior} & set(disponibles))
         avisos.append(f"{perfil_proyecto.RUTA} no se puede leer: las skills del catálogo se dejan como estaban. "
-                      "Corrígelo (make profile) y repite make instalar-kit.")
+                      "Corrígelo (make profile) y repite make install-kit.")
     else:
         pedidas = list(catalogo.SIN_PERFIL) if perfil is None else perfil_proyecto.skills_nombradas(perfil)
         for s in pedidas:
@@ -269,7 +271,7 @@ def mostrar_novedades(desde: str | None, hasta: str | None, limite_sin_desde: in
 
 def bloque_gitignore() -> str:
     lineas = (KIT / ".gitignore").read_text(encoding="utf-8").strip().splitlines() if (KIT / ".gitignore").exists() else []
-    lineas += ["", "# Respaldos de make instalar-kit", ".kit-respaldo/"]
+    lineas += ["", "# Respaldos de make install-kit", ".kit-respaldo/"]
     return "\n".join([INICIO_GITIGNORE, *lineas, FIN_GITIGNORE]) + "\n"
 
 
@@ -281,8 +283,8 @@ def gitignore_con_bloque(actual: str) -> tuple[str, list[str]]:
     """El .gitignore con el bloque del kit al día, y las reglas que el bloque tenía y ya no trae.
     Esas no se pierden: quedan debajo del bloque, como del proyecto (si no, git empezaría a ver lo que ignoraba)."""
     bloque = bloque_gitignore()
-    if INICIO_GITIGNORE in actual and FIN_GITIGNORE in actual:
-        antes, resto = actual.split(INICIO_GITIGNORE, 1)
+    if CON_INICIO_GITIGNORE.search(actual) and FIN_GITIGNORE in actual:
+        antes, resto = CON_INICIO_GITIGNORE.split(actual, 1)
         viejo, despues = resto.split(FIN_GITIGNORE, 1)
         despues = despues.lstrip("\n")
         quedan = set(reglas_gitignore(antes + bloque + despues))
@@ -368,6 +370,16 @@ def respaldar(rels: list[str]) -> Path | None:
     return carpeta
 
 
+def forzar_con_make() -> str:
+    """El comando para forzar la instalación, con el nombre que entiende el Makefile que el proyecto tiene ahora:
+    si la instalación se detuvo, sigue siendo el de la versión anterior, que puede no conocer los nombres nuevos."""
+    try:
+        nuevo = re.search(r"^install-kit:", (DESTINO / "Makefile").read_text(encoding="utf-8"), re.MULTILINE)
+    except OSError:
+        return f"make -f {RUTA_KIT}/Makefile install-kit FORCE=1"
+    return "make install-kit FORCE=1" if nuevo else "make instalar-kit FORZAR=1"
+
+
 def instalar(forzar: bool) -> int:
     previo = leer_manifiesto()
     version_previa = previo.get("version") if clave_version(previo.get("version") or "") else None
@@ -381,7 +393,7 @@ def instalar(forzar: bool) -> int:
         print("\nOpciones:", file=sys.stderr)
         print("  • Si el cambio sirve a todos los proyectos: llévalo al repositorio del kit y actualiza.", file=sys.stderr)
         print("  • Si es propio de este proyecto: agrégalo a \"kit.excluir\" en equipo/config.json.", file=sys.stderr)
-        print("  • Para descartarlo (se guarda un respaldo): make instalar-kit FORZAR=1", file=sys.stderr)
+        print(f"  • Para descartarlo (se guarda un respaldo): {forzar_con_make()}", file=sys.stderr)
         return 1
 
     respaldo = respaldar(a["previos"] + a["conflictos"] + a["eliminar_modificados"] if forzar else a["previos"])
@@ -422,7 +434,7 @@ def instalar(forzar: bool) -> int:
         gi.write_text(nuevo, encoding="utf-8")
 
     manifiesto = {
-        "_comentario": f"Generado por make instalar-kit. Lista los archivos que vienen del kit ({RUTA_KIT}/) y su hash.",
+        "_comentario": f"Generado por make install-kit. Lista los archivos que vienen del kit ({RUTA_KIT}/) y su hash.",
         "version": version_kit() or commit_kit(),
         "commit": commit_kit(),
         "ruta_kit": RUTA_KIT,
@@ -492,7 +504,7 @@ def resumen_novedades(previa: str | None, previa_cruda: str | None = None) -> No
 
 def verificar() -> int:
     if not MANIFIESTO.exists():
-        print(f"✗ El kit no está instalado en este proyecto (falta .kit-manifest.json). Ejecuta: make -f {RUTA_KIT}/Makefile instalar-kit", file=sys.stderr)
+        print(f"✗ El kit no está instalado en este proyecto (falta .kit-manifest.json). Ejecuta: make -f {RUTA_KIT}/Makefile install-kit", file=sys.stderr)
         return 1
     excluir = leer_excluir()
     a = analizar(excluir)
@@ -508,14 +520,14 @@ def verificar() -> int:
     if pendientes and anterior.get("version") == version_kit() and all(skill_de(rel) in disponibles for rel in pendientes):
         # Misma versión del kit y solo cambian skills del catálogo: lo que cambió es el perfil del proyecto.
         problemas += 1
-        print(f"✗ Las skills instaladas no son las que pide el perfil ({perfil_proyecto.RUTA}). Ejecuta: make instalar-kit",
+        print(f"✗ Las skills instaladas no son las que pide el perfil ({perfil_proyecto.RUTA}). Ejecuta: make install-kit",
               file=sys.stderr)
         for nombre in sorted({skill_de(rel) for rel in pendientes}):
             print(f"    {nombre}: {'sobra' if not any(skill_de(rel) == nombre for rel in a['kit']) else 'falta'}", file=sys.stderr)
     elif pendientes:
         problemas += 1
         print(f"✗ El submódulo {RUTA_KIT}/ está en {nombre_version(version_kit(), commit_kit())} pero se instaló "
-              f"{nombre_version(anterior.get('version'), anterior.get('commit'))}. Ejecuta: make instalar-kit", file=sys.stderr)
+              f"{nombre_version(anterior.get('version'), anterior.get('commit'))}. Ejecuta: make install-kit", file=sys.stderr)
         for rel in pendientes:
             print(f"    {rel}", file=sys.stderr)
     if problemas:

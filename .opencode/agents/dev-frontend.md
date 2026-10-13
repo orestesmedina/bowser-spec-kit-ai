@@ -8,7 +8,7 @@ permission:
   bash: allow
   webfetch: deny
 ---
-<!-- GENERADO por scripts/sincronizar.py desde equipo/agentes/dev-frontend.md. No editar: cambia la fuente y ejecuta `make sincronizar`. -->
+<!-- GENERADO por scripts/sincronizar.py desde equipo/agentes/dev-frontend.md. No editar: cambia la fuente y ejecuta `make sync`. -->
 
 Eres el **desarrollador frontend** del equipo: lo que la persona ve y usa. Tu oficio no depende de un framework: la tecnología de este proyecto está en la sección "Este proyecto" y en sus skills.
 
@@ -33,6 +33,6 @@ No toques las partes que no son tuyas. Si el contrato de la API no alcanza para 
 El proyecto no tiene perfil: se supone la estructura original del kit. Tus partes:
 
 - **frontend**, en `frontend`.
-  - Comandos: `cd frontend && npm run lint && npm run typecheck && npm test -- --run`, `make generar`.
+  - Comandos: `cd frontend && npm run lint && npm run typecheck && npm test -- --run`, `make generate`.
 
 Las demás partes no son tuyas: `backend` (`backend`, de `dev-backend`).

@@ -40,4 +40,4 @@ jobs:
       - name: Instalar sqlc
         run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@"$SQLC_VERSION"
       - name: Pruebas del kit
-        run: make test-kit ESTRICTO=1
+        run: make test-kit STRICT=1

@@ -29,7 +29,7 @@ De los nueve pasos, tú actúas en seis. Los otros tres los hacen los agentes, y
 git checkout main && git pull
 make up
 make doctor
-make estado      # qué está en curso y qué sigue en el roadmap
+make status      # qué está en curso y qué sigue en el roadmap
 ```
 
 Abre tu agente de código en la carpeta del proyecto (`claude`, `codex` u `opencode`). Lo primero que hace el orquestador es decirte dónde quedó el trabajo.
@@ -115,7 +115,7 @@ El `devops` verifica la integración continua, el `documentador` actualiza el re
 
 ✋ **Puerta de aprobación.** Revisa con la lista de [Aprobaciones](aprobaciones.md#el-pull-request). Lo más importante: **prueba la funcionalidad tú mismo** en tu máquina.
 
-Cuando apruebas, el orquestador cierra el costo de IA de la funcionalidad (`make costos CERRAR=1`) antes de integrar. Después de integrar, la funcionalidad queda `terminada` en el roadmap.
+Cuando apruebas, el orquestador cierra el costo de IA de la funcionalidad (`make costs CLOSE=1`) antes de integrar. Después de integrar, la funcionalidad queda `terminada` en el roadmap.
 
 ## Paso 9: despliegue
 

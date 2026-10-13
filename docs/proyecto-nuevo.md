@@ -44,7 +44,7 @@ El kit se agrega como submódulo de git en la carpeta `.bowser-spec-kit-ai/` y s
 
 ```bash
 git submodule add https://github.com/orestesmedina/bowser-spec-kit-ai.git .bowser-spec-kit-ai
-make -f .bowser-spec-kit-ai/Makefile instalar-kit
+make -f .bowser-spec-kit-ai/Makefile install-kit
 ```
 
 Si tu equipo mantiene su propia copia del kit, usa la dirección de ese repositorio. La primera vez se usa `make -f …` porque el proyecto todavía no tiene `Makefile`; después de instalar, basta con `make`.
@@ -69,7 +69,7 @@ Este commit ya pasa por los [hooks de git](hooks-de-git.md). Si alguno lo bloque
 
 ## Qué hizo la instalación
 
-Las herramientas leen sus archivos en la raíz del proyecto, no dentro del submódulo. Por eso `make instalar-kit`:
+Las herramientas leen sus archivos en la raíz del proyecto, no dentro del submódulo. Por eso `make install-kit`:
 
 1. **Copió a la raíz los archivos del kit:** las instrucciones de los agentes, los roles, las skills, los hooks, los controles de la integración continua que no dependen de la tecnología (`bowser.yml`), los principios de la constitución, los scripts y el `Makefile`. Quedan registrados en `.kit-manifest.json`.
 2. **Copió las semillas:** `equipo/config.json`, `equipo/reglas.md` (las reglas del proyecto, sin ninguna todavía), `.github/CODEOWNERS` y `.env.example` (vacío). Son un punto de partida; desde ahora son del proyecto.
@@ -89,7 +89,7 @@ La instalación deja valores genéricos en tres lugares:
 | `.github/CODEOWNERS` | Reemplaza `@tu-org/direccion-tecnica` por el usuario o equipo de GitHub que debe aprobar los cambios a las reglas |
 | `equipo/reglas.md` | Llega vacío. Ahí van las reglas propias del proyecto (arquitectura, mínimos de prueba), y cambiarlo pide la aprobación de dirección técnica. Lee [La constitución](la-constitucion.md) |
 
-Después de cambiar `equipo/config.json`, ejecuta `make sincronizar`.
+Después de cambiar `equipo/config.json`, ejecuta `make sync`.
 
 ## Siguientes pasos
 

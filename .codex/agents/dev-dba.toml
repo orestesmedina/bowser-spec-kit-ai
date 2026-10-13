@@ -1,4 +1,4 @@
-# GENERADO por scripts/sincronizar.py desde equipo/agentes/dev-dba.md. No editar: cambia la fuente y ejecuta `make sincronizar`.
+# GENERADO por scripts/sincronizar.py desde equipo/agentes/dev-dba.md. No editar: cambia la fuente y ejecuta `make sync`.
 name = "dev-dba"
 description = "Usar para implementar las tareas de tasks.md de la base de datos (tablas, migraciones, índices, consultas, procedimientos almacenados), siempre con la forma de revertirlas. Qué partes trabaja y con qué motor lo dice el perfil del proyecto."
 model_reasoning_effort = "medium"

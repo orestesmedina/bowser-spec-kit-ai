@@ -77,7 +77,7 @@ def constitucion_que_ya_existia(e):
     q.commit("chore: instala kit")
     # Las reglas ya son del proyecto: instalar de nuevo no las toca.
     q.agregar(reglas, "\n- Otra regla.\n")
-    q.make("instalar-kit")
+    q.make("install-kit")
     contiene(q.leer(reglas), "Otra regla.", "las reglas del proyecto después de instalar otra vez")
 
 
@@ -116,7 +116,7 @@ def repara_permisos(e):
 @prueba("instalar por segunda vez no cambia nada")
 def instalar_dos_veces(e):
     p = e.proyecto()
-    r = p.make("instalar-kit")
+    r = p.make("install-kit")
     contiene(r.salida, "Sin cambios: el proyecto ya estaba al día.")
     afirmar(not p.pendientes(), f"la segunda instalación dejó cambios: {p.pendientes()}")
 

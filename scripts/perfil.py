@@ -14,7 +14,7 @@ El perfil vive en equipo/perfil.json y es del proyecto (el kit no lo instala ni 
           {"rol": "dev-frontend", "skills": ["react-frontend"]}     el nombre y las skills que son solo suyas
         ],
         "skills": ["go-backend"],             opcional: skills para todos los roles de la parte (del catálogo del
-                                              kit, que `make instalar-kit` copia, o propias en .agents/skills/)
+                                              kit, que `make install-kit` copia, o propias en .agents/skills/)
         "terceros": ["vendor"],               opcional: carpetas con código ajeno (relativas a la parte)
         "inmutables": ["migrations/*.sql"],   opcional: archivos que no se modifican una vez versionados
         "verbos": {                           opcional: comando de cada verbo, ejecutado dentro de la carpeta
@@ -78,8 +78,8 @@ VERBOS = {
 MAKE_DE_VERBOS = (
     (("formato", "revisar"), "lint"),
     (("probar",), "test"),
-    (("cobertura",), "cobertura"),
-    (("generar",), "generar"),
+    (("cobertura",), "coverage"),
+    (("generar",), "generate"),
     (("auditar",), "security"),
 )
 # Lo que el kit supone de un proyecto sin perfil: la estructura con la que nació. Solo lo usa
@@ -88,9 +88,9 @@ MAKE_DE_VERBOS = (
 SIN_PERFIL = {"partes": [
     {"nombre": "backend", "carpeta": "backend", "roles": ["dev-backend"], "skills": ["go-backend", "postgres-db"],
      "inmutables": ["migrations/*.sql"],
-     "_comandos": ["cd backend && gofmt -l . && go vet ./... && go test ./...", "make generar", "make cobertura"]},
+     "_comandos": ["cd backend && gofmt -l . && go vet ./... && go test ./...", "make generate", "make coverage"]},
     {"nombre": "frontend", "carpeta": "frontend", "roles": ["dev-frontend"], "skills": ["react-frontend"],
-     "_comandos": ["cd frontend && npm run lint && npm run typecheck && npm test -- --run", "make generar"]},
+     "_comandos": ["cd frontend && npm run lint && npm run typecheck && npm test -- --run", "make generate"]},
 ]}
 CAMPOS = {"nombre", "carpeta", "descripcion", "rol", "roles", "skills", "terceros", "inmutables", "verbos"}
 NOMBRE = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
@@ -258,7 +258,7 @@ def validar(perfil: dict, raiz: Path = RAIZ) -> tuple[list[str], list[str]]:
                 continue
             if s in en_catalogo:
                 avisos.append(f"{quien}: la skill «{s}» está en el catálogo del kit pero todavía no en el proyecto "
-                              "(ejecuta: make instalar-kit)")
+                              "(ejecuta: make install-kit)")
             else:
                 avisos.append(f"{quien}: la skill «{s}» no está en .agents/skills/ ni en el catálogo del kit "
                               "(el agente trabajará sin ella)")
@@ -560,7 +560,7 @@ def detectar(raiz: Path = RAIZ) -> dict:
             {"carpeta": c, "archivos": n} for c, n in sorted(dudosas.items(), key=lambda kv: -kv[1])[:30]],
         "archivos_sql": sql,
         "roles_disponibles": sorted(p.stem for p in (raiz / "equipo/agentes").glob("*.md")),
-        # Las del catálogo del kit (make instalar-kit copia las que el perfil nombre) y las propias del proyecto.
+        # Las del catálogo del kit (make install-kit copia las que el perfil nombre) y las propias del proyecto.
         "skills_disponibles": sorted(propias | set(en_catalogo)),
         "madurez_de_las_skills_del_catalogo": {n: s["madurez"] for n, s in en_catalogo.items()},
         "verbos": VERBOS,

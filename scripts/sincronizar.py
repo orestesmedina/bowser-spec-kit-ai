@@ -37,7 +37,7 @@ from pathlib import Path
 import perfil as perfil_proyecto
 
 RAIZ = Path(__file__).resolve().parent.parent
-AVISO = "GENERADO por scripts/sincronizar.py desde {fuente}. No editar: cambia la fuente y ejecuta `make sincronizar`."
+AVISO = "GENERADO por scripts/sincronizar.py desde {fuente}. No editar: cambia la fuente y ejecuta `make sync`."
 
 # Prefijo de los comandos dentro de la herramienta (/bowser-status). Si el kit cambia de nombre, se cambia solo aquí.
 PREFIJO_COMANDOS = "bowser-"
@@ -209,7 +209,7 @@ def aplicar_perfil(agente: dict, perfil: dict | None, supuesto: bool) -> None:
             for verbos, orden in perfil_proyecto.MAKE_DE_VERBOS:
                 con_comando = [v for v in verbos if perfil_proyecto.comando_de(parte, v)]
                 if con_comando:
-                    definidos.append(f"make {orden} PARTE={parte['nombre']}")
+                    definidos.append(f"make {orden} PART={parte['nombre']}")
                 faltan += [v for v in verbos if v not in con_comando]
             if definidos:
                 detalle.append(f"  - Comandos: {en_codigo(definidos)}.")
@@ -668,7 +668,7 @@ def main() -> int:
         print(f"Aviso: {e}", file=sys.stderr)
     if errores:
         print("Aviso: con el perfil así, los roles se generan sin los datos del proyecto. Corrígelo (make profile) "
-              "y ejecuta `make sincronizar`.", file=sys.stderr)
+              "y ejecuta `make sync`.", file=sys.stderr)
     for a in agentes:
         aplicar_perfil(a, perfil, supuesto)
 
@@ -701,7 +701,7 @@ def main() -> int:
             for titulo, lista in (("Faltan", faltan), ("Sobran", sobran), ("Desactualizados", distintos)):
                 for k in lista:
                     print(f"  {titulo}: {k}", file=sys.stderr)
-            print("Los archivos generados no están al día. Ejecuta `make sincronizar`.", file=sys.stderr)
+            print("Los archivos generados no están al día. Ejecuta `make sync`.", file=sys.stderr)
             return 1
         print(f"OK: {len(esperado)} archivos generados al día ({', '.join(activas)}).")
         return 0
@@ -727,7 +727,7 @@ def main() -> int:
     for h in activas:
         n = sum(1 for k in esperado if k.startswith(PREFIJOS[h]))
         print(f"  {h}: {n} archivos")
-    print("Revisa qué modelo usa cada agente con: make modelos")
+    print("Revisa qué modelo usa cada agente con: make models")
     return 0
 
 

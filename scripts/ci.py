@@ -7,7 +7,7 @@ El kit solo trae bowser.yml, con los controles que no dependen de ella. Este scr
 dice qué verbos de qué partes ejecutan, para que una parte no quede sin revisar sin que nadie lo note.
 
 Reconoce las dos formas de ejecutar un verbo:
-  make ci | lint | test | cobertura | security | verificar-generados      (con PARTE=<nombre>, solo esa parte)
+  make ci | lint | test | coverage | security | check-generated          (con PART=<nombre>, solo esa parte)
   python3 scripts/verbos.py <verbo>...                                    (con --parte <nombre>, solo esa parte)
 
 Uso:
@@ -26,10 +26,13 @@ from perfil import MAKE_DE_VERBOS, RAIZ, RUTA, VERBOS, comando_de, perfil_valido
 
 CARPETA = ".github/workflows"
 DEL_KIT = {"bowser.yml"}        # el workflow del kit no ejecuta verbos
-# Qué verbos ejecuta cada comando de make. `make ci` los ejecuta todos; `make generar` no cuenta: en la
-# integración continua lo que comprueba es verificar-generados.
-DE_MAKE = {comando: set(verbos) for verbos, comando in MAKE_DE_VERBOS if comando != "generar"}
-DE_MAKE.update({"ci": set(VERBOS), "verificar-generados": {"generar"}})
+# Qué verbos ejecuta cada comando de make. `make ci` los ejecuta todos; `make generate` no cuenta: en la
+# integración continua lo que comprueba es check-generated.
+DE_MAKE = {comando: set(verbos) for verbos, comando in MAKE_DE_VERBOS if comando != "generate"}
+DE_MAKE.update({"ci": set(VERBOS), "check-generated": {"generar"}})
+# Los workflows escritos antes de la 1.22.0 usan los nombres anteriores de los comandos y de la opción.
+DE_MAKE.update({"cobertura": DE_MAKE["coverage"], "verificar-generados": DE_MAKE["check-generated"]})
+CON_PARTE = ("PART=", "PARTE=")
 CON_MAKE = re.compile(r"\bmake\b([^\n|;&]*)")
 CON_SCRIPT = re.compile(r"scripts/verbos\.py\b([^\n|;&]*)")
 TODAS = "*"
@@ -37,7 +40,7 @@ TODAS = "*"
 
 def partes_de(nombre: str | None, partes: list[str]) -> list[str]:
     """Las partes a las que se refiere una llamada. Sin nombre, o con uno que se resuelve al ejecutar
-    (${{ matrix.parte }}, $PARTE), no se puede saber: se toma como todas."""
+    (${{ matrix.parte }}, $PART), no se puede saber: se toma como todas."""
     if not nombre or "$" in nombre:
         return partes
     nombre = nombre.strip("\"'")
@@ -51,7 +54,7 @@ def ejecutados(texto: str, partes: list[str]) -> set[tuple[str, str]]:
         linea = re.sub(r"(^|\s)#.*", "", linea)      # lo comentado no se ejecuta
         for m in CON_MAKE.finditer(linea):
             palabras = m.group(1).split()
-            parte = next((p.split("=", 1)[1] for p in palabras if p.startswith("PARTE=")), None)
+            parte = next((p.split("=", 1)[1] for p in palabras if p.startswith(CON_PARTE)), None)
             verbos = set().union(*(DE_MAKE.get(p, set()) for p in palabras))
             pares |= {(p, v) for p in partes_de(parte, partes) for v in verbos}
         for m in CON_SCRIPT.finditer(linea):

@@ -76,7 +76,7 @@ Vale la pena revisar con cuidado su plan y su Pull Request, aunque "no haga nada
 Una funcionalidad a la vez, con el flujo de [Construir una funcionalidad](funcionalidad.md), **integrando cada una antes de empezar la siguiente**.
 
 ```bash
-make estado
+make status
 ```
 
 muestra en todo momento qué está terminado, qué está en curso y qué sigue.
@@ -93,7 +93,7 @@ El orquestador actualiza la columna **Estado** del roadmap a medida que avanza e
 | `terminada` | Una persona confirmó que se integró |
 | `pausada` | Se empezó y se dejó a propósito. El motivo queda en su `estado.md` |
 
-El cambio de estado se hace en la rama de la funcionalidad y llega a la rama principal cuando se integra. Mientras tanto, `make estado` muestra desde la rama principal el trabajo en curso de las otras ramas.
+El cambio de estado se hace en la rama de la funcionalidad y llega a la rama principal cuando se integra. Mientras tanto, `make status` muestra desde la rama principal el trabajo en curso de las otras ramas.
 
 ## Cambiar el roadmap
 

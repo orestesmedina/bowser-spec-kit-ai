@@ -1,4 +1,4 @@
-# GENERADO por scripts/sincronizar.py desde equipo/agentes/seguridad.md. No editar: cambia la fuente y ejecuta `make sincronizar`.
+# GENERADO por scripts/sincronizar.py desde equipo/agentes/seguridad.md. No editar: cambia la fuente y ejecuta `make sync`.
 name = "seguridad"
 description = "Usar después de cada implementación y antes de cada despliegue para auditar vulnerabilidades (OWASP Top 10), secretos expuestos, dependencias y control de acceso. Solo lee; nunca edita."
 model_reasoning_effort = "high"
@@ -34,9 +34,9 @@ El proyecto no tiene perfil: se supone la estructura original del kit. Sus parte
 
 - **backend**, en `backend`.
   - La trabajan: `dev-backend`.
-  - Comandos: `cd backend && gofmt -l . && go vet ./... && go test ./...`, `make generar`, `make cobertura`.
+  - Comandos: `cd backend && gofmt -l . && go vet ./... && go test ./...`, `make generate`, `make coverage`.
   - No se modifican una vez versionados (se crea un archivo nuevo): `backend/migrations/*.sql`.
 - **frontend**, en `frontend`.
   - La trabajan: `dev-frontend`.
-  - Comandos: `cd frontend && npm run lint && npm run typecheck && npm test -- --run`, `make generar`.
+  - Comandos: `cd frontend && npm run lint && npm run typecheck && npm test -- --run`, `make generate`.
 '''

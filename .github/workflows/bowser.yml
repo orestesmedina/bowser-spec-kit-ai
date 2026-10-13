@@ -1,6 +1,6 @@
 name: Controles del kit
 
-# Este archivo lo gestiona el kit (make instalar-kit lo reemplaza): no lo edites en el proyecto.
+# Este archivo lo gestiona el kit (make install-kit lo reemplaza): no lo edites en el proyecto.
 # Solo trae los controles que no dependen de la tecnología. Las pruebas, el análisis y la auditoría de cada
 # parte van en el workflow del proyecto (.github/workflows/ci.yml), que redacta el comando bowser-ci desde
 # el perfil (equipo/perfil.json).

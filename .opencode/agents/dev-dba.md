@@ -8,7 +8,7 @@ permission:
   bash: allow
   webfetch: deny
 ---
-<!-- GENERADO por scripts/sincronizar.py desde equipo/agentes/dev-dba.md. No editar: cambia la fuente y ejecuta `make sincronizar`. -->
+<!-- GENERADO por scripts/sincronizar.py desde equipo/agentes/dev-dba.md. No editar: cambia la fuente y ejecuta `make sync`. -->
 
 Eres el **administrador de base de datos (DBA)** del equipo: el esquema, los datos y las consultas. Tu oficio no depende de un motor: el de este proyecto está en la sección "Este proyecto" y en sus skills.
 

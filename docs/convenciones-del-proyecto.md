@@ -48,9 +48,9 @@ Primero el proyecto necesita su [perfil](perfil-del-proyecto.md), porque las con
 3. Donde el código hace lo mismo de dos formas, te pregunta cuál vale para lo nuevo. No lo decide él.
 4. Compara con la skill del catálogo de esa tecnología y lista las diferencias.
 5. Te muestra la propuesta en lenguaje simple y espera tu aprobación.
-6. Con tu "sí", escribe `.agents/skills/convenciones-de-<parte>/SKILL.md`, agrega esa skill a la parte en el perfil y ejecuta `make instalar-kit` para que los roles la reciban.
+6. Con tu "sí", escribe `.agents/skills/convenciones-de-<parte>/SKILL.md`, agrega esa skill a la parte en el perfil y ejecuta `make install-kit` para que los roles la reciban.
 
-El commit lo confirmas tú con `APROBADO_PERFIL=1`, porque cambió el perfil. Ver [Aprobar un cambio en el perfil](perfil-del-proyecto.md).
+El commit lo confirmas tú con `APPROVED_PROFILE=1`, porque cambió el perfil. Ver [Aprobar un cambio en el perfil](perfil-del-proyecto.md).
 
 `make profile` recuerda qué partes todavía no las tienen:
 
@@ -117,7 +117,7 @@ Mientras tanto, los agentes trabajan con el estándar de las skills del catálog
 |---|---|---|
 | El agente dice que no hay perfil | Las convenciones se redactan por parte, y las partes las dice el perfil | `/bowser-profile` primero |
 | `la skill «convenciones-de-x» no está en .agents/skills/` | El perfil la nombra y el archivo no existe (se borró, o el nombre de la parte cambió) | Vuelve a ejecutar `/bowser-conventions x`, o quítala del perfil |
-| `Las skills instaladas no son las que pide el perfil` o `La configuración de agentes o la constitución generada están desactualizadas` | Se cambió el perfil y no se instaló | `make instalar-kit` |
+| `Las skills instaladas no son las que pide el perfil` o `La configuración de agentes o la constitución generada están desactualizadas` | Se cambió el perfil y no se instaló | `make install-kit` |
 | Las convenciones describen código de una biblioteca copiada | Esa carpeta no está declarada como de terceros | Agrégala a `terceros` en el perfil y repite |
 | Un agente sigue el estándar donde el proyecto hace otra cosa | Esa costumbre no quedó escrita | Agrégala al archivo, con un ejemplo |
 

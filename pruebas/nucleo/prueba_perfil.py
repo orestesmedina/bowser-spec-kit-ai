@@ -4,7 +4,7 @@ import json
 from apoyo import afirmar, contiene, prueba
 
 PERFIL = "equipo/perfil.json"
-APROBADO = {"APROBADO_PERFIL": "1"}
+APROBADO = {"APPROVED_PROFILE": "1"}
 
 
 def base() -> dict:
@@ -26,7 +26,7 @@ def con_perfil(e, perfil: dict | None = None):
     p.escribir("servidor/index.php", "<?php\n")
     p.escribir("web/panel/index.html", "<html></html>\n")
     escribir_perfil(p, perfil or base())
-    p.make("instalar-kit")      # las skills del proyecto pasan a ser las que nombra el perfil
+    p.make("install-kit")      # las skills del proyecto pasan a ser las que nombra el perfil
     p.commit("chore: perfil del proyecto", extra=APROBADO)
     return p
 
@@ -48,9 +48,9 @@ def verbos_del_perfil(e):
 
     # Un verbo que nadie define avisa y no falla: el proyecto todavía no lo tiene.
     contiene(p.make("security").salida, "Ninguna parte define «auditar»")
-    contiene(p.make("cobertura").salida, "Ninguna parte define «cobertura»")
-    contiene(p.make("test", "PARTE=panel").salida, "Ninguna parte define «probar»")
-    contiene(p.make("test", "PARTE=nada", espera=1).salida, "No hay ninguna parte llamada «nada»")
+    contiene(p.make("coverage").salida, "Ninguna parte define «cobertura»")
+    contiene(p.make("test", "PART=panel").salida, "Ninguna parte define «probar»")
+    contiene(p.make("test", "PART=nada", espera=1).salida, "No hay ninguna parte llamada «nada»")
 
     contiene(p.make("profile").salida, "OK: perfil válido (2 partes).")
     contiene(p.make("profile").salida, "cobertura  — sin definir")
@@ -66,9 +66,9 @@ def verbos_del_perfil(e):
     contiene(r.salida, "revisar-panel")
 
     # El perfil es del proyecto: instalar el kit otra vez no lo toca.
-    p.make("sincronizar")       # los roles llevan escrito qué verbos tiene cada parte
+    p.make("sync")       # los roles llevan escrito qué verbos tiene cada parte
     p.commit("chore: verbos de revisión", extra=APROBADO)
-    p.make("instalar-kit")
+    p.make("install-kit")
     p.verificar_kit()
     afirmar(json.loads(p.leer(PERFIL)) == perfil, "instalar el kit cambió el perfil del proyecto")
     afirmar(PERFIL not in json.loads(p.leer(".kit-manifest.json"))["archivos"], "el perfil quedó registrado como archivo del kit")
@@ -181,7 +181,7 @@ def variables_de_los_verbos(e):
                "echo \"raiz=$PERFIL_RAIZ en=$PWD\"\n"
                "while IFS= read -r t; do echo \"tercero=<$t>\"; done <<< \"$PERFIL_TERCEROS\"\n")
     escribir_perfil(p, perfil)
-    p.make("instalar-kit")
+    p.make("install-kit")
     # El commit toca la parte «api»: su verbo formato corre en el hook y necesita las dos variables.
     p.commit("chore: perfil del proyecto", extra=APROBADO)
 
@@ -192,7 +192,7 @@ def variables_de_los_verbos(e):
     contiene(r.salida, "panel-sin-terceros")
 
     # tools/ es del proyecto: instalar el kit otra vez no la toca ni la registra como suya.
-    p.make("instalar-kit")
+    p.make("install-kit")
     p.verificar_kit()
     afirmar(p.existe("tools/mostrar.sh") and not p.pendientes(), f"instalar el kit tocó el proyecto: {p.pendientes()}")
     afirmar(not [a for a in json.loads(p.leer(".kit-manifest.json"))["archivos"] if a.startswith("tools/")],
@@ -227,14 +227,14 @@ def resumen_de_ci(e):
     completo = {"partes": [{"nombre": "todo", "carpeta": "servidor", "verbos": {v: f"echo {v}-ok" for v in
                                                                                  ("formato", "revisar", "probar", "cobertura", "auditar", "generar")}}]}
     escribir_perfil(p, completo)
-    p.make("sincronizar")
+    p.make("sync")
     p.commit("chore: perfil completo", extra=APROBADO)
     contiene(p.make("ci").salida, "✓ Todo comprobado y sin fallos (6 comprobaciones).")
     escribir_perfil(p, base())
-    contiene(p.make("ci", "PARTE=api").salida, "1 de 6 comprobaciones")
+    contiene(p.make("ci", "PART=api").salida, "1 de 6 comprobaciones")
 
 
-@prueba("commit: el perfil se confirma con APROBADO_PERFIL, sus inmutables no se modifican y el formato corre solo en la parte tocada")
+@prueba("commit: el perfil se confirma con APPROVED_PROFILE, sus inmutables no se modifican y el formato corre solo en la parte tocada")
 def controles_del_commit(e):
     p = e.proyecto()
     p.escribir("servidor/index.php", "<?php\n")
@@ -242,7 +242,7 @@ def controles_del_commit(e):
     perfil = base()
     perfil["partes"][0]["verbos"]["formato"] = "touch ../formato-corrio; ! grep -rIlq --exclude-dir=ajeno SIN_FORMATO ."
     escribir_perfil(p, perfil)
-    p.make("instalar-kit")
+    p.make("install-kit")
     contiene(p.commit("chore: perfil del proyecto", espera=1).salida, "El perfil del proyecto (equipo/perfil.json) cambió")
     afirmar(p.commits() == 1, "el perfil entró al historial sin la confirmación de una persona")
     p.commit("chore: perfil del proyecto", extra=APROBADO)
@@ -281,7 +281,7 @@ def controles_del_commit(e):
 
     # Quitar el perfil también lo confirma una persona; sin él vuelven los controles de siempre.
     p.git("rm", "-q", PERFIL)
-    p.make("instalar-kit")      # sin perfil, vuelven las tres skills de siempre
+    p.make("install-kit")      # sin perfil, vuelven las tres skills de siempre
     p.git("add", "-A")
     contiene(p.git("commit", "-m", "chore: quita el perfil", espera=1).salida, "El perfil del proyecto (equipo/perfil.json) cambió")
     p.git("commit", "-m", "chore: quita el perfil", extra=APROBADO)
@@ -289,21 +289,21 @@ def controles_del_commit(e):
     contiene(p.commit("fix(db): edita la migración", espera=1).salida, "No modifiques migraciones existentes")
 
 
-@prueba("make verificar-generados con perfil: falla si el verbo generar deja cambios sin commit")
+@prueba("make check-generated con perfil: falla si el verbo generar deja cambios sin commit")
 def generados_con_perfil(e):
     perfil = base()
     perfil["partes"][0]["verbos"]["generar"] = "echo generado > salida.gen"
     p = con_perfil(e, perfil)
-    r = p.make("verificar-generados", espera=1)
+    r = p.make("check-generated", espera=1)
     contiene(r.salida, "El código generado de la parte «api» no estaba al día")
     contiene(r.salida, "servidor/salida.gen")
     p.commit("chore: código generado")
-    contiene(p.make("verificar-generados").salida, "Código generado al día en la parte «api»")
-    p.make("generar")
+    contiene(p.make("check-generated").salida, "Código generado al día en la parte «api»")
+    p.make("generate")
     afirmar(not p.pendientes(), f"generar dos veces dejó cambios: {p.pendientes()}")
 
 
-@prueba("make profile DETECTAR=1 describe el proyecto sin escribir nada y sin contar el kit ni el código de terceros")
+@prueba("make profile DETECT=1 describe el proyecto sin escribir nada y sin contar el kit ni el código de terceros")
 def detectar(e):
     p = e.proyecto()
     p.escribir("api/index.php", "<?php\n")
@@ -321,7 +321,7 @@ def detectar(e):
     p.git("add", "-A")
     antes = p.pendientes()
 
-    d = json.loads(p.make("profile", "DETECTAR=1").salida)
+    d = json.loads(p.make("profile", "DETECT=1").salida)
     afirmar(p.pendientes() == antes and not p.existe(PERFIL), "detectar escribió archivos en el proyecto")
     carpetas = {c["carpeta"]: c for c in d["carpetas_con_codigo"]}
     afirmar(set(carpetas) == {"api", "datos", "web"}, f"carpetas con código inesperadas (¿contó el kit?): {sorted(carpetas)}")
@@ -353,15 +353,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      # - run: make ci PARTE=panel   (comentado: no cuenta)
+      # - run: make ci PART=panel   (comentado: no cuenta)
       - run: %s
 """
 
 
-@prueba("make ci-check: dice qué verbos del perfil ejecuta la integración continua del proyecto y avisa de los que nadie ejecuta")
+@prueba("make check-ci: dice qué verbos del perfil ejecuta la integración continua del proyecto y avisa de los que nadie ejecuta")
 def ci_del_proyecto(e):
     p = e.proyecto()
-    contiene(p.make("ci-check").salida, "no tiene perfil")
+    contiene(p.make("check-ci").salida, "no tiene perfil")
     p.escribir("servidor/index.php", "<?php\n")
     p.escribir("web/panel/index.html", "<html></html>\n")
     perfil = base()
@@ -370,34 +370,34 @@ def ci_del_proyecto(e):
     escribir_perfil(p, perfil)
 
     # Sin workflow propio: el del kit no ejecuta verbos.
-    r = p.make("ci-check")
+    r = p.make("check-ci")
     contiene(r.salida, "Ningún workflow del proyecto ejecuta estos verbos del perfil (api: formato, probar; panel: revisar)")
     contiene(r.salida, "/bowser-ci")
     p.correr("python3", "scripts/ci.py", "--verificar", espera=1)
     contiene(p.correr("python3", "scripts/ci.py", extra={"GITHUB_ACTIONS": "true"}).salida, "::warning::Ningún workflow")
 
     # Una parte por make y solo un verbo de la otra: lo comentado y lo que no es un verbo no cuentan.
-    p.escribir(".github/workflows/ci.yml", WORKFLOW % "make ci PARTE=api")
-    r = p.make("ci-check")
+    p.escribir(".github/workflows/ci.yml", WORKFLOW % "make ci PART=api")
+    r = p.make("check-ci")
     contiene(r.salida, ".github/workflows/ci.yml\n  api: formato, probar\n")
     contiene(r.salida, "estos verbos del perfil (panel: revisar)")
-    p.escribir(".github/workflows/ci.yml", WORKFLOW % "make test PARTE=api && make up")
-    contiene(p.make("ci-check").salida, "(api: formato; panel: revisar)")
+    p.escribir(".github/workflows/ci.yml", WORKFLOW % "make test PART=api && make up")
+    contiene(p.make("check-ci").salida, "(api: formato; panel: revisar)")
 
     # Las dos formas de ejecutar un verbo, en dos archivos; una parte que no existe no cubre nada.
-    p.escribir(".github/workflows/ci.yml", WORKFLOW % "make lint PARTE=api && make test PARTE=api")
+    p.escribir(".github/workflows/ci.yml", WORKFLOW % "make lint PART=api && make test PART=api")
     p.escribir(".github/workflows/panel.yaml", WORKFLOW % "python3 scripts/verbos.py revisar --parte otra")
-    contiene(p.make("ci-check").salida, "(panel: revisar)")
+    contiene(p.make("check-ci").salida, "(panel: revisar)")
     p.escribir(".github/workflows/panel.yaml", WORKFLOW % "python3 scripts/verbos.py formato revisar --parte panel")
-    r = p.make("ci-check")
+    r = p.make("check-ci")
     contiene(r.salida, ".github/workflows/panel.yaml\n  panel: revisar\n")
     contiene(r.salida, "✓ La integración continua ejecuta los 3 verbos que el perfil define.")
     p.correr("python3", "scripts/ci.py", "--verificar")
 
     # Sin nombrar la parte (o con una que se resuelve al ejecutar), vale para todas.
     p.archivo(".github/workflows/panel.yaml").unlink()
-    p.escribir(".github/workflows/ci.yml", WORKFLOW % "make ci PARTE=${{ matrix.parte }}")
-    contiene(p.make("ci-check").salida, "✓ La integración continua ejecuta los 3 verbos")
+    p.escribir(".github/workflows/ci.yml", WORKFLOW % "make ci PART=${{ matrix.parte }}")
+    contiene(p.make("check-ci").salida, "✓ La integración continua ejecuta los 3 verbos")
 
 
 @prueba("verbos.py --inmutables: en la integración continua, la rama no modifica los archivos inmutables del perfil (sin perfil, las migraciones)")

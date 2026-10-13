@@ -75,7 +75,7 @@ git add . && git commit -m "chore: inicializa spec kit"
 
 ```bash
 git submodule add https://github.com/orestesmedina/bowser-spec-kit-ai.git .bowser-spec-kit-ai
-make -f .bowser-spec-kit-ai/Makefile instalar-kit
+make -f .bowser-spec-kit-ai/Makefile install-kit
 ```
 
 Se usa `make -f …` para ejecutar el `Makefile` del kit y no el de tu proyecto. Al terminar, la instalación muestra qué archivos eran nuevos, cuáles reemplazó y dónde quedó el respaldo:

@@ -114,7 +114,7 @@ def ejecutar(perfil: dict, verbos: list[str], solo: str | None, verificar: bool,
                           file=sys.stderr)
                     for c in cambios:
                         print(f"  {c}", file=sys.stderr)
-                    print("  Ejecuta 'make generar' y agrega el resultado al commit.", file=sys.stderr)
+                    print("  Ejecuta 'make generate' y agrega el resultado al commit.", file=sys.stderr)
                     fallos.append(f"código generado de «{parte['nombre']}»")
                     resultados[verbo]["falló"].append(parte["nombre"])
                     continue
@@ -202,9 +202,9 @@ def pre_commit() -> int:
 
     # 1. Los comandos del perfil se ejecutan en la máquina de cada persona y en la integración continua:
     #    un cambio en él lo confirma una persona.
-    if RUTA in git("diff", "--cached", "--name-only", "--no-renames") and os.environ.get("APROBADO_PERFIL") != "1":
+    if RUTA in git("diff", "--cached", "--name-only", "--no-renames") and "1" not in (os.environ.get("APPROVED_PROFILE"), os.environ.get("APROBADO_PERFIL")):   # el segundo: nombre anterior
         fallar(f"El perfil del proyecto ({RUTA}) cambió. Sus comandos se ejecutan en tu máquina y en la integración "
-               "continua: revísalo (make profile) y confirma con: APROBADO_PERFIL=1 git commit ...")
+               "continua: revísalo (make profile) y confirma con: APPROVED_PROFILE=1 git commit ...")
 
     try:
         perfil = cargar()

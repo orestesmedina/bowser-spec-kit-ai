@@ -4,7 +4,7 @@ import json
 from apoyo import SUBMODULO, afirmar, contiene, correr, prueba
 
 PERFIL = "equipo/perfil.json"
-APROBADO = {"APROBADO_PERFIL": "1"}
+APROBADO = {"APPROVED_PROFILE": "1"}
 DE_SIEMPRE = ("go-backend", "postgres-db", "react-frontend")
 
 
@@ -81,7 +81,7 @@ def solo_las_del_perfil(e):
     # El proyecto tiene además una skill propia, que el perfil también nombra.
     p.escribir(".agents/skills/pagos/SKILL.md", skill("pagos", None))
     perfil_con(p, ["go-backend", "pagos"], roles=["dev-backend"])
-    r = p.make("instalar-kit")
+    r = p.make("install-kit")
     afirmar(instaladas(p) == ["go-backend", "pagos"], f"con perfil deben quedar solo las que nombra: {instaladas(p)}")
     contiene(r.salida, ".agents/skills/react-frontend/SKILL.md")
     afirmar("«pagos»" not in r.salida, "avisó de una skill propia del proyecto, que sí existe")
@@ -96,15 +96,15 @@ def solo_las_del_perfil(e):
     p.correr("python3", "scripts/sincronizar.py", "--verificar")
     p.commit("chore: perfil del proyecto", extra=APROBADO)
     afirmar(not p.pendientes(), f"quedaron archivos sin commit: {p.pendientes()}")
-    contiene(p.make("instalar-kit").salida, "Sin cambios: el proyecto ya estaba al día.")
+    contiene(p.make("install-kit").salida, "Sin cambios: el proyecto ya estaba al día.")
     contiene(p.make("skills").salida, "react-frontend     redactada  —")
 
     # Skills en un rol, y un perfil sin ninguna skill.
     perfil_con(p, [], roles=[{"rol": "dev-frontend", "skills": ["react-frontend"]}])
-    p.make("instalar-kit")
+    p.make("install-kit")
     afirmar(instaladas(p) == ["pagos", "react-frontend"], f"no tomó la skill nombrada en un rol: {instaladas(p)}")
     perfil_con(p, [])
-    p.make("instalar-kit")
+    p.make("install-kit")
     afirmar(instaladas(p) == ["pagos"], f"un perfil sin skills debe dejar solo las propias: {instaladas(p)}")
 
 
@@ -114,11 +114,11 @@ def perfil_cambia_las_skills(e):
     perfil_con(p, ["go-backend"])
     # Sobran dos: el proyecto todavía tiene las tres de siempre.
     r = p.verificar_kit(espera=1)
-    contiene(r.salida, f"Las skills instaladas no son las que pide el perfil ({PERFIL}). Ejecuta: make instalar-kit")
+    contiene(r.salida, f"Las skills instaladas no son las que pide el perfil ({PERFIL}). Ejecuta: make install-kit")
     contiene(r.salida, "react-frontend: sobra")
     afirmar("go-backend:" not in r.salida, "marcó como pendiente una skill que está y se pide")
     contiene(p.commit("chore: perfil", espera=1, extra=APROBADO).salida, "Los archivos del kit no coinciden")
-    p.make("instalar-kit")
+    p.make("install-kit")
     p.commit("chore: perfil", extra=APROBADO)
 
     # Falta una: el perfil la nombra y está en el catálogo.
@@ -126,14 +126,14 @@ def perfil_cambia_las_skills(e):
     contiene(p.make("profile").salida, "la skill «postgres-db» está en el catálogo del kit pero todavía no en el proyecto")
     contiene(p.verificar_kit(espera=1).salida, "postgres-db: falta")
     p.commit("chore: suma postgres", espera=1, extra=APROBADO)
-    p.make("instalar-kit")
+    p.make("install-kit")
     afirmar("«postgres-db»" not in p.make("profile").salida, "sigue avisando de una skill ya instalada")
     p.commit("chore: suma postgres", extra=APROBADO)
 
     # Una skill del kit editada en el proyecto y que el perfil deja de nombrar: se conserva y se avisa.
     p.agregar(".agents/skills/postgres-db/SKILL.md", "\nRegla propia.\n")
     perfil_con(p, ["go-backend"])
-    contiene(p.make("instalar-kit").salida, "tienen cambios locales; se conservaron")
+    contiene(p.make("install-kit").salida, "tienen cambios locales; se conservaron")
     afirmar(p.existe(".agents/skills/postgres-db/SKILL.md"), "se borró una skill con cambios locales")
 
 
@@ -149,11 +149,11 @@ def avisos_del_catalogo(e):
     afirmar(not p.existe(".agents/skills/pascal"), "llegó una skill del catálogo que nadie pidió")
 
     perfil_con(p, ["pascal", "cobol"])
-    d = json.loads(p.make("profile", "DETECTAR=1").salida)
+    d = json.loads(p.make("profile", "DETECT=1").salida)
     afirmar({"pascal", "go-backend"} <= set(d["skills_disponibles"]), f"la detección no ofrece el catálogo: {d['skills_disponibles']}")
     afirmar(d["madurez_de_las_skills_del_catalogo"].get("pascal") == "redactada", "la detección no informa la madurez")
     contiene(p.make("profile").salida, "la skill «cobol» no está en .agents/skills/ ni en el catálogo del kit")
-    r = p.make("instalar-kit")
+    r = p.make("install-kit")
     contiene(r.salida, "El perfil pide la skill «cobol», que no está en el catálogo del kit")
     contiene(r.salida, "La skill «pascal» está solo redactada")
     afirmar("«go-backend» está" not in r.salida and "«pascal», que no está" not in r.salida, "avisos de más")
@@ -161,14 +161,14 @@ def avisos_del_catalogo(e):
     afirmar(instaladas(p) == ["pascal"], f"skills inesperadas: {instaladas(p)}")
     contiene(p.make("skills").salida, "pascal             redactada  en el proyecto")
     contiene(p.make("skills").salida, "el perfil pide la skill «cobol»")
-    r = p.make("instalar-kit")
+    r = p.make("install-kit")
     afirmar("solo redactada" not in r.salida, "repite la advertencia de madurez en cada instalación")
     contiene(r.salida, "«cobol»")
     p.commit("chore: perfil con pascal", extra=APROBADO)
 
     # Con un perfil que no se puede leer no se sabe qué pide el proyecto: todo queda como estaba.
     p.escribir(PERFIL, "{ esto no es json")
-    r = p.make("instalar-kit")
+    r = p.make("install-kit")
     contiene(r.salida, f"{PERFIL} no se puede leer: las skills del catálogo se dejan como estaban")
     afirmar(instaladas(p) == ["pascal"], f"un perfil ilegible cambió las skills: {instaladas(p)}")
 
@@ -178,7 +178,7 @@ def avisos_del_catalogo(e):
     config.setdefault("kit", {})["excluir"] = [".agents/skills/pascal/"]
     p.escribir("equipo/config.json", json.dumps(config, indent=2, ensure_ascii=False) + "\n")
     p.agregar(".agents/skills/pascal/SKILL.md", "\nRegla propia del proyecto.\n")
-    p.make("instalar-kit")
+    p.make("install-kit")
     p.verificar_kit()
     contiene(p.leer(".agents/skills/pascal/SKILL.md"), "Regla propia del proyecto.", "la skill excluida")
     afirmar(p.existe(f"{SUBMODULO}/catalogo/skills/pascal/SKILL.md"), "el catálogo debe leerse desde el submódulo")

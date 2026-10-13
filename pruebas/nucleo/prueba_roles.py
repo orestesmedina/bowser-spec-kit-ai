@@ -5,7 +5,7 @@ import re
 from apoyo import afirmar, contiene, correr, prueba
 
 PERFIL = "equipo/perfil.json"
-APROBADO = {"APROBADO_PERFIL": "1"}
+APROBADO = {"APPROVED_PROFILE": "1"}
 # Lo que un rol no puede nombrar: va en las skills del catálogo y en el perfil de cada proyecto.
 TECNOLOGIAS = re.compile(
     r"\b(Go|Golang|gofmt|golangci|govulncheck|sqlc|pgx|React|TypeScript|Vite|Vitest|Playwright|Tailwind|npm|Node|"
@@ -86,14 +86,14 @@ def roles_sin_perfil(e):
 def roles_con_perfil(e):
     p = e.proyecto()
     escribir_perfil(p, perfil_de_tres_partes())
-    p.make("instalar-kit")
+    p.make("install-kit")
     p.commit("chore: perfil del proyecto", extra=APROBADO)
 
     dba = seccion(p, "dev-dba")
     contiene(dba, f"Sale del perfil del proyecto (`{PERFIL}`), que no editas tú. Tus partes:")
     contiene(dba, "- **datos**, en `bd`.")
     contiene(dba, "Skills que debes aplicar: `postgres-db` (en `.agents/skills/`).")
-    contiene(dba, "Comandos: `make lint PARTE=datos`.")
+    contiene(dba, "Comandos: `make lint PART=datos`.")
     contiene(dba, "El proyecto todavía no tiene cómo: revisar, probar, cobertura, generar, auditar.")
     contiene(dba, "No se modifican una vez versionados (se crea un archivo nuevo): `bd/cambios/*.sql`.")
     contiene(dba, "Las demás partes no son tuyas: `api` (`servidor`, de `dev-backend`), "
@@ -106,7 +106,7 @@ def roles_con_perfil(e):
     backend = seccion(p, "dev-backend")
     contiene(backend, "- **api**, en `servidor`: API del producto")
     contiene(backend, "Skills que debes aplicar: `go-backend`")
-    contiene(backend, "Comandos: `make lint PARTE=api`, `make test PARTE=api`.")
+    contiene(backend, "Comandos: `make lint PART=api`, `make test PART=api`.")
     contiene(backend, "El proyecto todavía no tiene cómo: formato, cobertura, generar, auditar.")
     contiene(backend, "Código de terceros, que no se toca: `servidor/ajeno`.")
     contiene(backend, "- **panel**, en `web/panel`.")
@@ -119,7 +119,7 @@ def roles_con_perfil(e):
     mapa = seccion(p, "arquitecto")
     for esperado in ("- **api**, en `servidor`", "- **datos**, en `bd`.", "- **panel**, en `web/panel`.",
                      "La trabajan: `dev-backend`, `dev-frontend`.", "Sus convenciones están en las skills `postgres-db`",
-                     "Comandos: `make lint PARTE=api`, `make test PARTE=api`."):
+                     "Comandos: `make lint PART=api`, `make test PART=api`."):
         contiene(mapa, esperado, "el mapa del arquitecto")
 
     # Un rol que suele ver el mapa también puede trabajar una parte, y un rol sin parte lo sabe.
@@ -127,8 +127,8 @@ def roles_con_perfil(e):
     perfil["partes"][2]["roles"] = [{"rol": "devops", "skills": ["react-frontend"]}]
     escribir_perfil(p, perfil)
     contiene(p.correr("python3", "scripts/sincronizar.py", "--verificar", espera=1).salida, "Desactualizados: .claude/agents/devops.md")
-    contiene(p.commit("chore: el panel pasa a devops", espera=1, extra=APROBADO).salida, "make sincronizar")
-    p.make("sincronizar")
+    contiene(p.commit("chore: el panel pasa a devops", espera=1, extra=APROBADO).salida, "make sync")
+    p.make("sync")
     contiene(seccion(p, "devops"), "- **panel**, en `web/panel` (la trabajas tú).")
     contiene(p.leer(".claude/agents/devops.md"), "\nskills: react-frontend\n", "la cabecera de devops")
     contiene(seccion(p, "dev-frontend"), "Hoy no te asigna ninguna parte")
@@ -138,7 +138,7 @@ def roles_con_perfil(e):
     p.escribir(".agents/skills/convenciones-de-panel/SKILL.md", "---\nname: convenciones-de-panel\ndescription: Del proyecto.\n---\n")
     perfil["partes"][2]["skills"] = ["convenciones-de-panel"]
     escribir_perfil(p, perfil)
-    p.make("sincronizar")
+    p.make("sync")
     contiene(seccion(p, "devops"), "Skills que debes aplicar: `react-frontend`, `convenciones-de-panel` (en")
     contiene(seccion(p, "arquitecto"), "Sus convenciones están en las skills `react-frontend`, `convenciones-de-panel` (en")
     contiene(p.make("profile").salida, "devops (react-frontend, convenciones-de-panel)")
@@ -146,7 +146,7 @@ def roles_con_perfil(e):
 
     # Con un perfil mal escrito no se supone nada: se avisa y los roles lo dicen.
     p.escribir(PERFIL, "{ esto no es json")
-    r = p.make("sincronizar")
+    r = p.make("sync")
     contiene(r.salida, "los roles se generan sin los datos del proyecto")
     contiene(seccion(p, "dev-backend"), "tiene errores y no se pudo leer")
     afirmar("servidor" not in seccion(p, "dev-backend"), "con un perfil ilegible se siguieron mostrando las partes")

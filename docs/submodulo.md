@@ -30,8 +30,8 @@ Las herramientas buscan sus archivos en la raíz del proyecto: el agente de cód
 Por eso instalar el kit significa **copiar** sus archivos del submódulo a la raíz. El submódulo es el original; la raíz tiene las copias que usan las herramientas.
 
 ```bash
-make instalar-kit      # copia desde el submódulo a la raíz
-make actualizar-kit    # trae la última versión del kit y luego instala
+make install-kit      # copia desde el submódulo a la raíz
+make update-kit    # trae la última versión del kit y luego instala
 ```
 
 ## Archivos gestionados y semillas
@@ -48,7 +48,7 @@ El kit copia dos clases de archivos, y las trata de forma muy distinta:
 La diferencia tiene una razón. Los archivos gestionados son las reglas y los controles: deben ser iguales en todos los proyectos y mejorar con el kit. Las semillas son configuración: cada proyecto tiene sus modelos, sus dueños y sus servicios, y una actualización no debe pisarlos.
 
 > [!NOTE]
-> Como las semillas no se actualizan solas, cuando el kit cambia algo en una de ellas lo indica entre los pasos manuales de la versión, o trae un comando que muestra las diferencias y pide confirmación, como `make actualizar-modelos`.
+> Como las semillas no se actualizan solas, cuando el kit cambia algo en una de ellas lo indica entre los pasos manuales de la versión, o trae un comando que muestra las diferencias y pide confirmación, como `make update-models`.
 
 Hay archivos del kit que **no** llegan al proyecto, porque solo tienen sentido en el repositorio del kit: su `README.md`, su registro de cambios, su licencia y esta documentación, que se lee directamente en `.bowser-spec-kit-ai/docs/`.
 
@@ -101,7 +101,7 @@ Editar un archivo gestionado dentro del proyecto es un error fácil de cometer, 
 La comprobación se puede ejecutar a mano:
 
 ```bash
-make verificar-kit
+make check-kit
 ```
 
 Si un proyecto necesita de verdad su propia versión de un archivo, lo declara en `"kit.excluir"`. Ver [Personalizar un proyecto](personalizar.md).
@@ -126,8 +126,8 @@ Si un proyecto no puede usar submódulos, el kit se puede copiar a mano:
 
 ```bash
 cp -r bowser-spec-kit-ai/. .
-make sincronizar
-make instalar-hooks
+make sync
+make install-hooks
 ```
 
 Funciona, pero se pierde lo que da el submódulo: no hay manifiesto, no hay actualización con un comando y no hay detección de archivos del kit modificados. Las mejoras del kit habría que traerlas a mano.

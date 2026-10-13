@@ -82,7 +82,7 @@ La regla es la misma en todas las capas: **se corrige la causa, no el control**.
 | `git commit --no-verify` | La integración continua repite la comprobación. Solo se pospone el rechazo |
 | Desactivar o debilitar una prueba | La prueba estaba diciendo algo. Ahora nadie lo va a oír |
 | Editar un archivo generado para que coincida | La próxima generación lo borra |
-| Quitar un paso de la integración continua | Los controles de `bowser.yml` vienen del kit: el hook lo detecta. Los del workflow del proyecto los cuida `CODEOWNERS`, y `make ci-check` avisa si un verbo dejó de ejecutarse |
+| Quitar un paso de la integración continua | Los controles de `bowser.yml` vienen del kit: el hook lo detecta. Los del workflow del proyecto los cuida `CODEOWNERS`, y `make check-ci` avisa si un verbo dejó de ejecutarse |
 | Pedirle al agente que "lo resuelva como sea" | Va a encontrar la forma de que el control pase, que no es lo mismo que resolver el problema |
 
 Si un control está mal (rechaza algo que debería aceptar), eso es un error del kit: se reporta y se corrige en el kit. Ver [Cómo contribuir](contribuir.md).

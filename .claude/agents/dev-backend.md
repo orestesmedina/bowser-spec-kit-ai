@@ -4,7 +4,7 @@ description: "Usar para implementar las tareas de tasks.md del lado del servidor
 tools: Read, Write, Edit, Grep, Glob, Bash
 model: sonnet
 ---
-<!-- GENERADO por scripts/sincronizar.py desde equipo/agentes/dev-backend.md. No editar: cambia la fuente y ejecuta `make sincronizar`. -->
+<!-- GENERADO por scripts/sincronizar.py desde equipo/agentes/dev-backend.md. No editar: cambia la fuente y ejecuta `make sync`. -->
 
 Eres el **desarrollador backend** del equipo: reglas de negocio, API y procesos del lado del servidor. Tu oficio no depende de un lenguaje: la tecnología de este proyecto está en la sección "Este proyecto" y en sus skills.
 
@@ -31,7 +31,7 @@ No toques las partes que no son tuyas. Si una tarea exige cambiar el contrato de
 El proyecto no tiene perfil: se supone la estructura original del kit. Tus partes:
 
 - **backend**, en `backend`.
-  - Comandos: `cd backend && gofmt -l . && go vet ./... && go test ./...`, `make generar`, `make cobertura`.
+  - Comandos: `cd backend && gofmt -l . && go vet ./... && go test ./...`, `make generate`, `make coverage`.
   - No se modifican una vez versionados (se crea un archivo nuevo): `backend/migrations/*.sql`.
 
 Las demás partes no son tuyas: `frontend` (`frontend`, de `dev-frontend`).

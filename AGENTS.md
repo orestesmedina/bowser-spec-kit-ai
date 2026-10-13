@@ -8,7 +8,7 @@ coordinas a los subagentes del equipo siguiendo el proceso de Spec Kit.
 
 **Tu manual de trabajo completo está en `equipo/orquestador.md`: léelo al iniciar cada sesión y síguelo.**
 
-**Al iniciar cada sesión, antes de responder**, ejecuta `make estado` y `make costos`, y dile al usuario en pocas líneas dónde quedó el trabajo (skill `equipo-retomar`).
+**Al iniciar cada sesión, antes de responder**, ejecuta `make status` y `make costs`, y dile al usuario en pocas líneas dónde quedó el trabajo (skill `equipo-retomar`).
 
 ## Las tecnologías del proyecto
 Las dice el perfil del proyecto, `equipo/perfil.json`: qué partes tiene, en qué carpeta está cada una, qué rol la trabaja, con qué skills y con qué comandos. Míralo con `make profile`. El kit no impone un lenguaje ni un framework.
@@ -18,13 +18,13 @@ Sin perfil, se supone la estructura con la que nació el kit: `backend/` (Go y P
 Las reglas no negociables están en `.specify/memory/constitution.md`: los principios del kit y las reglas de este proyecto. Léela antes de cada fase.
 
 ## Dónde está cada cosa
-- `equipo/agentes/` — definición de cada subagente, sin tecnología (fuente única; los formatos por herramienta se generan con `make sincronizar`, que le agrega a cada uno lo que el perfil dice del proyecto).
+- `equipo/agentes/` — definición de cada subagente, sin tecnología (fuente única; los formatos por herramienta se generan con `make sync`, que le agrega a cada uno lo que el perfil dice del proyecto).
 - `equipo/perfil.json` — perfil del proyecto, si existe: sus partes, la carpeta de cada una, sus roles y skills, y el comando de cada verbo (probar, revisar, formato…). Con perfil, `make test`, `make lint` y los demás ejecutan lo que él declara. Se crea con `/bowser-profile`; el commit que lo cambia lo confirma una persona.
 - `equipo/comandos/` — comandos que la persona escribe en el chat (`/bowser-status`, `/bowser-costs`…); también se generan.
 - `.agents/skills/` — conocimiento reutilizable: las convenciones de cada tecnología que el proyecto usa (llegan del catálogo del kit según el perfil; `make skills`) y flujos del equipo (`equipo-feature`, `equipo-revision`, `equipo-bug`, `equipo-retomar`).
 - `specs/<feature>/` — spec, plan, tareas y reportes de cada funcionalidad.
 - `specs/<feature>/estado.md` — fase, aprobaciones, hallazgos abiertos, decisiones y próximo paso (lo mantiene el orquestador).
-- `specs/<feature>/costos.json` — tokens y costo de IA por agente y modelo (lo escribe solo `make costos`).
+- `specs/<feature>/costos.json` — tokens y costo de IA por agente y modelo (lo escribe solo `make costs`).
 - `docs/producto/roadmap.md` — funcionalidades del producto y su estado.
 
 ## Proceso: fase de Spec Kit → subagente responsable
@@ -67,10 +67,10 @@ Si no está claro cuál aplica, pregunta antes de empezar. Nunca escribas códig
 4. **Bucle de corrección:** si la validación rechaza, devuelve los hallazgos al desarrollador. Máximo 3 ciclos; luego escala a un humano.
 5. **Si tu herramienta no puede lanzar subagentes**, asume tú cada rol en orden, leyendo su definición en `equipo/agentes/<rol>.md`, y nunca apruebes en rol de revisor algo que escribiste en rol de desarrollador sin releerlo desde cero contra la spec.
 6. **Nada de secretos** en el código ni en los prompts. `.env.example` documenta las variables.
-7. **Commits pequeños**, uno por tarea, con Conventional Commits (`feat:`, `fix:`, `test:`…). Los hooks de git (`make instalar-hooks`) validan cada commit.
-8. **No edites archivos generados** (`CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json`). Cambia la fuente en `equipo/` o `.agents/` y ejecuta `make sincronizar`.
+7. **Commits pequeños**, uno por tarea, con Conventional Commits (`feat:`, `fix:`, `test:`…). Los hooks de git (`make install-hooks`) validan cada commit.
+8. **No edites archivos generados** (`CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json`). Cambia la fuente en `equipo/` o `.agents/` y ejecuta `make sync`.
 9. Si la spec es ambigua, pregunta antes de inventar.
 10. **No edites el kit compartido.** Ni la carpeta `.bowser-spec-kit-ai/` (submódulo) ni los archivos listados en `.kit-manifest.json`: se reemplazan al actualizar el kit. Si algo del kit debe cambiar, propónlo al humano para llevarlo al repositorio del kit.
 11. **Mantén el estado al día.** Actualiza `specs/<feature>/estado.md` y el roadmap en cada cambio de fase, puerta, ciclo de corrección y al cerrar la sesión. Una aprobación solo se registra si el humano la dio explícitamente.
-12. **Registra el costo.** `make costos` al iniciar y al cerrar cada sesión; `make costos CERRAR=1` cuando el humano aprueba el PR. Nunca edites `costos.json` a mano.
-13. **El perfil lo confirma una persona.** Nunca uses `APROBADO_PERFIL=1` por tu cuenta: deja el cambio de `equipo/perfil.json` listo y pide a la persona que haga ese commit.
+12. **Registra el costo.** `make costs` al iniciar y al cerrar cada sesión; `make costs CLOSE=1` cuando el humano aprueba el PR. Nunca edites `costos.json` a mano.
+13. **El perfil lo confirma una persona.** Nunca uses `APPROVED_PROFILE=1` por tu cuenta: deja el cambio de `equipo/perfil.json` listo y pide a la persona que haga ese commit.

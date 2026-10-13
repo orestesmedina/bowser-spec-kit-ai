@@ -94,7 +94,7 @@ Cada funcionalidad tiene su carpeta en `specs/`, por ejemplo `specs/003-registro
 | `tasks.md` | ¿En qué pasos se divide el trabajo y en qué orden? | Arquitecto |
 | `revision-<fecha>.md` | ¿Qué encontraron QA, revisión y seguridad? | Los tres revisores |
 | `estado.md` | ¿En qué fase va, qué se aprobó y qué sigue? | Orquestador |
-| `costos.json` | ¿Cuánto costó en IA? | El comando `make costos` |
+| `costos.json` | ¿Cuánto costó en IA? | El comando `make costs` |
 
 Una buena especificación tiene tres propiedades: cada requisito trae **criterios de aceptación** verificables (en formato Dado / Cuando / Entonces), dice explícitamente qué queda **fuera de alcance** y no menciona tecnología.
 

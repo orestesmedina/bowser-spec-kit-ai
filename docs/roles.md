@@ -214,7 +214,7 @@ Documenta solo lo que existe en el código, y lo comprueba antes de escribir.
 
 ## Lo que cada rol recibe del proyecto
 
-Ningún rol trae escrita una tecnología, una carpeta ni un comando. Un rol describe un oficio, y lo propio de cada proyecto sale de su [perfil](perfil-del-proyecto.md): al generar los subagentes, `make sincronizar` le agrega a cada rol una sección **"Este proyecto"**.
+Ningún rol trae escrita una tecnología, una carpeta ni un comando. Un rol describe un oficio, y lo propio de cada proyecto sale de su [perfil](perfil-del-proyecto.md): al generar los subagentes, `make sync` le agrega a cada rol una sección **"Este proyecto"**.
 
 Así queda `dev-dba` en un proyecto cuyo perfil le asigna la parte `datos`:
 
@@ -224,7 +224,7 @@ Sale del perfil del proyecto (`equipo/perfil.json`), que no editas tú. Tus part
 
 - **datos**, en `bd`.
   - Skills que debes aplicar: `postgres-db` (en `.agents/skills/`).
-  - Comandos: `make lint PARTE=datos`.
+  - Comandos: `make lint PART=datos`.
   - El proyecto todavía no tiene cómo: probar, cobertura, generar, auditar. No inventes un comando: dilo en tu entrega.
   - No se modifican una vez versionados (se crea un archivo nuevo): `bd/cambios/*.sql`.
 
@@ -241,7 +241,7 @@ Qué recibe cada rol lo decide su campo `proyecto` (ver [El formato de un rol](#
 
 Tres cosas a tener en cuenta:
 
-- **Después de cambiar el perfil hay que regenerar.** `make instalar-kit` lo hace (y además trae las skills nuevas); si las skills no cambiaron, alcanza con `make sincronizar`. Si no, el commit se rechaza con `La configuración de agentes está desactualizada`.
+- **Después de cambiar el perfil hay que regenerar.** `make install-kit` lo hace (y además trae las skills nuevas); si las skills no cambiaron, alcanza con `make sync`. Si no, el commit se rechaza con `La configuración de agentes está desactualizada`.
 - **Un rol de desarrollo sin ninguna parte lo sabe.** Sus instrucciones dicen "Hoy no te asigna ninguna parte", y si le llega una tarea avisa al orquestador en vez de suponer.
 - **Sin perfil se supone la estructura original del kit:** `backend/` para `dev-backend` (con la base de datos) y `frontend/` para `dev-frontend`. Esa suposición se retira en la versión 2.0.
 
@@ -293,7 +293,7 @@ El rol no nombra ninguna herramienta ni ningún modelo, y tampoco una tecnologí
 Los roles vienen del kit, así que hay dos situaciones:
 
 - **El cambio le sirve a todos los proyectos:** se hace en el repositorio del kit. Ver [Cómo contribuir](contribuir.md).
-- **Es propio de un proyecto:** agrega el archivo a `"kit.excluir"`, edítalo y ejecuta `make sincronizar`. Ver [Personalizar un proyecto](personalizar.md).
+- **Es propio de un proyecto:** agrega el archivo a `"kit.excluir"`, edítalo y ejecuta `make sync`. Ver [Personalizar un proyecto](personalizar.md).
 
 Antes de cambiar un rol, considera si lo que necesitas es otra cosa:
 
@@ -310,8 +310,8 @@ Antes de cambiar un rol, considera si lo que necesitas es otra cosa:
 Crea un archivo nuevo en `equipo/agentes/`, con el formato de arriba, y regenera:
 
 ```bash
-make sincronizar
-make modelos       # comprueba que aparece, y con qué modelo
+make sync
+make models       # comprueba que aparece, y con qué modelo
 ```
 
 Un rol que no viene del kit nunca es tocado por una actualización: es del proyecto.

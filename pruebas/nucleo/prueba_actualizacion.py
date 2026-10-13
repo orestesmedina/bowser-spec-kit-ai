@@ -72,7 +72,7 @@ def desde_la_anterior(e):
             "git empezó a ver frontend/node_modules/ después de actualizar")
     p.commit(f"chore: actualiza kit a {e.version}")
     afirmar(not p.pendientes(), f"quedaron archivos sin commit después de actualizar: {p.pendientes()}")
-    contiene(p.make("instalar-kit").salida, "Sin cambios: el proyecto ya estaba al día.")
+    contiene(p.make("install-kit").salida, "Sin cambios: el proyecto ya estaba al día.")
 
 
 @prueba("al partir la constitución, la que un proyecto había hecho suya queda completa en sus reglas")
@@ -99,7 +99,7 @@ def constitucion_propia(e):
     p.verificar_kit()
     p.commit(f"chore: actualiza kit a {e.version}")
     antes = p.leer(reglas)
-    contiene(p.make("instalar-kit").salida, "Sin cambios: el proyecto ya estaba al día.")
+    contiene(p.make("install-kit").salida, "Sin cambios: el proyecto ya estaba al día.")
     afirmar(p.leer(reglas) == antes, "instalar otra vez cambió las reglas del proyecto")
 
 
@@ -113,16 +113,16 @@ def cambio_local(e):
     r = p.git("commit", "-m", "docs: cambia el orquestador", espera=1)
     contiene(r.salida, "Los archivos del kit no coinciden")
 
-    r = p.make("instalar-kit", espera=1)
+    r = p.make("install-kit", espera=1)
     contiene(r.salida, "fueron modificados en este proyecto")
     contiene(r.salida, "equipo/orquestador.md")
     contiene(r.salida, "kit.excluir")
-    contiene(r.salida, "FORZAR=1")
+    contiene(r.salida, "FORCE=1")
     contiene(p.leer("equipo/orquestador.md"), "Regla agregada a mano", "el archivo editado")
 
-    r = p.make("instalar-kit", "FORZAR=1")
+    r = p.make("install-kit", "FORCE=1")
     contiene(r.salida, "Respaldo de lo reemplazado: .kit-respaldo/")
-    afirmar("Regla agregada a mano" not in p.leer("equipo/orquestador.md"), "FORZAR=1 no restauró el archivo del kit")
+    afirmar("Regla agregada a mano" not in p.leer("equipo/orquestador.md"), "FORCE=1 no restauró el archivo del kit")
     respaldo = next(p.archivo(".kit-respaldo").iterdir()) / "equipo/orquestador.md"
     contiene(respaldo.read_text(encoding="utf-8"), "Regla agregada a mano", "el respaldo")
     p.verificar_kit()
@@ -136,14 +136,14 @@ def excluir(e):
     config.setdefault("kit", {})["excluir"] = ["equipo/orquestador.md"]
     p.escribir("equipo/config.json", json.dumps(config, indent=2, ensure_ascii=False) + "\n")
     p.agregar("equipo/orquestador.md", "\nRegla propia de este proyecto.\n")
-    p.make("instalar-kit")
+    p.make("install-kit")
     p.verificar_kit()
     p.commit("chore: orquestador propio del proyecto")
 
     (kit / "equipo/orquestador.md").write_text("# Orquestador nuevo del kit\n", encoding="utf-8")
     (kit / "AGENTS.md").write_text((kit / "AGENTS.md").read_text(encoding="utf-8") + "\nLínea nueva del kit.\n", encoding="utf-8")
     e.commit_kit(kit, "cambia orquestador y AGENTS")
-    p.make("actualizar-kit")
+    p.make("update-kit")
     contiene(p.leer("equipo/orquestador.md"), "Regla propia de este proyecto.", "el archivo excluido")
     contiene(p.leer("AGENTS.md"), "Línea nueva del kit.", "un archivo no excluido")
     p.commit("chore: actualiza kit")
@@ -162,20 +162,20 @@ def retirados(e):
     e.commit_kit(kit, "retira las plantillas")
     p.agregar("docs/plantillas/retirado-editado.md", "cambio local\n")
 
-    r = p.make("actualizar-kit")
+    r = p.make("update-kit")
     afirmar(not p.existe("docs/plantillas/retirado-limpio.md"), "el archivo retirado sigue en el proyecto")
     afirmar(p.existe("docs/plantillas/retirado-editado.md"), "se borró un archivo retirado que tenía cambios locales")
     contiene(r.salida, "tienen cambios locales; se conservaron")
     afirmar(p.existe("docs/plantillas/estado.md"), "se borró una plantilla que el kit no retiró")
 
 
-@prueba("make novedades muestra el historial y los pasos manuales de la versión instalada")
+@prueba("make news muestra el historial y los pasos manuales de la versión instalada")
 def novedades(e):
     p = e.proyecto()
-    r = p.make("novedades")
+    r = p.make("news")
     contiene(r.salida, f"Kit instalado: {e.version}")
     contiene(r.salida, f"[{e.version}]")
-    contiene(p.make("novedades", "DESDE=no-es-version", espera=1).salida, "Versión no válida")
+    contiene(p.make("news", "SINCE=no-es-version", espera=1).salida, "Versión no válida")
 
 
 @prueba("un archivo que el kit entrega al proyecto (ci.yml) no se borra al actualizar, aunque tenga cambios locales")
@@ -190,7 +190,7 @@ def entregados(e):
     p.escribir(".kit-manifest.json", json.dumps(manifiesto, indent=2, ensure_ascii=False) + "\n")
     contiene(p.verificar_kit(espera=1).salida, ci)
 
-    r = p.make("instalar-kit")
+    r = p.make("install-kit")
     contiene(r.salida, f"{ci} ya no viene del kit: se conservó tal como estaba y desde ahora es del proyecto.")
     contiene(p.leer(ci), "un paso que agregó el proyecto", "el ci.yml del proyecto")
     afirmar(ci not in json.loads(p.leer(".kit-manifest.json"))["archivos"], "ci.yml sigue en el manifiesto")
@@ -198,4 +198,4 @@ def entregados(e):
     # Ya es un archivo cualquiera del proyecto: se edita y entra al historial sin que el kit se queje.
     p.agregar(ci, "# otro cambio\n")
     p.commit("ci: integración continua del proyecto")
-    contiene(p.make("instalar-kit").salida, "Sin cambios: el proyecto ya estaba al día.")
+    contiene(p.make("install-kit").salida, "Sin cambios: el proyecto ya estaba al día.")

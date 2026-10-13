@@ -37,7 +37,7 @@ git add . && git commit -m "chore: inicializa spec kit"
 
 # 3. El kit, como submódulo
 git submodule add https://github.com/orestesmedina/bowser-spec-kit-ai.git .bowser-spec-kit-ai
-make -f .bowser-spec-kit-ai/Makefile instalar-kit
+make -f .bowser-spec-kit-ai/Makefile install-kit
 
 # 4. El entorno local
 cp .env.example .env      # las variables las agrega el proyecto
@@ -59,11 +59,11 @@ Después abre tu agente en la carpeta del proyecto y pídele lo que necesitas.
 |---|---|
 | Construir una funcionalidad | Le pido al agente: "Construyamos esta funcionalidad: los clientes pueden registrarse con correo…" |
 | Corregir un error | "Al editar un pedido se pierde la dirección" |
-| Saber por dónde íbamos | `make estado`, o "¿por dónde quedamos?" |
+| Saber por dónde íbamos | `make status`, o "¿por dónde quedamos?" |
 | Comprobar mi entorno | `make doctor` |
 | Saber si un cambio va a pasar en GitHub | `make ci` |
-| Saber cuánto costó en IA | `make costos` |
-| Actualizar el kit | `make actualizar-kit` |
+| Saber cuánto costó en IA | `make costs` |
+| Actualizar el kit | `make update-kit` |
 
 Todos los comandos están en [Comandos](docs/comandos.md), y los errores frecuentes en [Problemas comunes](docs/problemas-comunes.md).
 
@@ -80,7 +80,7 @@ Todos los comandos están en [Comandos](docs/comandos.md), y los errores frecuen
 
 ## Contribuir
 
-Los cambios al kit se hacen en este repositorio y llegan a los proyectos con `make actualizar-kit`. Cada cambio se registra en [`CHANGELOG.md`](CHANGELOG.md). Cómo está organizado, cómo probar un cambio y cómo mantener tu propia copia: [Cómo contribuir](docs/contribuir.md).
+Los cambios al kit se hacen en este repositorio y llegan a los proyectos con `make update-kit`. Cada cambio se registra en [`CHANGELOG.md`](CHANGELOG.md). Cómo está organizado, cómo probar un cambio y cómo mantener tu propia copia: [Cómo contribuir](docs/contribuir.md).
 
 Hacia dónde va el kit (cualquier tecnología, proyectos existentes, catálogo de skills abierto a contribuciones): [Hoja de ruta](HOJA-DE-RUTA.md).
 

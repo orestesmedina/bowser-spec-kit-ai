@@ -1,4 +1,4 @@
-<!-- GENERADO por scripts/sincronizar.py desde equipo/principios.md y equipo/reglas.md. No editar: cambia la fuente y ejecuta `make sincronizar`. -->
+<!-- GENERADO por scripts/sincronizar.py desde equipo/principios.md y equipo/reglas.md. No editar: cambia la fuente y ejecuta `make sync`. -->
 # Constitución: principios del kit
 
 Principios no negociables para cualquier proyecto, sea cual sea su tecnología. Todos los agentes deben cumplirlos.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Hook de git pre-commit: se ejecuta en cada commit, lo haga un humano, Claude Code, Codex u OpenCode.
-# Instalar con: make instalar-hooks   (configura core.hooksPath=.githooks)
+# Instalar con: make install-hooks   (configura core.hooksPath=.githooks)
 set -uo pipefail
 
 ERRORES=0
@@ -41,7 +41,7 @@ if [ -f .kit-manifest.json ]; then
   elif python3 "$RUTA_KIT/scripts/instalar_kit.py" --verificar >/dev/null 2>&1; then
     KIT_OK=1
   else
-    fallar "Los archivos del kit no coinciden con $RUTA_KIT/ (editados a mano o sin instalar). Detalle: make verificar-kit"
+    fallar "Los archivos del kit no coinciden con $RUTA_KIT/ (editados a mano o sin instalar). Detalle: make check-kit"
   fi
 fi
 
@@ -50,23 +50,26 @@ fi
 #    (.specify/memory/constitution.md) se genera con las dos, y el control 7 comprueba que esté al día.
 #    Los principios que llegan por una actualización del kit (el kit los gestiona y coinciden con él) ya fueron
 #    aprobados en el repositorio del kit. Si el proyecto los excluyó (kit.excluir), son suyos y requieren la aprobación.
+# Las confirmaciones de una persona. Los nombres anteriores (en español) se siguen aceptando.
+APPROVED_CONSTITUTION="${APPROVED_CONSTITUTION:-${APROBADO_CONSTITUCION:-}}"
+APPROVED_COSTS="${APPROVED_COSTS:-${APROBADO_COSTOS:-}}"
 PRINCIPIOS="equipo/principios.md"
 REGLAS="equipo/reglas.md"
-if [ "${APROBADO_CONSTITUCION:-}" != "1" ]; then
+if [ "${APPROVED_CONSTITUTION:-}" != "1" ]; then
   CAMBIADOS=$(git diff --cached --name-only --diff-filter=MRD)
   if echo "$CAMBIADOS" | grep -qx "$REGLAS"; then
-    fallar "La constitución cambió: las reglas del proyecto ($REGLAS). Requiere aprobación de la dirección técnica: APROBADO_CONSTITUCION=1 git commit ..."
+    fallar "La constitución cambió: las reglas del proyecto ($REGLAS). Requiere aprobación de la dirección técnica: APPROVED_CONSTITUTION=1 git commit ..."
   fi
   if echo "$CAMBIADOS" | grep -qx "$PRINCIPIOS"; then
     if [ "$KIT_OK" != "1" ] || ! python3 -c "import json, sys; sys.exit(0 if sys.argv[1] in json.load(open('.kit-manifest.json')).get('archivos', {}) else 1)" "$PRINCIPIOS" 2>/dev/null; then
-      fallar "La constitución cambió: los principios ($PRINCIPIOS). Requiere aprobación de la dirección técnica: APROBADO_CONSTITUCION=1 git commit ..."
+      fallar "La constitución cambió: los principios ($PRINCIPIOS). Requiere aprobación de la dirección técnica: APPROVED_CONSTITUTION=1 git commit ..."
     fi
   fi
 fi
 
 if [ -f equipo/perfil.json ] || git diff --cached --name-only | grep -qx "equipo/perfil.json"; then
   # 4-6. Con perfil: el proyecto declara qué archivos no se modifican y cómo se comprueba el formato de cada parte.
-  #      Un cambio en el perfil lo confirma una persona (APROBADO_PERFIL=1).
+  #      Un cambio en el perfil lo confirma una persona (APPROVED_PROFILE=1).
   python3 scripts/verbos.py --pre-commit || ERRORES=1
 else
   # 4. Migraciones ya versionadas no se modifican
@@ -91,13 +94,13 @@ fi
 # 7. Archivos generados al día
 FUENTE=$(echo "$STAGED" | grep -E '^(AGENTS\.md|equipo/|\.agents/skills/|CLAUDE\.md|\.claude/|\.codex/|\.opencode/|opencode\.json|\.specify/memory/constitution\.md)' || true)
 if [ -n "$FUENTE" ]; then
-  python3 scripts/sincronizar.py --verificar >/dev/null 2>&1 || fallar "La configuración de agentes o la constitución generada están desactualizadas. Ejecuta: make sincronizar"
+  python3 scripts/sincronizar.py --verificar >/dev/null 2>&1 || fallar "La configuración de agentes o la constitución generada están desactualizadas. Ejecuta: make sync"
 fi
 
 # 8. El costo de una tarea cerrada no se modifica (specs/**/costos.json con "estado": "cerrado")
 for f in $(git diff --cached --name-only --diff-filter=MD -- 'specs/*costos.json'); do
-  if git show "HEAD:$f" 2>/dev/null | grep -q '"estado": *"cerrado"' && [ "${APROBADO_COSTOS:-}" != "1" ]; then
-    fallar "El costo de $(dirname "$f") ya está cerrado y no se modifica. Si dirección técnica lo autoriza: APROBADO_COSTOS=1 git commit ..."
+  if git show "HEAD:$f" 2>/dev/null | grep -q '"estado": *"cerrado"' && [ "${APPROVED_COSTS:-}" != "1" ]; then
+    fallar "El costo de $(dirname "$f") ya está cerrado y no se modifica. Si dirección técnica lo autoriza: APPROVED_COSTS=1 git commit ..."
   fi
 done
 

@@ -6,7 +6,7 @@ Los términos que aparecen en esta documentación, en orden alfabético. Cada un
 
 **Aprobación.** El momento en que una persona se hace responsable de lo que sigue. Hay cuatro: especificación, plan, Pull Request y despliegue. Ver [Aprobaciones](aprobaciones.md).
 
-**Archivo generado.** Un archivo que produce un comando a partir de otro, y que nunca se edita a mano. Hay de dos tipos: la configuración de los agentes (`make sincronizar`) y el código generado (`make generar`). Ver [Una fuente, varias herramientas](una-fuente-varias-herramientas.md) y [Cobertura y código generado](cobertura-y-codigo-generado.md).
+**Archivo generado.** Un archivo que produce un comando a partir de otro, y que nunca se edita a mano. Hay de dos tipos: la configuración de los agentes (`make sync`) y el código generado (`make generate`). Ver [Una fuente, varias herramientas](una-fuente-varias-herramientas.md) y [Cobertura y código generado](cobertura-y-codigo-generado.md).
 
 **Archivo gestionado.** Un archivo que viene del kit y se reemplaza en cada actualización. No se edita en el proyecto. Ver [El kit como submódulo](submodulo.md).
 

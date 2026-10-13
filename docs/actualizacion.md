@@ -31,7 +31,7 @@ La versión instalada en un proyecto está en `.kit-manifest.json`. Cada cambio 
 Desde la raíz del proyecto, con la rama al día y sin cambios pendientes:
 
 ```bash
-make actualizar-kit
+make update-kit
 ```
 
 El comando hace tres cosas:
@@ -51,16 +51,16 @@ git add . && git commit -m "chore: actualiza kit de desarrollo"
 
 ## Leer las novedades
 
-`make actualizar-kit` muestra al final lo que cambió entre la versión que tenías y la nueva. Para volver a verlo en cualquier momento:
+`make update-kit` muestra al final lo que cambió entre la versión que tenías y la nueva. Para volver a verlo en cualquier momento:
 
 ```bash
-make novedades                # historial completo
-make novedades DESDE=1.6.0    # solo desde una versión
+make news                # historial completo
+make news SINCE=1.6.0    # solo desde una versión
 ```
 
 ## Pasos manuales
 
-Algunas versiones traen una sección **Al actualizar**: cosas que el kit no puede hacer por ti. `make actualizar-kit` las reúne al final, de la versión más antigua a la más nueva:
+Algunas versiones traen una sección **Al actualizar**: cosas que el kit no puede hacer por ti. `make update-kit` las reúne al final, de la versión más antigua a la más nueva:
 
 ```
 ⚠ PASOS MANUALES AL ACTUALIZAR:
@@ -72,10 +72,10 @@ Hazlos **antes** del commit de la actualización. Suelen ser de tres tipos: un c
 
 ## Cuando el kit recomienda otros modelos
 
-Los modelos de cada agente están en `equipo/config.json`, que es del proyecto. Si la versión nueva del kit recomienda una distribución distinta, `make actualizar-kit` lo avisa pero no cambia nada. Para adoptarla:
+Los modelos de cada agente están en `equipo/config.json`, que es del proyecto. Si la versión nueva del kit recomienda una distribución distinta, `make update-kit` lo avisa pero no cambia nada. Para adoptarla:
 
 ```bash
-make actualizar-modelos
+make update-models
 ```
 
 Muestra qué cambiaría, pide confirmación y copia **solo** la asignación de modelos. El resto de tu configuración (herramientas activas, temperaturas, exclusiones) se conserva. Después, reinicia el agente de código.
@@ -93,10 +93,10 @@ Alguien editó en el proyecto un archivo que viene del kit. La actualización no
 |---|---|
 | Le sirve a todos los proyectos | Llévalo al repositorio del kit y vuelve a actualizar. Ver [Cómo contribuir](contribuir.md) |
 | Es propio de este proyecto | Agrega el archivo a `"kit.excluir"` en `equipo/config.json`. Ver [Personalizar un proyecto](personalizar.md) |
-| Fue un error | Descártalo con `make instalar-kit FORZAR=1`. Guarda una copia en `.kit-respaldo/` |
+| Fue un error | Descártalo con `make install-kit FORCE=1`. Guarda una copia en `.kit-respaldo/` |
 
 > [!WARNING]
-> `FORZAR=1` es una decisión de una persona, no de un agente. Antes de usarlo, mira qué cambió: ese cambio local puede ser importante.
+> `FORCE=1` es una decisión de una persona, no de un agente. Antes de usarlo, mira qué cambió: ese cambio local puede ser importante.
 
 ## Después de actualizar
 
@@ -104,7 +104,7 @@ Tres comprobaciones rápidas:
 
 ```bash
 make doctor          # el entorno y el kit, al día
-make verificar-kit   # los archivos del proyecto coinciden con el kit
+make check-kit   # los archivos del proyecto coinciden con el kit
 make ci              # lo mismo que hará la integración continua
 ```
 

@@ -41,7 +41,7 @@ Antes de cada edición, el hook revisa la ruta del archivo. Si coincide con algu
 | Todo dentro del submódulo del kit | Los cambios al kit se hacen en su repositorio |
 | Los archivos listados en `.kit-manifest.json` | Vienen del kit y se reemplazan al actualizarlo |
 | Los archivos inmutables del proyecto que ya están en git | No se editan una vez versionados: se crea uno nuevo. Ver [abajo](#los-archivos-inmutables-del-proyecto) |
-| `specs/**/costos.json` | Lo escribe solo `make costos` |
+| `specs/**/costos.json` | Lo escribe solo `make costs` |
 
 ## Los archivos inmutables del proyecto
 
@@ -87,7 +87,7 @@ El kit también define qué puede ejecutar el agente en la terminal:
 
 La lógica de cada grupo:
 
-- **Lo permitido** es lo que el agente hace decenas de veces por tarea. Pedir confirmación cada vez solo entrenaría a aprobar sin mirar. Probar, revisar y formatear se hacen con `make` (`make test PARTE=api`, `make ci`), que ejecuta los [verbos del perfil](perfil-del-proyecto.md): por eso el kit no necesita nombrar las herramientas de ninguna tecnología.
+- **Lo permitido** es lo que el agente hace decenas de veces por tarea. Pedir confirmación cada vez solo entrenaría a aprobar sin mirar. Probar, revisar y formatear se hacen con `make` (`make test PART=api`, `make ci`), que ejecuta los [verbos del perfil](perfil-del-proyecto.md): por eso el kit no necesita nombrar las herramientas de ninguna tecnología.
 - **Lo que pregunta** tiene efectos fuera de tu máquina (subir código), o es un comando que el kit no conoce: instalar una dependencia, o llamar directo a una herramienta del proyecto.
 - **Lo prohibido** es difícil o imposible de deshacer: borrar archivos, reescribir el historial compartido, borrar los datos de la base local, o exponer secretos.
 
@@ -124,11 +124,11 @@ El resultado final es el mismo: el cambio prohibido no entra al repositorio. La 
 
 | Síntoma | Causa | Solución |
 |---|---|---|
-| El agente edita un archivo protegido sin que nada lo detenga | Los scripts no tienen permiso de ejecución, o falta `jq` | `make instalar-kit` repara el permiso. `jq` se instala según la página de [Instalación](instalacion.md) |
+| El agente edita un archivo protegido sin que nada lo detenga | Los scripts no tienen permiso de ejecución, o falta `jq` | `make install-kit` repara el permiso. `jq` se instala según la página de [Instalación](instalacion.md) |
 | El agente edita un archivo inmutable ya versionado | El perfil no lo declara en `inmutables`, el perfil tiene errores, o falta `python3` | `make profile` muestra los inmutables de cada parte y dice si el perfil tiene errores |
 | Después de actualizar el kit, cada edición muestra un error que nombra `formatear.sh` | Claude Code sigue con la configuración de antes, que llamaba al hook de formateo | Reinicia Claude Code |
 | El agente pide confirmación para `go test`, `npm run` u otra herramienta del proyecto | Desde la 1.20.0 el kit solo permite `make` | Ver [Los permisos](#los-permisos) |
-| El agente pide confirmación para todo | La configuración generada está desactualizada | `make sincronizar` y reinicia Claude Code |
+| El agente pide confirmación para todo | La configuración generada está desactualizada | `make sync` y reinicia Claude Code |
 
 El hook necesita `jq` para leer qué archivo se va a editar. Sin `jq` no bloquea nada, y tampoco avisa. Por eso `make doctor` lo marca como requerido. Para los archivos inmutables necesita además `python3`, que el kit ya usa en todo lo demás.
 
@@ -140,7 +140,7 @@ El hook y los permisos están en `equipo/adaptadores/claude/`, y a partir de ah�
 - **Un cambio para todos los proyectos** se hace en el repositorio del kit. Ver [Cómo contribuir](contribuir.md).
 - **Un cambio propio del proyecto** requiere excluir `equipo/adaptadores/` del kit. Ver [Personalizar un proyecto](personalizar.md).
 
-Después de cualquier cambio: `make sincronizar` y reiniciar Claude Code.
+Después de cualquier cambio: `make sync` y reiniciar Claude Code.
 
 ## Siguientes pasos
 

@@ -120,21 +120,21 @@ echo "Proyecto"
 if [ -n "$CON_DOCKER" ]; then
   if docker info >/dev/null 2>&1; then verde "Docker está corriendo"; else rojo "Docker no está corriendo"; fi
 fi
-if [ "$(git config core.hooksPath 2>/dev/null)" != ".githooks" ]; then rojo "Hooks de git inactivos (ejecuta: make instalar-hooks)"
-elif [ ! -x .githooks/pre-commit ] || [ ! -x .githooks/commit-msg ]; then rojo "Hooks de git sin permiso de ejecución: git los ignora (ejecuta: make instalar-hooks)"
+if [ "$(git config core.hooksPath 2>/dev/null)" != ".githooks" ]; then rojo "Hooks de git inactivos (ejecuta: make install-hooks)"
+elif [ ! -x .githooks/pre-commit ] || [ ! -x .githooks/commit-msg ]; then rojo "Hooks de git sin permiso de ejecución: git los ignora (ejecuta: make install-hooks)"
 else verde "Hooks de git activos"; fi
 # .env solo hace falta si el proyecto declara alguna variable en .env.example.
 if [ -f .env ]; then verde "Archivo .env existe"
 elif grep -qE '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=' .env.example 2>/dev/null; then rojo "Falta .env (ejecuta: cp .env.example .env y completa valores)"
 fi
-if python3 scripts/sincronizar.py --verificar >/dev/null 2>&1; then verde "Configuración de agentes al día"; else rojo "Configuración de agentes desactualizada (ejecuta: make sincronizar)"; fi
+if python3 scripts/sincronizar.py --verificar >/dev/null 2>&1; then verde "Configuración de agentes al día"; else rojo "Configuración de agentes desactualizada (ejecuta: make sync)"; fi
 RUTA_KIT=$(bash scripts/ruta-kit.sh)
 if [ -f .kit-manifest.json ]; then
   if [ ! -f "$RUTA_KIT/scripts/instalar_kit.py" ]; then rojo "Submódulo $RUTA_KIT/ sin inicializar (ejecuta: git submodule update --init)"
   elif python3 "$RUTA_KIT/scripts/instalar_kit.py" --verificar >/dev/null 2>&1; then verde "Kit instalado y al día ($(jq -r .version .kit-manifest.json 2>/dev/null), en $RUTA_KIT/)"
-  else rojo "Kit desactualizado o modificado (detalle: make verificar-kit)"; fi
+  else rojo "Kit desactualizado o modificado (detalle: make check-kit)"; fi
 elif [ -f "$RUTA_KIT/scripts/instalar_kit.py" ]; then
-  rojo "Submódulo $RUTA_KIT/ agregado pero el kit no está instalado (ejecuta: make -f $RUTA_KIT/Makefile instalar-kit)"
+  rojo "Submódulo $RUTA_KIT/ agregado pero el kit no está instalado (ejecuta: make -f $RUTA_KIT/Makefile install-kit)"
 fi
 [ -d .specify/templates ] && verde "Spec Kit inicializado" || rojo "Spec Kit no inicializado (ejecuta: specify init --here --integration <herramienta>)"
 command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1 && verde "GitHub CLI autenticado" || ambar "GitHub CLI no autenticado (necesario para que los agentes abran PRs: gh auth login)"

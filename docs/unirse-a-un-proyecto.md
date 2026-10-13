@@ -29,7 +29,7 @@ Con tu máquina lista según la página de [Instalación](instalacion.md):
 git clone --recursive git@github.com:<organizacion>/<proyecto>.git
 cd <proyecto>
 
-make instalar-hooks          # activa los controles de git (obligatorio)
+make install-hooks          # activa los controles de git (obligatorio)
 cp .env.example .env         # y completa los valores que te entregaron
 make up                      # levanta los servicios del proyecto (su base de datos, por ejemplo)
 make doctor                  # verifica que todo esté listo
@@ -40,7 +40,7 @@ Qué hace cada paso:
 | Comando | Por qué hace falta |
 |---|---|
 | `git clone --recursive` | El kit vive en un submódulo (`.bowser-spec-kit-ai/`). Sin `--recursive` esa carpeta queda vacía. Si ya clonaste sin esa opción: `git submodule update --init` |
-| `make instalar-hooks` | La activación de los [hooks de git](hooks-de-git.md) no viaja con el repositorio: cada persona la hace una vez por clon. Sin ella, tus commits no pasan por ningún control local |
+| `make install-hooks` | La activación de los [hooks de git](hooks-de-git.md) no viaja con el repositorio: cada persona la hace una vez por clon. Sin ella, tus commits no pasan por ningún control local |
 | `cp .env.example .env` | `.env` tiene los valores reales (contraseñas, direcciones) y nunca se sube a git |
 | `make up` | Levanta con Docker los servicios que el proyecto definió en su archivo de Docker Compose. Si responde "todavía no tiene entorno local", el proyecto aún no lo creó: sáltate este paso |
 | `make doctor` | Comprueba todo lo anterior. Debe terminar con "Todo listo para trabajar" |
@@ -67,7 +67,7 @@ En este orden:
 3. `docs/producto/roadmap.md`: qué funcionalidades tiene el producto y en qué estado está cada una.
 4. La carpeta `specs/`, empezando por la funcionalidad más reciente, para ver cómo se ha trabajado.
 
-Después ejecuta `make estado`: muestra qué está en curso y cuál es el próximo paso.
+Después ejecuta `make status`: muestra qué está en curso y cuál es el próximo paso.
 
 > [!NOTE]
 > No edites la carpeta `.bowser-spec-kit-ai/` ni los archivos que vienen del kit (están listados en `.kit-manifest.json`). El hook de git y la integración continua lo detectan. Si algo del kit debería cambiar, propónlo a quien mantiene el kit en tu equipo.
@@ -83,7 +83,7 @@ Después ejecuta `make estado`: muestra qué está en curso y cuál es el próxi
 **Día 2**
 
 - [ ] Leer las especificaciones y los planes de dos funcionalidades ya terminadas, con su `estado.md`.
-- [ ] Ejecutar `make estado` y entender el roadmap del proyecto.
+- [ ] Ejecutar `make status` y entender el roadmap del proyecto.
 - [ ] Leer la página de [Roles](roles.md).
 - [ ] Hacer un [cambio pequeño](cambios-pequenos.md) y abrir un Pull Request acompañado de alguien con experiencia.
 

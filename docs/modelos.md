@@ -48,8 +48,8 @@ Además:
 Después de cualquier cambio:
 
 ```bash
-make sincronizar   # regenera la configuración
-make modelos       # muestra qué modelo usa cada agente y de dónde sale
+make sync   # regenera la configuración
+make models       # muestra qué modelo usa cada agente y de dónde sale
 ```
 
 ## Criterios para asignar modelos
@@ -85,7 +85,7 @@ Para Claude Code, los niveles van a `opus`, `sonnet` y `haiku`. Para Codex queda
 **En un proyecto ya instalado**, esta distribución no se aplica sola al actualizar el kit, porque tu `equipo/config.json` se respeta. Para adoptar la que recomienda la versión actual:
 
 ```bash
-make actualizar-modelos
+make update-models
 ```
 
 Muestra los cambios y pide confirmación. Conserva las temperaturas, el agente principal y las exclusiones.
@@ -191,7 +191,7 @@ Un ejemplo de excepciones:
 > [!WARNING]
 > Muchos modelos de razonamiento recomiendan o exigen una temperatura concreta, y otro valor puede empeorar los resultados. Revisa la ficha de cada modelo; si indica un valor fijo, agrégalo a `sin_temperatura`.
 
-`make modelos` muestra la temperatura final de cada agente y de dónde sale.
+`make models` muestra la temperatura final de cada agente y de dónde sale.
 
 ## Verificar que los modelos existan
 
@@ -201,15 +201,15 @@ Los catálogos cambian con frecuencia. Para ver los identificadores exactos disp
 opencode models opencode-go
 ```
 
-`make modelos` marca con ⚠ cualquier modelo configurado que tu instalación de OpenCode no reconozca.
+`make models` marca con ⚠ cualquier modelo configurado que tu instalación de OpenCode no reconozca.
 
 ## Medir y ajustar
 
-`make costos` registra los tokens y el costo de cada agente y modelo por funcionalidad. Es la base para comparar configuraciones con datos reales. Ver [Costos de IA](costos.md).
+`make costs` registra los tokens y el costo de cada agente y modelo por funcionalidad. Es la base para comparar configuraciones con datos reales. Ver [Costos de IA](costos.md).
 
-1. Anota el porcentaje de **Rolling** y de **Weekly** antes y después de construir una funcionalidad, y compáralo con `make costos`.
+1. Anota el porcentaje de **Rolling** y de **Weekly** antes y después de construir una funcionalidad, y compáralo con `make costs`.
 2. Para comparar dos configuraciones, construye la misma funcionalidad pequeña con cada una y compara: cuántos ciclos de corrección necesitó, qué encontró el revisor y cuánto consumió.
-3. Anota el resultado en `docs/decisiones/`, ajusta `equipo/config.json` y ejecuta `make sincronizar && make modelos`.
+3. Anota el resultado en `docs/decisiones/`, ajusta `equipo/config.json` y ejecuta `make sync && make models`.
 
 Si el presupuesto se agota rápido, revisa primero el orquestador: abre una sesión nueva por funcionalidad y comprueba que esté delegando en los subagentes en lugar de hacer el trabajo él.
 

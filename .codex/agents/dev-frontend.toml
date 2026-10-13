@@ -1,4 +1,4 @@
-# GENERADO por scripts/sincronizar.py desde equipo/agentes/dev-frontend.md. No editar: cambia la fuente y ejecuta `make sincronizar`.
+# GENERADO por scripts/sincronizar.py desde equipo/agentes/dev-frontend.md. No editar: cambia la fuente y ejecuta `make sync`.
 name = "dev-frontend"
 description = "Usar para implementar las tareas de tasks.md de la interfaz de usuario, siguiendo ux.md y el contrato de la API, siempre con sus pruebas. Qué partes trabaja y con qué tecnología lo dice el perfil del proyecto."
 model_reasoning_effort = "medium"
@@ -28,7 +28,7 @@ No toques las partes que no son tuyas. Si el contrato de la API no alcanza para 
 El proyecto no tiene perfil: se supone la estructura original del kit. Tus partes:
 
 - **frontend**, en `frontend`.
-  - Comandos: `cd frontend && npm run lint && npm run typecheck && npm test -- --run`, `make generar`.
+  - Comandos: `cd frontend && npm run lint && npm run typecheck && npm test -- --run`, `make generate`.
 
 Las demás partes no son tuyas: `backend` (`backend`, de `dev-backend`).
 '''

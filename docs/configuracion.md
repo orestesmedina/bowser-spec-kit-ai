@@ -20,7 +20,7 @@ Los tres primeros son **semillas**: el kit los copia una vez con valores de ejem
 
 ## equipo/config.json
 
-Es el archivo que lee `make sincronizar` para generar la configuración de cada herramienta.
+Es el archivo que lee `make sync` para generar la configuración de cada herramienta.
 
 ### Herramientas activas
 
@@ -28,7 +28,7 @@ Es el archivo que lee `make sincronizar` para generar la configuración de cada 
 "herramientas": ["claude", "codex", "opencode"]
 ```
 
-Deja solo las que use tu equipo. Para cada herramienta de la lista, `make sincronizar` genera sus archivos; las que quites dejan de generarse.
+Deja solo las que use tu equipo. Para cada herramienta de la lista, `make sync` genera sus archivos; las que quites dejan de generarse.
 
 ### Modelos
 
@@ -83,14 +83,14 @@ Los precios van en dólares por millón de tokens. El detalle está en [Costos d
 Después de editar `equipo/config.json`:
 
 ```bash
-make sincronizar   # regenera la configuración de cada herramienta
-make modelos       # muestra qué modelo usa cada agente y de dónde sale
+make sync   # regenera la configuración de cada herramienta
+make models       # muestra qué modelo usa cada agente y de dónde sale
 ```
 
 Reinicia el agente de código para que tome la configuración nueva, e incluye en el commit tanto `config.json` como los archivos generados.
 
 > [!NOTE]
-> Cuando el kit cambia su recomendación de modelos, `make actualizar-kit` lo avisa pero no modifica tu `config.json`. Para adoptarla: `make actualizar-modelos`, que muestra las diferencias y pide confirmación.
+> Cuando el kit cambia su recomendación de modelos, `make update-kit` lo avisa pero no modifica tu `config.json`. Para adoptarla: `make update-models`, que muestra las diferencias y pide confirmación.
 
 ## Variables de entorno
 

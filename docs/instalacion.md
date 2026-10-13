@@ -24,7 +24,7 @@ El kit no es un programa que se instala. Es un conjunto de archivos (instruccion
 | Herramienta | Versión | Para qué la usa el kit |
 |---|---|---|
 | Git | 2.30 o superior | Control de versiones; los [hooks de git](hooks-de-git.md) revisan cada commit |
-| `make` | cualquiera | Ejecuta todos los comandos del kit (`make doctor`, `make up`, `make estado`…) |
+| `make` | cualquiera | Ejecuta todos los comandos del kit (`make doctor`, `make up`, `make status`…) |
 | Python | 3.11 o superior | Los scripts del kit. No necesitan ninguna librería adicional |
 | `jq` | cualquiera | Lo usan los hooks que impiden al agente editar archivos protegidos |
 | Docker | 24 o superior | Levanta PostgreSQL en tu máquina; no se instala PostgreSQL a mano |
@@ -103,7 +103,7 @@ go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1
 | `golangci-lint` | Revisa la calidad del código Go | `make lint` |
 | `govulncheck` | Busca vulnerabilidades conocidas en las dependencias de Go | `make security` |
 | `migrate` | Aplica las migraciones de la base de datos | `make db-migrate` |
-| `sqlc` | Genera código Go a partir de las consultas SQL | `make generar` |
+| `sqlc` | Genera código Go a partir de las consultas SQL | `make generate` |
 
 Las versiones son las mismas que fija la integración continua. Usar otras puede hacer que algo pase en tu máquina y falle en GitHub, o al revés.
 

@@ -18,14 +18,14 @@ Hay dos workflows, y no se mezclan:
 **El workflow no repite los comandos de los verbos: los ejecuta.** Cada parte se revisa con una sola línea:
 
 ```yaml
-- run: make ci PARTE=<nombre de la parte>
+- run: make ci PART=<nombre de la parte>
 ```
 
 Así el Pull Request se revisa con los mismos comandos que usa el equipo, y cambiar un comando en el perfil cambia la CI sin tocar el workflow. Todo lo demás del archivo existe para que esa línea pueda correr: el lenguaje instalado, las herramientas que los verbos llaman y los servicios que las pruebas necesitan.
 
 ## Cómo redactarlo
 
-1. **Parte de los hechos.** `make profile` (partes, carpetas y el comando de cada verbo) y `make ci-check` (qué ejecuta ya algún workflow). Lee los comandos de los verbos: cada programa que nombran tiene que estar instalado en el job. Los `requisitos` del perfil (al final de `make profile`) son la lista de lo que el equipo instala en su máquina, con sus versiones mínimas: sirve de guía, pero el job instala solo lo que los verbos de su parte usan.
+1. **Parte de los hechos.** `make profile` (partes, carpetas y el comando de cada verbo) y `make check-ci` (qué ejecuta ya algún workflow). Lee los comandos de los verbos: cada programa que nombran tiene que estar instalado en el job. Los `requisitos` del perfil (al final de `make profile`) son la lista de lo que el equipo instala en su máquina, con sus versiones mínimas: sirve de guía, pero el job instala solo lo que los verbos de su parte usan.
 2. **Un job por parte que tenga al menos un verbo.** Una parte sin verbos no lleva job: lístala en la entrega como "sin revisar". Dos partes que usan lo mismo pueden compartir job si eso lo hace más corto; sepáralas si una necesita un servicio que la otra no.
 3. **En cada job, en este orden:**
    - Descargar el código.
@@ -34,7 +34,7 @@ Así el Pull Request se revisa con los mismos comandos que usa el equipo, y camb
    - Instalar las herramientas que los verbos llaman y el lenguaje no trae (linters, generadores, auditores), cada una en una versión exacta.
    - Levantar los servicios que las pruebas necesitan (base de datos, cola) como `services:` del job, con la misma versión mayor que el entorno local, una comprobación de salud y credenciales de usar y tirar.
    - Preparar el servicio si hace falta (por ejemplo, aplicar los archivos de cambio a la base de datos vacía). Eso además comprueba que se aplican desde cero.
-   - `make ci PARTE=<nombre>`.
+   - `make ci PART=<nombre>`.
 4. **Cuándo corre:** en cada Pull Request y en cada cambio que llega a la rama principal. Con `concurrency` para cancelar la ejecución anterior de la misma rama.
 5. **Permisos mínimos:** `permissions: contents: read`, salvo que un paso necesite más y digas cuál y por qué.
 6. **Versiones fijas, nunca "la última".** Las acciones, en su versión mayor (`@v7`); toma como referencia las que usa `bowser.yml`, que el kit mantiene al día. Las herramientas, en versión exacta: la que el proyecto ya declara en sus archivos o la que el equipo tiene instalada. Si no puedes saber una versión, **pregúntala**; no la inventes ni la supongas de memoria.
@@ -49,7 +49,7 @@ Así el Pull Request se revisa con los mismos comandos que usa el equipo, y camb
 
 ## Cómo se comprueba
 
-- `make ci-check` debe terminar diciendo que la CI ejecuta todos los verbos que el perfil define.
+- `make check-ci` debe terminar diciendo que la CI ejecuta todos los verbos que el perfil define.
 - `make ci` debe pasar en local antes: lo que falla en la máquina falla en GitHub.
 - Un workflow **solo se prueba de verdad en GitHub**. Dilo en la entrega, y revisa la primera ejecución con la persona.
 

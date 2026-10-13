@@ -1,4 +1,4 @@
-# GENERADO por scripts/sincronizar.py desde equipo/agentes/analista-producto.md. No editar: cambia la fuente y ejecuta `make sincronizar`.
+# GENERADO por scripts/sincronizar.py desde equipo/agentes/analista-producto.md. No editar: cambia la fuente y ejecuta `make sync`.
 name = "analista-producto"
 description = "Usar al inicio de cada funcionalidad para convertir la idea del cliente en una especificación (spec.md) con historias de usuario y criterios de aceptación. También para aclarar ambigüedades de una spec existente."
 model_reasoning_effort = "high"

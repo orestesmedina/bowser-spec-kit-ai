@@ -2,7 +2,7 @@
 name: bowser-doctor
 description: "Revisa que la máquina y el proyecto tengan todo lo necesario para trabajar (make doctor)."
 ---
-<!-- GENERADO por scripts/sincronizar.py desde equipo/comandos/doctor.md. No editar: cambia la fuente y ejecuta `make sincronizar`. -->
+<!-- GENERADO por scripts/sincronizar.py desde equipo/comandos/doctor.md. No editar: cambia la fuente y ejecuta `make sync`. -->
 
 Ejecuta `make doctor` en la raíz del proyecto. Solo revisa: no instala ni cambia nada.
 

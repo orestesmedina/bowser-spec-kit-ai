@@ -46,7 +46,7 @@ La línea entre "cambio pequeño" y "funcionalidad" la tiene clara: **no es pequ
 
 Las sesiones se pierden; el estado del trabajo no. Por eso el orquestador hace lo mismo cada vez:
 
-**Al abrir**, antes de responder cualquier cosa, ejecuta `make estado` y `make costos`, y empieza con dos a cuatro líneas:
+**Al abrir**, antes de responder cualquier cosa, ejecuta `make status` y `make costs`, y empieza con dos a cuatro líneas:
 
 ```
 Quedamos en: 003-registro-usuarios · Fase 6/9 (implementar) · 7/12 tareas
@@ -54,7 +54,7 @@ Aprobados: spec y plan · Hallazgos abiertos: 0
 Próximo paso: T008 [frontend] formulario de registro → dev-frontend. ¿Sigo?
 ```
 
-**Al cerrar**, ejecuta `make costos`, anota en `estado.md` el próximo paso concreto y guarda todo en un commit. Si quedan cambios de código sin guardar, te lo dice en lugar de hacer commit de trabajo a medias.
+**Al cerrar**, ejecuta `make costs`, anota en `estado.md` el próximo paso concreto y guarda todo en un commit. Si quedan cambios de código sin guardar, te lo dice en lugar de hacer commit de trabajo a medias.
 
 ## Sus prioridades
 
@@ -70,7 +70,7 @@ El orden importa. Cuando la velocidad choca con el proceso, gana el proceso, y e
 
 1. Saltarse una puerta de aprobación, o darla por hecha.
 2. Escribir código de producción sin especificación y plan aprobados (salvo cambios pequeños).
-3. Usar por su cuenta `git commit --no-verify`, `git push --force`, `APROBADO_CONSTITUCION=1`, `APROBADO_COSTOS=1` o `make instalar-kit FORZAR=1`. Son decisiones de una persona.
+3. Usar por su cuenta `git commit --no-verify`, `git push --force`, `APPROVED_CONSTITUTION=1`, `APPROVED_COSTS=1` o `make install-kit FORCE=1`. Son decisiones de una persona.
 4. Editar archivos generados, archivos del kit, la constitución, `.env` o secretos.
 5. Debilitar o desactivar una prueba para que pase.
 6. Inventar reglas de negocio. Si la especificación es ambigua, pregunta.
@@ -86,7 +86,7 @@ Si le pides algo que rompe una regla ("hazlo directo sin spec", "sáltate las pr
 2. Ofrece la alternativa dentro del proceso, por ejemplo una especificación mínima de pocas líneas.
 3. Solo si **confirmas explícitamente** que asumes la excepción, procede, y la deja registrada en la descripción del Pull Request.
 
-Hay dos grupos de reglas que **no admiten excepción desde el chat**: las de secretos y archivos del kit, y el uso de `--no-verify`, `FORZAR` o los cambios a la constitución. Si de verdad hace falta, lo ejecuta una persona.
+Hay dos grupos de reglas que **no admiten excepción desde el chat**: las de secretos y archivos del kit, y el uso de `--no-verify`, `FORCE` o los cambios a la constitución. Si de verdad hace falta, lo ejecuta una persona.
 
 ## Cómo se comunica
 

@@ -1,4 +1,4 @@
-# GENERADO por scripts/sincronizar.py desde equipo/agentes/dev-backend.md. No editar: cambia la fuente y ejecuta `make sincronizar`.
+# GENERADO por scripts/sincronizar.py desde equipo/agentes/dev-backend.md. No editar: cambia la fuente y ejecuta `make sync`.
 name = "dev-backend"
 description = "Usar para implementar las tareas de tasks.md del lado del servidor (reglas de negocio, API, procesos), siempre con sus pruebas. Qué partes trabaja y con qué tecnología lo dice el perfil del proyecto."
 model_reasoning_effort = "medium"
@@ -30,7 +30,7 @@ No toques las partes que no son tuyas. Si una tarea exige cambiar el contrato de
 El proyecto no tiene perfil: se supone la estructura original del kit. Tus partes:
 
 - **backend**, en `backend`.
-  - Comandos: `cd backend && gofmt -l . && go vet ./... && go test ./...`, `make generar`, `make cobertura`.
+  - Comandos: `cd backend && gofmt -l . && go vet ./... && go test ./...`, `make generate`, `make coverage`.
   - No se modifican una vez versionados (se crea un archivo nuevo): `backend/migrations/*.sql`.
 
 Las demás partes no son tuyas: `frontend` (`frontend`, de `dev-frontend`).

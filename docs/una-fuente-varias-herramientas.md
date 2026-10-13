@@ -40,7 +40,7 @@ Con una sola fuente:
 Cada archivo generado empieza con un aviso que dice de qué fuente salió y que no se edita.
 
 > [!NOTE]
-> Spec Kit guarda sus comandos dentro de dos de esas carpetas: `.claude/skills/speckit-*/` y `.opencode/commands/speckit.*.md`. No son del kit: `make sincronizar` no los borra ni los cambia, y `make verificar-agentes` no los cuenta. Todo lo demás que haya en las carpetas generadas sí se borra.
+> Spec Kit guarda sus comandos dentro de dos de esas carpetas: `.claude/skills/speckit-*/` y `.opencode/commands/speckit.*.md`. No son del kit: `make sync` no los borra ni los cambia, y `make check-agents` no los cuenta. Todo lo demás que haya en las carpetas generadas sí se borra.
 
 ## Qué lee cada herramienta
 
@@ -92,10 +92,10 @@ Un comando es lo que una persona escribe en el chat para pedir algo concreto, co
 ```markdown
 ---
 nombre: status
-descripcion: Muestra por dónde va el proyecto y cuál es el próximo paso (make estado).
+descripcion: Muestra por dónde va el proyecto y cuál es el próximo paso (make status).
 argumentos: [todo]
 ---
-Ejecuta `make estado` en la raíz del proyecto…
+Ejecuta `make status` en la raíz del proyecto…
 ```
 
 `argumentos` es opcional: es la pista de qué se puede escribir después del nombre. El generador agrega el prefijo `bowser-` y produce:
@@ -109,7 +109,7 @@ Ejecuta `make estado` en la raíz del proyecto…
 En Claude Code y Codex un comando propio es una skill con la invocación automática desactivada (`disable-model-invocation` y `allow_implicit_invocation: false`): así no ocupa contexto hasta que se usa.
 
 > [!WARNING]
-> Codex solo lee skills de `.agents/skills/`, que es una carpeta de fuentes. Por eso sus comandos se generan ahí mismo, en carpetas que empiezan con `bowser-`. Esas carpetas son generadas: `make sincronizar` las borra y las vuelve a crear. No pongas una skill propia en una carpeta con ese prefijo.
+> Codex solo lee skills de `.agents/skills/`, que es una carpeta de fuentes. Por eso sus comandos se generan ahí mismo, en carpetas que empiezan con `bowser-`. Esas carpetas son generadas: `make sync` las borra y las vuelve a crear. No pongas una skill propia en una carpeta con ese prefijo.
 
 Lista de comandos y cómo usarlos: [Comandos](comandos.md#dentro-de-la-herramienta).
 
@@ -118,13 +118,13 @@ Lista de comandos y cómo usarlos: [Comandos](comandos.md#dentro-de-la-herramien
 Después de cambiar cualquier fuente:
 
 ```bash
-make sincronizar
+make sync
 ```
 
 Para ver el resultado sin leer los archivos generados:
 
 ```bash
-make modelos
+make models
 ```
 
 Muestra, para cada herramienta activa, qué modelo y qué temperatura usa cada agente y de dónde sale cada valor.
@@ -133,7 +133,7 @@ Después de regenerar, reinicia el agente de código: la mayoría lee su configu
 
 ## Cómo se mantiene al día
 
-Olvidar `make sincronizar` dejaría a los agentes trabajando con instrucciones viejas. Tres controles lo impiden:
+Olvidar `make sync` dejaría a los agentes trabajando con instrucciones viejas. Tres controles lo impiden:
 
 | Control | Cuándo |
 |---|---|
@@ -144,11 +144,11 @@ Olvidar `make sincronizar` dejaría a los agentes trabajando con instrucciones v
 La comprobación se puede ejecutar a mano:
 
 ```bash
-make verificar-agentes
+make check-agents
 ```
 
 > [!WARNING]
-> Nunca edites un archivo generado para "arreglar algo rápido". El próximo `make sincronizar` borra el cambio, y mientras tanto el hook de git rechaza los commits. Cambia la fuente.
+> Nunca edites un archivo generado para "arreglar algo rápido". El próximo `make sync` borra el cambio, y mientras tanto el hook de git rechaza los commits. Cambia la fuente.
 
 ## Lo que no es igual en todas las herramientas
 
@@ -160,7 +160,7 @@ El kit iguala todo lo que puede, pero las herramientas no ofrecen lo mismo:
 | Temperatura por subagente | Solo OpenCode permite fijarla |
 | Agente principal | En OpenCode, el orquestador es un agente con nombre que se abre por defecto. En Claude Code y Codex es la sesión principal |
 | Modelo del orquestador | En Codex se elige al iniciar la sesión; en las otras dos se configura |
-| Costos de IA | Hoy `make costos` registra solo las sesiones de OpenCode |
+| Costos de IA | Hoy `make costs` registra solo las sesiones de OpenCode |
 
 Además, cada modelo sigue las instrucciones de forma algo distinta. Al cambiar de herramienta o de modelo conviene probar con una funcionalidad pequeña.
 

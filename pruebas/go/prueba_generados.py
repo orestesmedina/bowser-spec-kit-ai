@@ -1,4 +1,4 @@
-"""make generar y make verificar-generados: código de sqlc y tipos de la API."""
+"""make generate y make check-generated: código de sqlc y tipos de la API."""
 import json
 
 from apoyo import afirmar, contiene, prueba
@@ -47,20 +47,20 @@ def con_frontend(e):
     return p
 
 
-@prueba("proyecto sin backend ni frontend: make generar y make verificar-generados se omiten y terminan bien")
+@prueba("proyecto sin backend ni frontend: make generate y make check-generated se omiten y terminan bien")
 def sin_nada_que_generar(e):
     p = e.proyecto()
-    for orden in ("generar", "verificar-generados"):
+    for orden in ("generate", "check-generated"):
         r = p.make(orden)
         contiene(r.salida, "sqlc: sin backend/sqlc.yaml, se omite", f"la salida de make {orden}")
         contiene(r.salida, 'sin script "api:gen" en frontend/package.json, se omite', f"la salida de make {orden}")
-    afirmar(not p.pendientes(), f"make generar dejó cambios en un proyecto sin nada que generar: {p.pendientes()}")
+    afirmar(not p.pendientes(), f"make generate dejó cambios en un proyecto sin nada que generar: {p.pendientes()}")
 
 
 @prueba("backend sin ninguna consulta: sqlc se omite en vez de fallar")
 def sin_consultas(e):
     p = con_backend(e)
-    contiene(p.make("verificar-generados").salida, "sin consultas en backend/internal/db/queries/, se omite")
+    contiene(p.make("check-generated").salida, "sin consultas en backend/internal/db/queries/, se omite")
 
 
 @prueba("sqlc: una consulta nueva o cambiada sin regenerar hace fallar verificar-generados", requiere=("sqlc",))
@@ -68,48 +68,48 @@ def sqlc_desactualizado(e):
     p = con_backend(e)
     p.escribir(CONSULTAS, "-- name: GetUser :one\nSELECT id, email FROM users WHERE id = $1;\n")
     p.commit("feat: consulta de usuarios (sin generar)")
-    contiene(p.make("verificar-generados", espera=1).salida, DESACTUALIZADO)
+    contiene(p.make("check-generated", espera=1).salida, DESACTUALIZADO)
     afirmar(p.existe("backend/internal/db/users.sql.go"), "sqlc no generó backend/internal/db/users.sql.go")
 
     p.commit("feat: código generado de sqlc")
-    contiene(p.make("verificar-generados").salida, AL_DIA)
+    contiene(p.make("check-generated").salida, AL_DIA)
 
     p.agregar(CONSULTAS, "\n-- name: ListUsers :many\nSELECT id, email FROM users ORDER BY id;\n")
     p.commit("feat: otra consulta (sin regenerar)")
-    r = p.make("verificar-generados", espera=1)
+    r = p.make("check-generated", espera=1)
     contiene(r.salida, DESACTUALIZADO)
     contiene(r.salida, "backend/internal/db/users.sql.go")
 
     p.commit("chore: regenera sqlc")
     # Así lo llama la integración continua: una sola parte.
     contiene(p.correr("bash", "scripts/generar.sh", "--verificar", "backend").salida, AL_DIA)
-    p.make("generar")
-    afirmar(not p.pendientes(), f"make generar cambió archivos que ya estaban al día: {p.pendientes()}")
+    p.make("generate")
+    afirmar(not p.pendientes(), f"make generate cambió archivos que ya estaban al día: {p.pendientes()}")
 
 
 @prueba("tipos de la API: un contrato cambiado sin regenerar hace fallar verificar-generados", requiere=("node", "npm"))
 def tipos_desactualizados(e):
     p = con_frontend(e)
     p.archivo("frontend/node_modules").mkdir()
-    contiene(p.make("verificar-generados", espera=1).salida, DESACTUALIZADO)
+    contiene(p.make("check-generated", espera=1).salida, DESACTUALIZADO)
     afirmar(p.existe("frontend/src/api/schema.d.ts"), "api:gen no generó frontend/src/api/schema.d.ts")
 
     p.commit("feat: tipos de la API")
-    contiene(p.make("verificar-generados").salida, AL_DIA)
+    contiene(p.make("check-generated").salida, AL_DIA)
 
     p.agregar(CONTRATO, "info: {title: x}\n")
     p.commit("feat: cambia el contrato (sin regenerar)")
     contiene(p.correr("bash", "scripts/generar.sh", "--verificar", "frontend", espera=1).salida, DESACTUALIZADO)
 
     p.commit("chore: regenera tipos")
-    p.make("generar")
-    afirmar(not p.pendientes(), f"make generar cambió archivos que ya estaban al día: {p.pendientes()}")
+    p.make("generate")
+    afirmar(not p.pendientes(), f"make generate cambió archivos que ya estaban al día: {p.pendientes()}")
 
 
-@prueba("frontend sin dependencias instaladas: make generar falla y dice qué ejecutar")
+@prueba("frontend sin dependencias instaladas: make generate falla y dice qué ejecutar")
 def sin_dependencias(e):
     p = con_frontend(e)
-    contiene(p.make("generar", espera=1).salida, "Faltan las dependencias del frontend. Ejecuta: cd frontend && npm ci")
+    contiene(p.make("generate", espera=1).salida, "Faltan las dependencias del frontend. Ejecuta: cd frontend && npm ci")
 
 
 @prueba("argumento desconocido: generar.sh muestra cómo se usa")

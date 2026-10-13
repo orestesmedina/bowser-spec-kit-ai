@@ -42,7 +42,7 @@ El mínimo es fijo. No se configura por proyecto, porque lo define la constituci
 ### Medirla
 
 ```bash
-make cobertura
+make coverage
 ```
 
 Ejecuta las pruebas del backend y muestra el resultado por archivo:
@@ -99,7 +99,7 @@ Para que el kit pueda regenerar, el proyecto debe seguir estas convenciones:
 ### Regenerarlo
 
 ```bash
-make generar
+make generate
 ```
 
 Ejecuta las dos generaciones. Úsalo **después de cambiar una fuente**:
@@ -111,12 +111,12 @@ Ejecuta las dos generaciones. Úsalo **después de cambiar una fuente**:
 Después, incluye en el mismo commit tanto la fuente como el código generado.
 
 > [!NOTE]
-> Cada parte se omite si el proyecto todavía no la tiene: sin `sqlc.yaml`, sin ninguna consulta o sin el script `api:gen`. Un proyecto recién creado puede ejecutar `make generar` sin que falle.
+> Cada parte se omite si el proyecto todavía no la tiene: sin `sqlc.yaml`, sin ninguna consulta o sin el script `api:gen`. Un proyecto recién creado puede ejecutar `make generate` sin que falle.
 
 ### Verificar que está al día
 
 ```bash
-make verificar-generados
+make check-generated
 ```
 
 Regenera todo y falla si quedó algún cambio sin subir a git. Es la misma comprobación que hace la integración continua, así que conviene ejecutarla antes de abrir un Pull Request.
@@ -126,10 +126,10 @@ Regenera todo y falla si quedó algún cambio sin subir a git. Es la misma compr
 ```
 ✗ El código generado no está al día (o tiene cambios sin commit):
  M frontend/src/api/schema.d.ts
-  Ejecuta 'make generar' y agrega el resultado al commit.
+  Ejecuta 'make generate' y agrega el resultado al commit.
 ```
 
-Significa que alguien cambió una fuente y no regeneró. La solución es la que indica el mensaje: `make generar` y un commit con el resultado.
+Significa que alguien cambió una fuente y no regeneró. La solución es la que indica el mensaje: `make generate` y un commit con el resultado.
 
 Si el error es `Falta sqlc` o `Faltan las dependencias del frontend`, no es un problema del código sino de tu máquina: instala lo que falta según la página de [Instalación](instalacion.md).
 

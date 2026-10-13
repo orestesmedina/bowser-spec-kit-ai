@@ -56,11 +56,11 @@ El comentario que empieza con `##` es la descripción que muestra `make help`.
 
 ## Roles, skills y comandos propios
 
-Un archivo nuevo en `equipo/agentes/` o en `equipo/comandos/`, o una carpeta nueva en `.agents/skills/`, es del proyecto desde que se crea. Después, `make sincronizar`.
+Un archivo nuevo en `equipo/agentes/` o en `equipo/comandos/`, o una carpeta nueva en `.agents/skills/`, es del proyecto desde que se crea. Después, `make sync`.
 
 - Cómo escribir un rol: [Roles](roles.md#agregar-un-rol).
 - Cómo escribir una skill: [Skills](skills.md#agregar-una-skill-propia).
-- Cómo escribir un comando: [Una fuente, varias herramientas](una-fuente-varias-herramientas.md#cómo-se-traduce-un-comando). Un archivo `equipo/comandos/deploy-demo.md` queda como `/bowser-deploy-demo`. No uses el nombre de un comando del kit, ni una carpeta que empiece con `bowser-` en `.agents/skills/`: esas las genera y las borra `make sincronizar`.
+- Cómo escribir un comando: [Una fuente, varias herramientas](una-fuente-varias-herramientas.md#cómo-se-traduce-un-comando). Un archivo `equipo/comandos/deploy-demo.md` queda como `/bowser-deploy-demo`. No uses el nombre de un comando del kit, ni una carpeta que empiece con `bowser-` en `.agents/skills/`: esas las genera y las borra `make sync`.
 
 Lo más frecuente es una skill con las convenciones de algo propio del proyecto: una pasarela de pagos, un sistema externo, las reglas de un dominio de negocio.
 
@@ -92,7 +92,7 @@ En `equipo/config.json`:
 Una carpeta termina en `/`. Después:
 
 ```bash
-make instalar-kit    # actualiza el manifiesto: esos archivos ya no figuran como del kit
+make install-kit    # actualiza el manifiesto: esos archivos ya no figuran como del kit
 ```
 
 Desde ese momento el archivo es del proyecto: lo editas con libertad, el hook deja de vigilarlo y las actualizaciones no lo tocan.

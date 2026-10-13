@@ -65,9 +65,9 @@ Todo archivo que no es código del producto pertenece a una de estas clases. Sab
 
 | Clase | Qué son | Quién los cambia |
 |---|---|---|
-| **Del kit** | Vienen del submódulo y están listados en `.kit-manifest.json` | Nadie en el proyecto. Se actualizan con `make actualizar-kit` |
+| **Del kit** | Vienen del submódulo y están listados en `.kit-manifest.json` | Nadie en el proyecto. Se actualizan con `make update-kit` |
 | **Semillas** | El kit los copia una sola vez; después son del proyecto | El equipo del proyecto |
-| **Generados** | Los produce `make sincronizar` a partir de otros archivos | Nadie a mano. Se cambia la fuente y se regeneran |
+| **Generados** | Los produce `make sync` a partir de otros archivos | Nadie a mano. Se cambia la fuente y se regeneran |
 | **Del proyecto** | Todo lo demás: especificaciones, documentos, código | El equipo y los agentes |
 
 ## Carpeta por carpeta
@@ -116,7 +116,7 @@ Todo archivo que no es código del producto pertenece a una de estas clases. Sab
 | `specs/<NNN-nombre>/tasks.md` | La lista de tareas | El arquitecto |
 | `specs/<NNN-nombre>/revision-<fecha>.md` | Los reportes de validación | QA, revisor y seguridad |
 | `specs/<NNN-nombre>/estado.md` | Fase, aprobaciones, hallazgos y próximo paso | El orquestador |
-| `specs/<NNN-nombre>/costos.json` | Tokens y costo de IA por agente y modelo | Solo `make costos`. Nunca a mano |
+| `specs/<NNN-nombre>/costos.json` | Tokens y costo de IA por agente y modelo | Solo `make costs`. Nunca a mano |
 | `docs/plantillas/` | Plantillas de idea, roadmap y estado | Del kit |
 
 ### El código
@@ -143,7 +143,7 @@ Cómo funciona esto por dentro está en [El kit como submódulo](submodulo.md).
 
 ### Archivos generados
 
-`CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/` y `opencode.json` son la traducción de los roles y las skills al formato que lee cada herramienta. Los produce `make sincronizar`. Ver [Una fuente, varias herramientas](una-fuente-varias-herramientas.md).
+`CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/` y `opencode.json` son la traducción de los roles y las skills al formato que lee cada herramienta. Los produce `make sync`. Ver [Una fuente, varias herramientas](una-fuente-varias-herramientas.md).
 
 ## Qué puedes editar
 
@@ -151,10 +151,10 @@ Cómo funciona esto por dentro está en [El kit como submódulo](submodulo.md).
 |---|---|
 | `specs/`, `docs/producto/`, `backend/`, `frontend/`, `proyecto.mk` | Sí. Es el trabajo de todos los días |
 | `equipo/config.json`, `.github/CODEOWNERS`, `.env.example` | Sí, con el acuerdo de quien lidera el proyecto |
-| `equipo/reglas.md` | Sí, con la aprobación de dirección técnica (`APROBADO_CONSTITUCION=1`) |
+| `equipo/reglas.md` | Sí, con la aprobación de dirección técnica (`APPROVED_CONSTITUTION=1`) |
 | Archivos del kit | No. El cambio se propone en el repositorio del kit, o el archivo se marca como propio. Ver [Personalizar un proyecto](personalizar.md) |
-| Archivos generados | Nunca. Cambia la fuente y ejecuta `make sincronizar` |
-| `specs/**/costos.json` | Nunca. Lo escribe `make costos` |
+| Archivos generados | Nunca. Cambia la fuente y ejecuta `make sync` |
+| `specs/**/costos.json` | Nunca. Lo escribe `make costs` |
 | `.env` | Solo en tu máquina. Nunca se sube |
 
 Estas reglas no dependen de la memoria de nadie: las hacen cumplir los [hooks de git](hooks-de-git.md) y la [integración continua](integracion-continua.md).

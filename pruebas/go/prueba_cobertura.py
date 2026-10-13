@@ -1,4 +1,4 @@
-"""make cobertura: cobertura de la capa de servicio del backend, con el mínimo de la constitución."""
+"""make coverage: cobertura de la capa de servicio del backend, con el mínimo de la constitución."""
 from apoyo import afirmar, contiene, prueba
 
 MODULO = "ejemplo/backend/internal"
@@ -79,7 +79,7 @@ def perfil_a_mano(e):
     contiene(p.correr("python3", "scripts/cobertura.py", "no-existe.out", espera=1).salida, "No se pudo leer no-existe.out")
 
 
-@prueba("make cobertura con Go real: falla con pruebas insuficientes y pasa al completarlas", requiere=("go",))
+@prueba("make coverage con Go real: falla con pruebas insuficientes y pasa al completarlas", requiere=("go",))
 def cobertura_real(e):
     p = e.proyecto()
     p.escribir("backend/go.mod", "module ejemplo/backend\n\ngo 1.26\n")
@@ -87,13 +87,13 @@ def cobertura_real(e):
     p.escribir("backend/internal/users/service_test.go", PRUEBA_SUMA)
     p.commit("feat: servicio de usuarios")
 
-    r = p.make("cobertura", espera=1)
+    r = p.make("coverage", espera=1)
     contiene(r.salida, "users/service.go")
     contiene(r.salida, "1/6")
     contiene(r.salida, BAJO)
 
     p.agregar("backend/internal/users/service_test.go", PRUEBA_SIGNO)
-    r = p.make("cobertura")
+    r = p.make("coverage")
     contiene(r.salida, "6/6")
     contiene(r.salida, CUMPLE)
 

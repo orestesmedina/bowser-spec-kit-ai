@@ -34,7 +34,7 @@ Hay reglas que valen para cualquier proyecto ("los secretos no van en el reposit
 |---|---|---|---|
 | `equipo/principios.md` | Los principios: lo que vale con cualquier tecnología | Del kit | Solo al actualizar el kit |
 | `equipo/reglas.md` | Las reglas del proyecto: su arquitectura, sus mínimos de prueba, sus bibliotecas obligatorias | Del proyecto | Con un commit aprobado por dirección técnica |
-| `.specify/memory/constitution.md` | Los principios y, debajo, las reglas | Generado | Nunca a mano: lo escribe `make sincronizar` |
+| `.specify/memory/constitution.md` | Los principios y, debajo, las reglas | Generado | Nunca a mano: lo escribe `make sync` |
 
 Los principios no nombran ninguna tecnología. Todo lo que dependa de la tecnología va en las reglas del proyecto.
 
@@ -101,11 +101,11 @@ Las propone el `arquitecto` al planificar: si el plan fija algo que debe valer p
 Después de cambiar las reglas, regenera la constitución y haz el commit con la aprobación:
 
 ```bash
-make sincronizar
+make sync
 ```
 
 ```bash
-APROBADO_CONSTITUCION=1 git commit -m "docs: agrega una regla del proyecto"
+APPROVED_CONSTITUTION=1 git commit -m "docs: agrega una regla del proyecto"
 ```
 
 ## Quién la aplica
@@ -135,7 +135,7 @@ La constitución es lo más protegido del proyecto, porque cambiarla cambia las 
 Depende de qué parte:
 
 - **Una regla de este proyecto:** edita `equipo/reglas.md`, como en [Las reglas del proyecto](#las-reglas-del-proyecto).
-- **Un principio, para todos los proyectos que usan el kit:** el cambio se hace en el repositorio del kit y llega con `make actualizar-kit`. Cuando llega así, los controles lo dejan pasar, porque ya fue aprobado allá.
+- **Un principio, para todos los proyectos que usan el kit:** el cambio se hace en el repositorio del kit y llega con `make update-kit`. Cuando llega así, los controles lo dejan pasar, porque ya fue aprobado allá.
 - **Un principio, solo en este proyecto:** casi nunca hace falta, porque las reglas del proyecto pueden endurecerlo. Si aun así el proyecto necesita otros principios, agrega `equipo/principios.md` a `"kit.excluir"` en `equipo/config.json`. Desde ese momento es del proyecto, deja de recibir las mejoras del kit y cada cambio pide la aprobación.
 
 > [!WARNING]
@@ -147,9 +147,9 @@ Antes de cambiar una regla, conviene preguntarse si el problema es la regla o un
 
 | Mensaje | Por qué | Qué hacer |
 |---|---|---|
-| `La constitución cambió: las reglas del proyecto (equipo/reglas.md)` | El commit modifica o borra las reglas sin la aprobación | Si dirección técnica lo aprueba, repite el commit con `APROBADO_CONSTITUCION=1`. Si no, revierte el cambio |
+| `La constitución cambió: las reglas del proyecto (equipo/reglas.md)` | El commit modifica o borra las reglas sin la aprobación | Si dirección técnica lo aprueba, repite el commit con `APPROVED_CONSTITUTION=1`. Si no, revierte el cambio |
 | `La constitución cambió: los principios (equipo/principios.md)` | Alguien editó los principios en el proyecto | Revierte el cambio: los principios se cambian en el kit |
-| `La configuración de agentes o la constitución generada están desactualizadas` | Cambiaron las reglas y no se regeneró, o alguien editó `.specify/memory/constitution.md` a mano | `make sincronizar` y repite el commit |
+| `La configuración de agentes o la constitución generada están desactualizadas` | Cambiaron las reglas y no se regeneró, o alguien editó `.specify/memory/constitution.md` a mano | `make sync` y repite el commit |
 | `Bloqueado: la constitución (principios y reglas del proyecto) solo se modifica con aprobación…` | Un agente intentó editarla en Claude Code | El agente propone el texto y una persona lo aplica |
 
 ## Constitución, skills y plan

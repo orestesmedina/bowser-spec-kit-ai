@@ -57,7 +57,7 @@ Si llega un commit nuevo mientras una ejecución anterior de la misma rama sigue
 | Comprobación | Qué detecta |
 |---|---|
 | Los archivos del kit coinciden con su submódulo | Que alguien editó en el proyecto un archivo que viene del kit |
-| La configuración de agentes está al día | Que cambió un rol, una skill o el perfil y no se ejecutó `make sincronizar` |
+| La configuración de agentes está al día | Que cambió un rol, una skill o el perfil y no se ejecutó `make sync` |
 | El perfil del proyecto es válido | Un `equipo/perfil.json` mal escrito. Solo si el proyecto tiene perfil |
 | La integración continua del proyecto ejecuta los verbos | Que una parte tiene verbos que ningún workflow ejecuta. **Avisa**, no falla |
 
@@ -98,7 +98,7 @@ Vuelve a ejecutarlo cuando el proyecto sume una parte, un verbo o un servicio. S
 La idea central es que el workflow **no repite los comandos de los verbos: los ejecuta**. Cada parte se revisa con una línea, la misma que usa el equipo en su máquina:
 
 ```yaml
-- run: make ci PARTE=api
+- run: make ci PART=api
 ```
 
 Todo lo demás del archivo existe para que esa línea pueda correr. Un job típico, para una parte que necesita una base de datos:
@@ -114,7 +114,7 @@ jobs:
       # instalar el lenguaje, en la versión que declara el proyecto
       # instalar las dependencias y las herramientas que los verbos llaman, en versiones fijas
       # preparar la base de datos
-      - run: make ci PARTE=api
+      - run: make ci PART=api
 ```
 
 Así, cambiar el comando de un verbo en el perfil cambia lo que revisa GitHub sin tocar el workflow, y lo que pasa en tu máquina es lo mismo que pasa allá.
@@ -124,7 +124,7 @@ Una parte sin verbos no lleva job: no hay nada que ejecutar. Queda sin revisar, 
 ### Comprobar que no falta nada
 
 ```bash
-make ci-check
+make check-ci
 ```
 
 ```text
@@ -133,7 +133,7 @@ make ci-check
 ⚠ Ningún workflow del proyecto ejecuta estos verbos del perfil (panel: revisar). Lo que no corre en la integración continua nadie lo revisa en un Pull Request. Para redactarla desde el perfil, escribe en el chat: /bowser-ci
 ```
 
-Lee los workflows del proyecto y busca dónde se ejecutan los verbos, con `make ci`, `make lint`, `make test`, `make cobertura`, `make security` o `make verificar-generados` (con `PARTE=nombre` cuenta solo esa parte), o con `scripts/verbos.py`. El mismo aviso aparece en cada Pull Request, dentro de `bowser.yml`.
+Lee los workflows del proyecto y busca dónde se ejecutan los verbos, con `make ci`, `make lint`, `make test`, `make coverage`, `make security` o `make check-generated` (con `PART=nombre` cuenta solo esa parte), o con `scripts/verbos.py`. El mismo aviso aparece en cada Pull Request, dentro de `bowser.yml`.
 
 Es un aviso y no un bloqueo porque un proyecto recién instalado todavía no tiene su workflow. Quien quiera exigirlo puede agregar a su `ci.yml` el paso `python3 scripts/ci.py --verificar`, que sí falla.
 
@@ -158,11 +158,11 @@ Cada verbo también se puede ejecutar por separado. Ver [Comandos](comandos.md#c
 
 | El paso que falló | Comando para reproducirlo | Solución habitual |
 |---|---|---|
-| Archivos del kit | `make verificar-kit` | Revertir el cambio al archivo del kit, o `make instalar-kit` |
-| Configuración de agentes | `make verificar-agentes` | `make sincronizar` |
+| Archivos del kit | `make check-kit` | Revertir el cambio al archivo del kit, o `make install-kit` |
+| Configuración de agentes | `make check-agents` | `make sync` |
 | Perfil del proyecto | `make profile` | Corregir lo que indique, o `/bowser-profile` |
 | Archivos inmutables | `python3 scripts/verbos.py --inmutables origin/main` | Deshacer el cambio al archivo y crear uno nuevo |
-| Un verbo de una parte | `make ci PARTE=nombre` | Corregir el código. Nunca la prueba, salvo que la prueba esté mal |
+| Un verbo de una parte | `make ci PART=nombre` | Corregir el código. Nunca la prueba, salvo que la prueba esté mal |
 | Secretos | `gitleaks detect -v` | Quitar el secreto **y cambiarlo**: ya quedó expuesto |
 | No puede descargar el submódulo | — | La copia del kit es privada: configura `KIT_TOKEN` |
 | Falta un programa en GitHub que en tu máquina sí está | — | El workflow del proyecto no lo instala: `/bowser-ci` |
@@ -174,7 +174,7 @@ Cada verbo también se puede ejecutar por separado. Ver [Comandos](comandos.md#c
 
 Hasta la versión 1.17, el kit traía un `ci.yml` propio, pensado para Go, React y PostgreSQL, y lo reemplazaba en cada actualización. Al actualizar:
 
-- **Tu `ci.yml` no se borra.** Queda tal como estaba y pasa a ser del proyecto: `make instalar-kit` lo dice al terminar. Ya lo puedes editar.
+- **Tu `ci.yml` no se borra.** Queda tal como estaba y pasa a ser del proyecto: `make install-kit` lo dice al terminar. Ya lo puedes editar.
 - Llega `bowser.yml`, que repite tres grupos de tu `ci.yml`: `agentes`, `controles` y `secretos`. Bórralos de `ci.yml` para que no corran dos veces.
 - Las versiones de las herramientas, que antes se cambiaban con variables del repositorio (`GOLANGCI_LINT_VERSION` y las demás), ahora se editan en el archivo.
 - Cuando el proyecto tenga perfil, `/bowser-ci` reescribe los grupos `backend` y `frontend` para que ejecuten los verbos.
@@ -183,7 +183,7 @@ Hasta la versión 1.17, el kit traía un `ci.yml` propio, pensado para Go, React
 
 - **No despliega.** La integración continua solo comprueba. El despliegue es otro workflow del proyecto, y siempre lo aprueba una persona.
 - **No revisa que el cambio sea lo que el cliente pidió.** Eso lo hacen los agentes revisores y, al final, quien aprueba el Pull Request.
-- **No garantiza que el workflow del proyecto sea bueno.** `make ci-check` ve si los verbos se ejecutan, no si el entorno donde corren se parece al real. Eso lo revisa una persona.
+- **No garantiza que el workflow del proyecto sea bueno.** `make check-ci` ve si los verbos se ejecutan, no si el entorno donde corren se parece al real. Eso lo revisa una persona.
 - **Solo GitHub Actions.** Un proyecto en otra plataforma escribe su propia integración continua, que ejecute `make ci`.
 
 ## Siguientes pasos

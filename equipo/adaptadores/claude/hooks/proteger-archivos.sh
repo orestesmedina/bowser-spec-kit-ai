@@ -52,10 +52,10 @@ if [ -f "$FILE" ] && [ -f "$RAIZ/scripts/verbos.py" ] && command -v python3 >/de
   fi
 fi
 
-# 5. costos.json lo escribe solo `make costos` (los agentes no lo editan a mano)
+# 5. costos.json lo escribe solo `make costs` (los agentes no lo editan a mano)
 case "$REL" in
   specs/*costos.json)
-    echo "Bloqueado: '$REL' lo genera 'make costos'; no se edita a mano." >&2
+    echo "Bloqueado: '$REL' lo genera 'make costs'; no se edita a mano." >&2
     exit 2
     ;;
 esac

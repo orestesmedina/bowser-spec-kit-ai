@@ -79,19 +79,19 @@ Catálogo de skills del kit (.bowser-spec-kit-ai/catalogo/skills/): 6
   probada: usada en un proyecto real
   redactada: solo redactada: todavía no se usó en un proyecto real
 
-Al proyecto llegan con `make instalar-kit`: las que nombra equipo/perfil.json.
+Al proyecto llegan con `make install-kit`: las que nombra equipo/perfil.json.
 ```
 
 ### Qué skills llegan a tu proyecto
 
-Lo decide el [perfil del proyecto](perfil-del-proyecto.md), y lo aplica `make instalar-kit` (también `make actualizar-kit`, que lo ejecuta al final):
+Lo decide el [perfil del proyecto](perfil-del-proyecto.md), y lo aplica `make install-kit` (también `make update-kit`, que lo ejecuta al final):
 
 | Tu proyecto | Qué recibe del catálogo |
 |---|---|
 | No tiene perfil | Las tres de siempre: `go-backend`, `postgres-db` y `react-frontend` |
 | Tiene perfil | Las que nombra en `skills`, de las partes y de los roles. Ninguna más |
 
-Cuando cambias las skills del perfil, ejecuta `make instalar-kit`: copia las que agregaste y retira las que quitaste. `/bowser-profile` lo hace por ti. Hasta que lo ejecutes, el commit se rechaza, para que lo que dice el perfil y lo que tienen los agentes no se separen.
+Cuando cambias las skills del perfil, ejecuta `make install-kit`: copia las que agregaste y retira las que quitaste. `/bowser-profile` lo hace por ti. Hasta que lo ejecutes, el commit se rechaza, para que lo que dice el perfil y lo que tienen los agentes no se separen.
 
 Una skill que llega del catálogo es un archivo del kit, igual que un rol: no se edita en el proyecto, y las actualizaciones la reemplazan. Si el proyecto necesita su propia versión, se excluye. Ver [Personalizar un proyecto](personalizar.md).
 
@@ -106,17 +106,17 @@ Cada skill del catálogo lleva una etiqueta:
 | `probada` | Se usó en un proyecto real y se corrigió con lo que salió ahí | Nada especial |
 | `redactada` | Se escribió a partir de la documentación oficial, pero todavía no se hizo ningún cambio real con ella | Revisa con más cuidado lo que los agentes hagan con ella, y corrígela cuando contradiga lo que el proyecto necesita |
 
-`make instalar-kit` avisa la primera vez que trae una skill `redactada`. Hoy las seis son `redactada`: `php`, `mysql` y `web-sin-framework` son nuevas, y `go-backend`, `react-frontend` y `postgres-db` se reescribieron en la versión 1.16.0 a partir de la documentación oficial, así que el texto actual tampoco se ha usado todavía en un proyecto.
+`make install-kit` avisa la primera vez que trae una skill `redactada`. Hoy las seis son `redactada`: `php`, `mysql` y `web-sin-framework` son nuevas, y `go-backend`, `react-frontend` y `postgres-db` se reescribieron en la versión 1.16.0 a partir de la documentación oficial, así que el texto actual tampoco se ha usado todavía en un proyecto.
 
 ### Cuando algo falla
 
 | Mensaje | Qué significa | Qué hacer |
 |---|---|---|
-| `Las skills instaladas no son las que pide el perfil` | Cambiaste las `skills` del perfil (o creaste o quitaste el perfil) y no instalaste. Debajo dice cuál `falta` y cuál `sobra` | `make instalar-kit` y agrega los cambios al commit |
-| `la skill «x» está en el catálogo del kit pero todavía no en el proyecto` | Aviso de `make profile`: es el mismo caso | `make instalar-kit` |
+| `Las skills instaladas no son las que pide el perfil` | Cambiaste las `skills` del perfil (o creaste o quitaste el perfil) y no instalaste. Debajo dice cuál `falta` y cuál `sobra` | `make install-kit` y agrega los cambios al commit |
+| `la skill «x» está en el catálogo del kit pero todavía no en el proyecto` | Aviso de `make profile`: es el mismo caso | `make install-kit` |
 | `El perfil pide la skill «x», que no está en el catálogo del kit ni en .agents/skills/` | Aviso: el nombre está mal escrito, o esa tecnología todavía no tiene skill | Corrige el nombre (`make skills` lista las que hay), o escribe una skill propia. Mientras tanto los agentes trabajan sin ella |
 | `La skill «x» está solo redactada` | Aviso al traerla por primera vez | Ver [La madurez de una skill](#la-madurez-de-una-skill) |
-| `equipo/perfil.json no se puede leer: las skills del catálogo se dejan como estaban` | El perfil tiene un error de escritura y el kit no sabe qué pide el proyecto | Corrígelo con `make profile` y repite `make instalar-kit` |
+| `equipo/perfil.json no se puede leer: las skills del catálogo se dejan como estaban` | El perfil tiene un error de escritura y el kit no sabe qué pide el proyecto | Corrígelo con `make profile` y repite `make install-kit` |
 | `El kit eliminó estos archivos, pero tienen cambios locales; se conservaron` | Quitaste del perfil una skill que alguien había editado en el proyecto | Si ya no la necesitas, bórrala a mano |
 
 ## Las skills del stack
@@ -279,7 +279,7 @@ metadata:
 
 El cuerpo es texto libre. Funciona mejor cuando es concreto: reglas cortas, la estructura de carpetas dibujada y un ejemplo de código.
 
-Codex y OpenCode leen `.agents/skills/` directamente. Claude Code lee una copia en `.claude/skills/`, que produce `make sincronizar`.
+Codex y OpenCode leen `.agents/skills/` directamente. Claude Code lee una copia en `.claude/skills/`, que produce `make sync`.
 
 ## Cuándo cambiar una skill
 
@@ -301,13 +301,13 @@ Crea una carpeta nueva en `.agents/skills/` con su `SKILL.md`:
 ```bash
 mkdir -p .agents/skills/pagos-stripe
 # escribe .agents/skills/pagos-stripe/SKILL.md
-make sincronizar
+make sync
 ```
 
 Una skill que no viene del kit es del proyecto: las actualizaciones nunca la tocan. Si es de una tecnología, nómbrala en las `skills` del [perfil](perfil-del-proyecto.md) para la parte que la usa.
 
 > [!WARNING]
-> No le pongas el nombre de una skill del catálogo (`make skills` los lista). Si el perfil la nombra, `make instalar-kit` la reemplaza por la del kit y deja la tuya en `.kit-respaldo/`.
+> No le pongas el nombre de una skill del catálogo (`make skills` los lista). Si el perfil la nombra, `make install-kit` la reemplaza por la del kit y deja la tuya en `.kit-respaldo/`.
 
 Buenos candidatos para una skill propia: las convenciones de una integración externa, las reglas de un dominio de negocio particular, o un procedimiento que el equipo repite.
 

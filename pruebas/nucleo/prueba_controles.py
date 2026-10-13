@@ -55,7 +55,7 @@ def constitucion_en_dos_partes(e):
         afirmar(not re.search(rf"\b{re.escape(palabra)}\b", generada), f"la constitución de un proyecto nuevo nombra «{palabra}»")
     # Sin reglas, la constitución son solo los principios.
     p.archivo(REGLAS).unlink()
-    p.make("sincronizar")
+    p.make("sync")
     contiene(p.leer(CONSTITUCION), principios, "la constitución sin reglas del proyecto")
     afirmar("Constitución: reglas del proyecto" not in p.leer(CONSTITUCION), "la constitución conserva unas reglas que ya no existen")
 
@@ -63,12 +63,12 @@ def constitucion_en_dos_partes(e):
 @prueba("las reglas del proyecto no cambian sin aprobación, y la constitución generada tiene que ir al día")
 def reglas_del_proyecto(e):
     p = e.proyecto()
-    aprobado = {"APROBADO_CONSTITUCION": "1"}
+    aprobado = {"APPROVED_CONSTITUTION": "1"}
     p.agregar(REGLAS, "\n- La cobertura mínima DEBE ser 70 %.\n")
     contiene(p.commit("docs: agrega una regla", espera=1).salida, "La constitución cambió: las reglas del proyecto")
     # Con la aprobación, falta regenerar: lo que leen los agentes seguiría sin la regla.
     contiene(p.commit("docs: agrega una regla", espera=1, extra=aprobado).salida, "la constitución generada están desactualizadas")
-    p.make("sincronizar")
+    p.make("sync")
     contiene(p.leer(CONSTITUCION), "La cobertura mínima DEBE ser 70 %.", "la constitución generada")
     p.commit("docs: agrega una regla", extra=aprobado)
 
@@ -89,7 +89,7 @@ def principios_del_kit(e):
     p = e.proyecto(kit)
 
     p.agregar(PRINCIPIOS, "\n- principio agregado a mano\n")
-    p.make("sincronizar")
+    p.make("sync")
     r = p.commit("docs: cambia los principios", espera=1)
     contiene(r.salida, "La constitución cambió: los principios")
     contiene(r.salida, "Los archivos del kit no coinciden")
@@ -99,19 +99,19 @@ def principios_del_kit(e):
     config = json.loads(p.leer("equipo/config.json"))
     config.setdefault("kit", {})["excluir"] = [PRINCIPIOS]
     p.escribir("equipo/config.json", json.dumps(config, indent=2, ensure_ascii=False) + "\n")
-    p.make("instalar-kit")
+    p.make("install-kit")
     p.commit("chore: principios propios del proyecto")
     p.agregar(PRINCIPIOS, "\n- principio propio del proyecto\n")
-    p.make("sincronizar")
+    p.make("sync")
     contiene(p.commit("docs: ajusta los principios", espera=1).salida, "La constitución cambió: los principios")
-    p.commit("docs: ajusta los principios", extra={"APROBADO_CONSTITUCION": "1"})
+    p.commit("docs: ajusta los principios", extra={"APPROVED_CONSTITUTION": "1"})
 
     # Otro proyecto, sin exclusión: los principios cambian en el kit y llegan con la actualización.
     q = e.proyecto(kit)
     with open(kit / PRINCIPIOS, "a", encoding="utf-8") as f:
         f.write("\n- principio nuevo aprobado en el kit\n")
     e.commit_kit(kit, "cambia los principios")
-    q.make("actualizar-kit")
+    q.make("update-kit")
     contiene(q.leer(CONSTITUCION), "principio nuevo aprobado en el kit", "la constitución generada del proyecto")
     q.commit("chore: actualiza kit")
 
@@ -197,8 +197,8 @@ def hook_de_claude_con_perfil(e):
     p.escribir("base/cambios/001_inicio.sql", "CREATE TABLE a (id int);\n")
     p.escribir("base/consultas/listar.sql", "SELECT 1;\n")
     p.escribir("backend/migrations/000001_inicio.up.sql", "CREATE TABLE a (id int);\n")
-    p.make("instalar-kit")
-    p.commit("feat(db): primer cambio de esquema", extra={"APROBADO_PERFIL": "1"})
+    p.make("install-kit")
+    p.commit("feat(db): primer cambio de esquema", extra={"APPROVED_PROFILE": "1"})
 
     motivo = se_bloquea(e, p, "base/cambios/001_inicio.sql")
     contiene(motivo, "«datos»", "el motivo del bloqueo")

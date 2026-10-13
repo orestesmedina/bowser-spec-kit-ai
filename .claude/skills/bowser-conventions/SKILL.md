@@ -4,7 +4,7 @@ description: "Redacta las convenciones propias del proyecto (nombres, estructura
 disable-model-invocation: true
 argument-hint: "[vacío para todas las partes; el nombre de una parte para solo esa]"
 ---
-<!-- GENERADO por scripts/sincronizar.py desde equipo/comandos/conventions.md. No editar: cambia la fuente y ejecuta `make sincronizar`. -->
+<!-- GENERADO por scripts/sincronizar.py desde equipo/comandos/conventions.md. No editar: cambia la fuente y ejecuta `make sync`. -->
 
 Las skills del catálogo del kit dicen el estándar de cada tecnología. Este comando escribe lo que es propio de **este** proyecto: cómo nombra las cosas, cómo se organiza, qué patrones y bibliotecas usa, y en qué se aparta del estándar. Queda en una skill del proyecto por cada parte (`.agents/skills/convenciones-de-<parte>/SKILL.md`). Aplica la skill `convenciones-proyecto`.
 
@@ -14,8 +14,8 @@ Las skills del catálogo del kit dicen el estándar de cada tecnología. Este co
 4. Donde el código hace lo mismo de dos formas, **pregunta a la persona** cuál vale para el código nuevo. No elijas tú.
 5. Muestra la propuesta en lenguaje simple: lo más característico de cada parte, en qué se aparta del estándar, y aparte la **deuda de seguridad** encontrada (lo que el estándar exige y el proyecto no cumple). Esa deuda nunca se escribe como convención. Espera la aprobación explícita de la persona.
 6. Con su "sí", escribe los archivos y agrega cada skill a las `skills` de su parte en `equipo/perfil.json`, sin quitar las que ya tenía.
-7. Ejecuta `make profile` y `make instalar-kit`, para que los roles reciban la skill nueva.
-8. Dile a la persona que el commit lo confirma ella, con `APROBADO_PERFIL=1 git commit ...`, porque cambió el perfil. Nunca uses esa variable por tu cuenta.
+7. Ejecuta `make profile` y `make install-kit`, para que los roles reciban la skill nueva.
+8. Dile a la persona que el commit lo confirma ella, con `APPROVED_PROFILE=1 git commit ...`, porque cambió el perfil. Nunca uses esa variable por tu cuenta.
 
 En un proyecto que todavía no tiene código no hay nada que leer: dilo, y propón ejecutar este comando cuando la primera funcionalidad esté terminada.
 

@@ -4,7 +4,7 @@ description: "Usar después de cada implementación (y tras /speckit.tasks para 
 tools: Read, Grep, Glob, Bash
 model: opus
 ---
-<!-- GENERADO por scripts/sincronizar.py desde equipo/agentes/revisor-codigo.md. No editar: cambia la fuente y ejecuta `make sincronizar`. -->
+<!-- GENERADO por scripts/sincronizar.py desde equipo/agentes/revisor-codigo.md. No editar: cambia la fuente y ejecuta `make sync`. -->
 
 Eres el **revisor de código** del equipo. Revisas como un ingeniero senior exigente pero justo.
 
@@ -32,8 +32,8 @@ El proyecto no tiene perfil: se supone la estructura original del kit. Sus parte
 
 - **backend**, en `backend`.
   - La trabajan: `dev-backend`.
-  - Comandos: `cd backend && gofmt -l . && go vet ./... && go test ./...`, `make generar`, `make cobertura`.
+  - Comandos: `cd backend && gofmt -l . && go vet ./... && go test ./...`, `make generate`, `make coverage`.
   - No se modifican una vez versionados (se crea un archivo nuevo): `backend/migrations/*.sql`.
 - **frontend**, en `frontend`.
   - La trabajan: `dev-frontend`.
-  - Comandos: `cd frontend && npm run lint && npm run typecheck && npm test -- --run`, `make generar`.
+  - Comandos: `cd frontend && npm run lint && npm run typecheck && npm test -- --run`, `make generate`.

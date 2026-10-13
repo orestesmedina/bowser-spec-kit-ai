@@ -7,11 +7,55 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/). Versionado
 - **MENOR** (1.5.0): funciones nuevas compatibles.
 - **PARCHE** (1.5.1): correcciones y documentación.
 
-Cada versión puede incluir una sección **Al actualizar** con los pasos manuales. `make actualizar-kit` muestra las entradas nuevas al terminar; `make novedades` las muestra en cualquier momento.
+Cada versión puede incluir una sección **Al actualizar** con los pasos manuales. `make update-kit` muestra las entradas nuevas al terminar; `make news` las muestra en cualquier momento.
 
 > Las versiones 1.0.0 a 1.5.0 se reconstruyeron el 2026-10-03 a partir del historial de trabajo; las fechas anteriores a esa son aproximadas.
 
 ## [Sin publicar]
+
+## [1.22.0] - 2026-10-12
+
+Primer paso (D1) de la entrega D de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.
+
+Los comandos de `make` pasan a inglés, con el mismo nombre que su comando del chat (`/bowser-status` y `make status`). Los nombres anteriores siguen funcionando.
+
+### Cambiado
+- **Catorce comandos de `make` cambian de nombre:**
+
+  | Antes | Ahora |
+  |---|---|
+  | `make estado` | `make status` |
+  | `make costos` | `make costs` |
+  | `make novedades` | `make news` |
+  | `make modelos` | `make models` |
+  | `make actualizar-modelos` | `make update-models` |
+  | `make sincronizar` | `make sync` |
+  | `make verificar-agentes` | `make check-agents` |
+  | `make instalar-kit` | `make install-kit` |
+  | `make actualizar-kit` | `make update-kit` |
+  | `make verificar-kit` | `make check-kit` |
+  | `make instalar-hooks` | `make install-hooks` |
+  | `make generar` | `make generate` |
+  | `make verificar-generados` | `make check-generated` |
+  | `make cobertura` | `make coverage` |
+
+- **`make ci-check` pasa a llamarse `make check-ci`**, para que todos los que comprueban algo empiecen igual. Este no deja nombre anterior: nació en la 1.18.0, que no se publicó.
+- **Las opciones de los comandos, también:** `FORCE=1` (antes `FORZAR`), `SINCE=` (`DESDE`), `ALL=1` (`TODO`), `CLOSE=1` (`CERRAR`), `PRICES=today` (`PRECIOS=hoy`), `YES=1` (`SI`), `DETECT=1` (`DETECTAR`) y `PART=` (`PARTE`).
+- **Y las confirmaciones del commit:** `APPROVED_PROFILE=1`, `APPROVED_CONSTITUTION=1` y `APPROVED_COSTS=1` (antes `APROBADO_PERFIL`, `APROBADO_CONSTITUCION` y `APROBADO_COSTOS`).
+- Los roles generados, los comandos del chat, los mensajes de los scripts y de los hooks, y toda la documentación usan los nombres nuevos.
+- En el repositorio del kit, las opciones de `make test-kit` son `ONLY=`, `SINCE=`, `STRICT=1` y `KEEP=1`.
+
+### Agregado
+- **Los nombres anteriores siguen funcionando.** Un comando con nombre anterior hace lo mismo y al final avisa de cómo se llama ahora. Las opciones y las confirmaciones se aceptan con los dos nombres, sin aviso. `make check-ci` reconoce los dos nombres en los workflows del proyecto. Se retiran en una versión posterior a la 2.0.
+- Página [Comandos](docs/comandos.md#nombres-anteriores): la tabla completa de nombres anteriores y nuevos.
+
+### Corregido
+- Si una actualización se detiene porque el proyecto modificó un archivo del kit, el mensaje propone el comando para forzarla con el nombre que entiende el `Makefile` que el proyecto tiene en ese momento, que todavía es el de la versión anterior.
+
+### Al actualizar
+- No hay nada obligatorio: `make actualizar-kit` funciona como siempre y deja instalados los nombres nuevos.
+- Conviene cambiar los nombres anteriores en lo que el proyecto tenga escrito: su workflow de integración continua (`make cobertura` → `make coverage`, `make verificar-generados` → `make check-generated`, `PARTE=` → `PART=`), `proyecto.mk` y su documentación.
+- No cambian los verbos del perfil (`formato`, `revisar`, `probar`, `cobertura`, `auditar`, `generar`): `equipo/perfil.json` queda como está.
 
 ## [1.21.0] - 2026-10-11
 

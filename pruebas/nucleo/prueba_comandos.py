@@ -52,7 +52,7 @@ def sin_codex(e):
     config = json.loads(p.leer("equipo/config.json"))
     config["herramientas"] = ["claude"]
     p.escribir("equipo/config.json", json.dumps(config, ensure_ascii=False, indent=2) + "\n")
-    p.make("sincronizar")
+    p.make("sync")
     afirmar(not list(p.archivo(".agents/skills").glob(f"{PREFIJO}*")), "quedaron comandos de Codex con Codex desactivado")
     afirmar(not p.existe(".opencode/commands"), "quedaron comandos de OpenCode con OpenCode desactivado")
     afirmar(p.existe(f".claude/skills/{PREFIJO}status/SKILL.md"), "se perdió el comando de Claude Code")
@@ -62,7 +62,7 @@ def sin_codex(e):
     p.commit("chore: solo Claude Code")
 
 
-@prueba("los comandos de Spec Kit sobreviven a make sincronizar y no cuentan al verificar")
+@prueba("los comandos de Spec Kit sobreviven a make sync y no cuentan al verificar")
 def spec_kit_intacto(e):
     p = e.proyecto()
     # Lo que deja `specify init` para cada herramienta (specify 1.0.12).
@@ -73,10 +73,10 @@ def spec_kit_intacto(e):
     }
     for rel, texto in de_spec_kit.items():
         p.escribir(rel, texto)
-    p.make("sincronizar")
+    p.make("sync")
     for rel, texto in de_spec_kit.items():
-        afirmar(p.existe(rel), f"make sincronizar borró un comando de Spec Kit: {rel}")
-        afirmar(p.leer(rel) == texto, f"make sincronizar cambió un comando de Spec Kit: {rel}")
+        afirmar(p.existe(rel), f"make sync borró un comando de Spec Kit: {rel}")
+        afirmar(p.leer(rel) == texto, f"make sync cambió un comando de Spec Kit: {rel}")
     afirmar(p.existe(f".opencode/commands/{PREFIJO}status.md"), "se perdió un comando del kit en OpenCode")
     p.correr("python3", "scripts/sincronizar.py", "--verificar")
     p.verificar_kit()
@@ -86,7 +86,7 @@ def spec_kit_intacto(e):
     config = json.loads(p.leer("equipo/config.json"))
     config["herramientas"] = ["codex"]
     p.escribir("equipo/config.json", json.dumps(config, ensure_ascii=False, indent=2) + "\n")
-    p.make("sincronizar")
+    p.make("sync")
     afirmar(not p.existe(f".opencode/commands/{PREFIJO}status.md"), "quedó un comando del kit con OpenCode desactivado")
     afirmar(not p.existe(".claude/skills/equipo-retomar"), "quedó una skill del kit con Claude Code desactivado")
     for rel in de_spec_kit:
@@ -94,12 +94,12 @@ def spec_kit_intacto(e):
     p.correr("python3", "scripts/sincronizar.py", "--verificar")
 
 
-@prueba("un comando propio del proyecto se genera igual, y uno mal escrito detiene make sincronizar")
+@prueba("un comando propio del proyecto se genera igual, y uno mal escrito detiene make sync")
 def comando_propio(e):
     p = e.proyecto()
     p.escribir("equipo/comandos/deploy-demo.md",
                "---\nnombre: deploy-demo\ndescripcion: Publica la demo.\n---\nEjecuta `make demo`.\n")
-    p.make("sincronizar")
+    p.make("sync")
     contiene(p.leer(f".opencode/commands/{PREFIJO}deploy-demo.md"), "Ejecuta `make demo`.", "el comando propio en OpenCode")
     afirmar(p.existe(f".claude/skills/{PREFIJO}deploy-demo/SKILL.md"), "falta el comando propio en Claude Code")
     afirmar(p.existe(f".agents/skills/{PREFIJO}deploy-demo/SKILL.md"), "falta el comando propio en Codex")

@@ -2,7 +2,7 @@
 """Catálogo de skills de tecnología del kit: cuáles hay, qué tan probadas están y cuáles tiene el proyecto.
 
 Las skills de tecnología (cómo se escribe código en Go, en React, en PostgreSQL…) viven en el kit, en
-catalogo/skills/, y no se copian todas a los proyectos: `make instalar-kit` lleva a .agents/skills/ solo las
+catalogo/skills/, y no se copian todas a los proyectos: `make install-kit` lleva a .agents/skills/ solo las
 que nombra el perfil (equipo/perfil.json). Sin perfil, las tres de siempre (SIN_PERFIL).
 
 Cada skill del catálogo es una carpeta con su SKILL.md, que declara su madurez en los metadatos:
@@ -125,9 +125,9 @@ def main() -> int:
         if en_el_kit:
             estado = ""
         elif (RAIZ / INSTALADAS / nombre / "SKILL.md").exists():
-            estado = "en el proyecto" if nombre in pedidas else "en el proyecto (ya no se pide: make instalar-kit la retira)"
+            estado = "en el proyecto" if nombre in pedidas else "en el proyecto (ya no se pide: make install-kit la retira)"
         else:
-            estado = "la pide el perfil: make instalar-kit" if nombre in pedidas else "—"
+            estado = "la pide el perfil: make install-kit" if nombre in pedidas else "—"
         print(f"  {nombre:<{ancho}}  {s['madurez']:<10} {estado}".rstrip())
         print(f"  {'':<{ancho}}  {s['descripcion']}")
     print()
@@ -136,7 +136,7 @@ def main() -> int:
     if not en_el_kit:
         origen = f"las que nombra {perfil_proyecto.RUTA}" if perfil is not None else \
             f"sin perfil, las de siempre ({', '.join(SIN_PERFIL)})"
-        print(f"\nAl proyecto llegan con `make instalar-kit`: {origen}.")
+        print(f"\nAl proyecto llegan con `make install-kit`: {origen}.")
         faltan = [s for s in pedidas if s not in skills and not (RAIZ / INSTALADAS / s / "SKILL.md").exists()]
         for s in faltan:
             print(f"⚠ el perfil pide la skill «{s}», que no está en el catálogo ni en {INSTALADAS}/", file=sys.stderr)
