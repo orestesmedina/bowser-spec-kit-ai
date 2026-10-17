@@ -82,6 +82,8 @@ NOMBRAN_ARCHIVOS = [perfil_proyecto.RUTA, "proyecto.mk", ".github/workflows/"]
 # Hasta la 1.22, sin perfil, el kit suponía un proyecto en Go (backend/) y React (frontend/). Desde la 1.23 no
 # supone nada: un proyecto así que se actualiza sin perfil perdería sus comandos, sus controles y sus skills.
 SIN_SUPUESTO_DESDE = (1, 23, 0)
+# El comando del chat que crea el perfil (/bowser-profile) existe desde esta versión.
+CON_COMANDO_PERFIL_DESDE = (1, 12, 0)
 CARPETAS_SUPUESTAS = ["backend", "frontend"]
 # Las constituciones que el kit instaló alguna vez (sha256 del texto, con saltos de línea de Unix) y el archivo con
 # las reglas que traían y que no son principios: al partirla en dos, esas reglas se le entregan al proyecto.
@@ -145,7 +147,9 @@ def quien_lo_nombra(rel: str, del_kit: dict) -> str | None:
             textos.append(ruta)
     for ruta in textos:
         nombre = ruta.relative_to(DESTINO).as_posix()
-        if nombre in del_kit:           # los archivos del kit no cuentan: no son lo que el proyecto usa
+        # Los archivos del kit no cuentan: no son lo que el proyecto usa. Salvo los que pasan a ser del proyecto en
+        # esta misma actualización (el ci.yml que instalaba el kit sigue ejecutando lo que nombra).
+        if nombre in del_kit and nombre not in ENTREGADOS:
             continue
         try:
             if rel in ruta.read_text(encoding="utf-8", errors="replace"):
@@ -426,21 +430,30 @@ def sin_perfil_desde_antes(previo: dict) -> bool:
     return any((DESTINO / c).is_dir() for c in CARPETAS_SUPUESTAS)
 
 
-def detener_sin_perfil() -> None:
+def detener_sin_perfil(version_previa: str | None) -> None:
     carpetas = " y ".join(f"{c}/" for c in CARPETAS_SUPUESTAS if (DESTINO / c).is_dir())
     print(f"✗ Este proyecto no tiene perfil ({perfil_proyecto.RUTA}), y desde la versión "
           f"{'.'.join(map(str, SIN_SUPUESTO_DESDE))} el kit lo necesita.", file=sys.stderr)
     print(f"  Hasta ahora, sin perfil, el kit suponía Go y PostgreSQL en backend/ y React en frontend/ (aquí hay "
           f"{carpetas}). Con esa suposición funcionaban make test, make lint, make ci, los controles del commit y las "
           "skills go-backend, postgres-db y react-frontend. Sin perfil, todo eso deja de funcionar.", file=sys.stderr)
-    print("  No se cambió nada en el proyecto. Opciones:", file=sys.stderr)
-    print("  • Recomendado: crea el perfil antes de seguir. En el chat, escribe /bowser-profile (existe desde la "
-          "1.12.0) y revísalo. Sin hacer commit todavía, repite: "
-          f"{instalar_con_make(forzar=False)}", file=sys.stderr)
-    print("    Al terminar, haz un solo commit con todo (el control te pide confirmar el perfil).", file=sys.stderr)
-    print("  • Si tu versión no tiene /bowser-profile o prefieres crearlo después, actualiza igual con: "
-          f"{instalar_con_make()} (también descarta los cambios locales a archivos del kit, con respaldo).",
-          file=sys.stderr)
+    print("  No se cambió nada en el proyecto.", file=sys.stderr)
+    clave = clave_version(version_previa or "")
+    if clave is not None and clave < CON_COMANDO_PERFIL_DESDE:
+        # La versión instalada no tiene el comando del chat que crea el perfil: la única salida es seguir sin él.
+        print(f"  Tu versión ({version_previa}) no tiene /bowser-profile, que existe desde la "
+              f"{'.'.join(map(str, CON_COMANDO_PERFIL_DESDE))}. Actualiza igual con: {instalar_con_make()} "
+              "(también descarta los cambios locales a archivos del kit, con respaldo), y después crea el perfil con "
+              "/bowser-profile.", file=sys.stderr)
+    else:
+        print("  Opciones:", file=sys.stderr)
+        print("  • Recomendado: crea el perfil antes de seguir. En el chat, escribe /bowser-profile y revísalo. Sin "
+              f"hacer commit todavía, repite: {instalar_con_make(forzar=False)}", file=sys.stderr)
+        print("    Al terminar, haz un solo commit con todo (el control te pide confirmar el perfil).", file=sys.stderr)
+        print("  • Si prefieres crearlo después, actualiza igual con: "
+              f"{instalar_con_make()} (también descarta los cambios locales a archivos del kit, con respaldo).",
+              file=sys.stderr)
+    print(f"  Guía completa: {RUTA_KIT}/docs/migrar-a-2.md", file=sys.stderr)
 
 
 def instalar(forzar: bool) -> int:
@@ -448,7 +461,7 @@ def instalar(forzar: bool) -> int:
     version_previa = previo.get("version") if clave_version(previo.get("version") or "") else None
     sin_perfil = sin_perfil_desde_antes(previo)
     if sin_perfil and not forzar:
-        detener_sin_perfil()
+        detener_sin_perfil(version_previa)
         return 1
     excluir = leer_excluir()
     a = analizar(excluir)

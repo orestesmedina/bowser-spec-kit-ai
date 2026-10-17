@@ -232,6 +232,31 @@ def retirados_en_uso(e):
     contiene(p.make("coverage").salida, "hola", "el verbo que usa el script entregado")
 
 
+@prueba("los scripts retirados que usa el ci.yml que instalaba el kit se entregan: el ci.yml pasa a ser del proyecto en la misma actualización")
+def retirados_en_el_ci_heredado(e):
+    e.version_anterior()
+    kit = e.kit("anterior")
+    p = e.proyecto(kit)
+    ci = ".github/workflows/ci.yml"
+    if ci not in json.loads(p.leer(".kit-manifest.json"))["archivos"]:
+        raise Omitida("la versión anterior ya no gestionaba el ci.yml")
+    usados = [s for s in ("scripts/generar.sh", "scripts/cobertura.py") if s in p.leer(ci)]
+    if not usados:
+        raise Omitida("el ci.yml de la versión anterior no usa scripts que el kit retire")
+    # Con perfil, para que la actualización no se detenga (el proyecto tiene backend/).
+    p.escribir("backend/main.go", "package main\n")
+    perfil = {"partes": [{"nombre": "backend", "carpeta": "backend", "verbos": {"probar": "true"}}]}
+    p.escribir("equipo/perfil.json", json.dumps(perfil, ensure_ascii=False, indent=2) + "\n")
+    p.commit("chore: perfil", extra={"APROBADO_PERFIL": "1"})
+    e.pasar_kit_a(kit, "actual")
+
+    r = p.make("actualizar-kit")
+    for script in usados:
+        afirmar(p.existe(script), f"se borró {script}, que el ci.yml heredado todavía usa")
+        contiene(r.salida, f"{script} ya no viene del kit, pero {ci} lo usa")
+    p.verificar_kit()
+
+
 def con_backend_desde_la_anterior(e):
     """Un proyecto instalado con la versión anterior publicada, sin perfil y con la estructura que esta suponía."""
     e.version_anterior()
@@ -265,6 +290,20 @@ def sin_perfil_desde_la_anterior(e):
     p.verificar_kit()
     p.commit("chore: actualiza el kit y crea el perfil", extra={"APPROVED_PROFILE": "1"})
     contiene(p.leer(".claude/agents/dev-backend.md"), "- **backend**, en `backend`", "el rol dev-backend")
+
+
+@prueba("si la versión instalada no tiene /bowser-profile, la parada sin perfil no lo recomienda: solo ofrece forzar")
+def sin_perfil_antes_del_comando(e):
+    p = con_backend_desde_la_anterior(e)
+    # Simula un proyecto instalado con una versión anterior a la 1.12.0, como el 1.6.4 de un proyecto real.
+    manifiesto = json.loads(p.leer(".kit-manifest.json"))
+    manifiesto["version"] = "1.6.4"
+    p.escribir(".kit-manifest.json", json.dumps(manifiesto, ensure_ascii=False, indent=2) + "\n")
+    r = p.make("actualizar-kit", espera=1)
+    contiene(r.salida, "Tu versión (1.6.4) no tiene /bowser-profile")
+    contiene(r.salida, "make instalar-kit FORZAR=1")
+    contiene(r.salida, "docs/migrar-a-2.md")
+    afirmar("Recomendado" not in r.salida, "recomienda /bowser-profile a una versión que no lo tiene")
 
 
 @prueba("forzando, un proyecto de la 1.x sin perfil se actualiza y se le avisa de lo que deja de funcionar")

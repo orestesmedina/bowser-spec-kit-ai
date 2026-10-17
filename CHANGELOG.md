@@ -13,6 +13,20 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.24.2] - 2026-10-17
+
+Correcciones que destapó la primera parte del paso D5: actualizar una copia del proyecto real desde la 1.6.4, sin perfil, y las dos copias de validación desde la 1.17.2. Vive en la rama `etapa-2`: se publica con la 2.0.
+
+### Corregido
+- **Al actualizar desde una versión que gestionaba el `ci.yml` (hasta la 1.17), se borraban los scripts retirados que ese `ci.yml` usaba**, como `scripts/generar.sh`. La actualización no miraba el `ci.yml` porque era un archivo del kit, aunque pasa a ser del proyecto en esa misma actualización. Ahora se entregan, como los que nombran el perfil y `proyecto.mk`.
+- Cuando la actualización se detiene porque el proyecto no tiene perfil, ya no recomienda `/bowser-profile` a una versión anterior a la 1.12.0, que no lo tiene: dice que la única salida es forzar y crear el perfil después. Además, el mensaje termina con la ruta de la guía `docs/migrar-a-2.md`.
+
+### Cambiado
+- `docs/migrar-a-2.md` avisa que, desde una versión muy anterior, la lista de pasos manuales junta los de todas las versiones intermedias, y que algunos ya no aplican.
+
+### Al actualizar
+- Nada que hacer.
+
 ## [1.24.1] - 2026-10-17
 
 Cuarto paso (D4) de la entrega D de la etapa 2: la documentación. Vive en la rama `etapa-2`: se publica con la 2.0.

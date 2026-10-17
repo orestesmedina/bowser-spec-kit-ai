@@ -113,6 +113,9 @@ Al terminar, la actualización muestra las novedades, reúne los pasos manuales 
   ! Al proyecto le quedan 7 pendientes para aprovechar el kit: make upgrade
 ```
 
+> [!NOTE]
+> Si el proyecto viene de una versión muy anterior, la lista de pasos manuales es larga y junta los de todas las versiones intermedias. Algunos ya no aplican, porque una versión posterior los reemplazó (instalar herramientas que el kit dejó de usar, o "tu proyecto sigue funcionando sin perfil"). Para pasar a la 2.0, sigue esta página: los pasos 3 a 7 cubren lo que sigue vigente.
+
 Guarda la actualización sola, antes de cambiar nada más, para que sea fácil de revisar:
 
 ```bash

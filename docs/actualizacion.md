@@ -112,13 +112,15 @@ Por eso, si el proyecto viene de una versión anterior, no tiene perfil y tiene 
 ```text
 ✗ Este proyecto no tiene perfil (equipo/perfil.json), y desde la versión 1.23.0 el kit lo necesita.
   …
-  No se cambió nada en el proyecto. Opciones:
-  • Recomendado: crea el perfil antes de seguir. En el chat, escribe /bowser-profile (existe desde la 1.12.0) y revísalo. Sin hacer commit todavía, repite: make instalar-kit
+  No se cambió nada en el proyecto.
+  Opciones:
+  • Recomendado: crea el perfil antes de seguir. En el chat, escribe /bowser-profile y revísalo. Sin hacer commit todavía, repite: make instalar-kit
     Al terminar, haz un solo commit con todo (el control te pide confirmar el perfil).
-  • Si tu versión no tiene /bowser-profile o prefieres crearlo después, actualiza igual con: make instalar-kit FORZAR=1 (también descarta los cambios locales a archivos del kit, con respaldo).
+  • Si prefieres crearlo después, actualiza igual con: make instalar-kit FORZAR=1 (también descarta los cambios locales a archivos del kit, con respaldo).
+  Guía completa: .bowser-spec-kit-ai/docs/migrar-a-2.md
 ```
 
-Los comandos que nombra son los que entiende el `Makefile` que el proyecto tiene en ese momento, que todavía es el de la versión anterior.
+Los comandos que nombra son los que entiende el `Makefile` que el proyecto tiene en ese momento, que todavía es el de la versión anterior. Si la versión instalada es anterior a la 1.12.0, no tiene `/bowser-profile`: el mensaje lo dice y solo ofrece la segunda salida, forzar y crear el perfil después.
 
 El commit va al final porque el submódulo ya quedó en la versión nueva y los archivos del kit en la raíz todavía no: hasta que termine la instalación, el control del commit lo rechaza con `Los archivos del kit no coinciden`. Es lo esperado.
 
