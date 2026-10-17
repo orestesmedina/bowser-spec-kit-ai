@@ -13,6 +13,25 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.24.1] - 2026-10-17
+
+Cuarto paso (D4) de la entrega D de la etapa 2: la documentación. Vive en la rama `etapa-2`: se publica con la 2.0.
+
+### Agregado
+- **[Migrar a la 2.0](docs/migrar-a-2.md):** el paso de un proyecto 1.x a la 2.0, de punta a punta. Incluye qué cambia, cómo probarlo antes en una copia aislada del proyecto real (sin remoto, con puertos propios y con los contenedores reales apagados) y los ocho pasos, de crear el perfil a abrir el Pull Request.
+- En el índice de la documentación, una **ruta para empezar** según la situación de quien llega: entender la idea, proyecto nuevo, proyecto existente, migración, unirse a un proyecto o aprobar sin programar.
+
+### Cambiado
+- **`docs/instalacion.md` se rehízo:** separa las herramientas base, que el kit usa en cualquier proyecto, de las del proyecto, que declara su perfil y revisa `make doctor`. Ya no pide Go, Node ni Docker, y desaparece la sección "Herramientas de Go".
+- `docs/proyecto-nuevo.md` y `docs/proyecto-existente.md` tienen el paso que faltaba: describir el proyecto con `/bowser-profile`, `/bowser-conventions` y `/bowser-ci`. `proyecto-existente.md` ya no dice que el kit asume Go, React y PostgreSQL.
+- `README.md` y `docs/README.md` presentan el kit sin una tecnología fija.
+
+### Corregido
+- Páginas que describían el kit anterior a la 2.0: el árbol de `docs/estructura.md` (con `backend/` y `frontend/`), los controles de migraciones y de `gofmt` de `docs/hooks-de-git.md`, lo que protege el hook del agente sin perfil, la salida de las pruebas en `docs/contribuir.md`, el glosario, y los problemas propios de PostgreSQL de `docs/problemas-comunes.md` y `docs/windows-wsl.md` (ahora son casos generales de cualquier base de datos).
+
+### Al actualizar
+- Nada que hacer.
+
 ## [1.24.0] - 2026-10-17
 
 Tercer paso (D3) de la entrega D de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.

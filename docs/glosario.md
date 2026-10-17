@@ -68,7 +68,7 @@ Los términos que aparecen en esta documentación, en orden alfabético. Cada un
 
 **Spec Kit.** La herramienta de GitHub que estructura el proceso en fases y aporta las plantillas de los documentos. Ver [Desarrollo guiado por especificaciones](sdd.md#spec-kit).
 
-**Stack.** El conjunto de tecnologías del proyecto: React y TypeScript, Go y PostgreSQL.
+**Stack.** El conjunto de tecnologías del proyecto: su lenguaje, su base de datos, sus bibliotecas. Cada proyecto declara el suyo en su [perfil](perfil-del-proyecto.md); el kit no supone ninguno.
 
 **Subagente.** Un agente especializado en un rol, que el orquestador lanza para una tarea concreta. Ver [El equipo de agentes](equipo-de-agentes.md).
 

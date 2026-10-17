@@ -64,18 +64,15 @@ Revisa únicamente los archivos incluidos en el commit. Hace estas comprobacione
 | Que no haya secretos: archivos `.env`, `*.pem`, `*.key` o dentro de `secrets/`. Si `gitleaks` está instalado, además busca claves y contraseñas dentro del contenido | Un secreto subido a git queda en el historial para siempre, aunque después se borre | Saca el archivo del commit. `.env.example` sí está permitido, porque no lleva valores reales |
 | Que los archivos del kit coincidan con el submódulo | Los archivos que vienen del kit no se editan en el proyecto: la siguiente actualización los pisaría | `make check-kit` muestra cuál cambió. Revierte el cambio, o ejecuta `make install-kit` si actualizaste el submódulo sin instalar |
 | Que la constitución no haya cambiado | Son las reglas no negociables; cambiarlas requiere una decisión de dirección técnica. Mira sus dos fuentes: las reglas del proyecto (`equipo/reglas.md`) y los principios (`equipo/principios.md`) | Revierte el cambio, o repite el commit con la aprobación. Los principios que llegan por una actualización del kit pasan sin problema. Ver [La constitución](la-constitucion.md) |
-| Que no se modifique ni se borre una migración existente | Una migración ya aplicada en otra base de datos no se puede "corregir": esa base quedaría distinta al código | Deja la migración como estaba y crea una nueva |
-| Que el código Go esté formateado | Un formato único evita diferencias que no son cambios reales | `gofmt -w <archivo>` |
-| Que el código del frontend esté formateado | Lo mismo, para TypeScript y CSS | `cd frontend && npx prettier --write .` |
 | Que la configuración de los agentes esté al día | Si cambió un rol o una skill y no se regeneraron los archivos de cada herramienta, los agentes trabajarían con instrucciones viejas | `make sync` y agrega el resultado al commit |
 | Que no cambie un `costos.json` cerrado | El costo de una funcionalidad se congela al aprobar su Pull Request | Revierte el cambio |
 
-En un proyecto con [perfil](perfil-del-proyecto.md), las comprobaciones de migraciones y de formato de esta tabla se reemplazan por lo que el perfil declara:
+En un proyecto con [perfil](perfil-del-proyecto.md), además, revisa lo que el perfil declara. Sin perfil no hay nada de esto que revisar: el kit no sabe qué tecnología usa el proyecto ni qué archivos son inmutables.
 
 | Qué revisa | Por qué | Cómo corregirlo |
 |---|---|---|
 | Que el perfil no haya cambiado sin confirmación, y que esté bien escrito | Sus comandos se ejecutan en la máquina de cada persona y en la integración continua | Revísalo con `make profile` y confirma con `APPROVED_PROFILE=1` |
-| Que no se modifique, renombre ni borre un archivo `inmutable` de ninguna parte | Es la misma regla de las migraciones, para la carpeta y el patrón que use el proyecto | Deja el archivo como estaba y crea uno nuevo |
+| Que no se modifique, renombre ni borre un archivo `inmutable` de ninguna parte | Un archivo ya aplicado en otro lugar, como una migración de la base de datos, no se puede "corregir": esa base quedaría distinta al código | Deja el archivo como estaba y crea uno nuevo |
 | Que pase el verbo `formato` de cada parte que el commit toca | Un formato único, con la herramienta de cada tecnología | Formatea el código de esa parte |
 
 Un commit que solo elimina archivos pasa por las mismas comprobaciones que cualquier otro.
@@ -132,7 +129,7 @@ Las tres dejan constancia en el propio comando de que alguien decidió saltarse 
 Los hooks están hechos para ser rápidos, así que no ejecutan las pruebas ni los linters completos. Tampoco ven lo que pasa fuera de tu máquina. Tres límites que conviene conocer:
 
 - **No corren las pruebas.** Eso lo hace `make test` en tu máquina y la integración continua en GitHub.
-- **Algunas comprobaciones dependen de herramientas opcionales.** Si no tienes `gitleaks`, `gofmt` o las dependencias del frontend instaladas, esa comprobación se salta sin avisar. La integración continua sí la hace siempre.
+- **La búsqueda de secretos en el contenido depende de `gitleaks`.** Si no lo tienes instalado, esa parte se salta sin avisar; la integración continua sí la hace siempre. El verbo `formato`, en cambio, necesita la herramienta de su tecnología: si falta, el commit se rechaza con el error del comando, y `make doctor` dice cuál instalar.
 - **Solo actúan donde están activos.** Un clon sin `make install-hooks` no tiene ningún control local.
 
 Por eso los hooks son una de varias capas, no la única:

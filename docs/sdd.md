@@ -71,7 +71,7 @@ Las manos (✋) son las **puertas de aprobación**: puntos donde los agentes se 
 | 3. Planificar | Se decide cómo se construye | `arquitecto`, y `disenador-ux` si hay pantallas | `plan.md`, modelo de datos, contrato de la API, `ux.md` | **Sí** |
 | 4. Tareas | El plan se divide en tareas pequeñas | `arquitecto` | `tasks.md` | — |
 | 5. Coherencia | Se comprueba que especificación, plan y tareas no se contradigan | `revisor-codigo` | Reporte | — |
-| 6. Implementar | Se escribe el código, tarea por tarea, con sus pruebas | `dev-backend`, `dev-frontend`, `devops` | Código y pruebas | — |
+| 6. Implementar | Se escribe el código, tarea por tarea, con sus pruebas | `dev-backend`, `dev-frontend`, `dev-dba`, `devops` | Código y pruebas | — |
 | 7. Validar | Tres revisiones independientes, en paralelo | `qa-tester`, `revisor-codigo`, `seguridad` | Reportes | — |
 | 8. Converger | Se comprueba que no quedó nada de la especificación sin construir | Orquestador | Tareas pendientes, o "listo" | — |
 | 9. Entregar | Documentación, integración continua y Pull Request | `devops`, `documentador` | Pull Request | **Sí** (integrar y desplegar) |

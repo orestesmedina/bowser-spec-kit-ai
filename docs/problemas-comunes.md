@@ -41,7 +41,7 @@ Revisa el entorno completo y marca con `✗` lo que falta, indicando cómo corre
 | `make doctor` dice "El perfil no declara requisitos" | Es un aviso: no sabe qué herramientas usa la tecnología del proyecto | `/bowser-profile`, o agrega `requisitos` al perfil. Ver [Los requisitos de la máquina](perfil-del-proyecto.md#los-requisitos-de-la-máquina) |
 | `make doctor` dice "El perfil tiene errores" | `equipo/perfil.json` está mal escrito | `make profile` dice qué corregir |
 | `make doctor` ya no revisa Docker | El proyecto no tiene archivo de Docker Compose ni lo pide su perfil | Nada, si el proyecto no usa Docker. Si lo usa, agrégalo a `requisitos` |
-| `golangci-lint`, `migrate` o `sqlc`: "command not found" | `GOPATH/bin` no está en el `PATH` | Agrega `export PATH="$PATH:$(go env GOPATH)/bin"` a tu `~/.bashrc` o `~/.zshrc` |
+| Una herramienta del proyecto da "command not found" aunque está instalada | La carpeta donde la instaló su gestor de paquetes no está en el `PATH` (por ejemplo, `$(go env GOPATH)/bin` o `~/.local/bin`) | Agrega esa carpeta al `PATH` en tu `~/.bashrc` o `~/.zshrc` y abre una terminal nueva. La forma de instalarla está en los `requisitos` del perfil (`make profile`) |
 | "Docker no está corriendo" | Docker Desktop está cerrado | Ábrelo y espera a que arranque |
 | `make: docker: No such file or directory` | Docker no está instalado en Ubuntu, o falta la integración con WSL | Docker Desktop con **WSL Integration → Ubuntu** activado. Reabre la terminal |
 | El agente no conoce los comandos `/speckit.*` | Spec Kit no está inicializado para esa herramienta | `specify init --here --force --integration <herramienta>` |
@@ -53,7 +53,7 @@ Revisa el entorno completo y marca con `✗` lo que falta, indicando cómo corre
 |---|---|---|
 | El commit falla **desde VS Code** pero funciona desde la terminal, con varios `✗` a la vez | VS Code abrió el proyecto desde Windows y usa el Git de Windows, donde no hay `python3` | Instala la extensión **WSL** y abre el proyecto con `code .` desde Ubuntu. Abajo a la izquierda debe decir "WSL: Ubuntu" |
 | "No se encontró python3" al hacer commit | Lo mismo: el commit se hace fuera de Ubuntu | Lo mismo |
-| El agente no puede ejecutar `make`, `go` o `git`, o `which opencode` muestra `/mnt/c/...` | Ubuntu está usando la versión de Windows del agente | Instálalo en Ubuntu y verifica con `which -a` |
+| El agente no puede ejecutar `make`, `git` o las herramientas del proyecto, o `which opencode` muestra `/mnt/c/...` | Ubuntu está usando la versión de Windows del agente | Instálalo en Ubuntu y verifica con `which -a` |
 | `make doctor` dice "Se están usando versiones de Windows de: …" | Esas herramientas no están instaladas en Ubuntu y se toman las de Windows | Instálalas en Ubuntu y verifica con `which -a <herramienta>` |
 | `make doctor` avisa que el proyecto está en el disco de Windows | El proyecto está en `/mnt/...` | Muévelo a una carpeta de Ubuntu, por ejemplo `~/proyectos/` |
 
@@ -61,7 +61,7 @@ La explicación de fondo está en [Windows y WSL](windows-wsl.md).
 
 ## Base de datos
 
-La base de datos y los demás servicios locales los define cada proyecto en su archivo de Docker Compose; el kit no trae ninguno. Los nombres de las variables de esta tabla son los habituales con PostgreSQL: en tu proyecto pueden ser otros.
+La base de datos y los demás servicios locales los define cada proyecto en su archivo de Docker Compose; el kit no trae ninguno. Los puertos y los nombres de las variables cambian según el motor y el proyecto: los de esta tabla son ejemplos.
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
@@ -69,9 +69,9 @@ La base de datos y los demás servicios locales los define cada proyecto en su a
 | Después de actualizar el kit, `.gitignore` tiene reglas nuevas debajo del bloque del kit | El bloque ya no trae reglas de Go ni de Node; las que tenía se conservaron ahí para que git no empiece a ver lo que ignoraba | Son del proyecto: deja las que le sirven y borra las demás |
 | Error de conexión a la base de datos | La base de datos no levantó, o `.env` es incorrecto | `make up`, `docker compose ps`, y revisa la dirección de la base de datos en `.env` |
 | La contraseña de `.env` no funciona | El motor solo toma la contraseña al crear la base por primera vez; se cambió `.env` después | `docker compose down -v && make up`. **Borra los datos locales** |
-| El puerto 5432 está ocupado | Hay otro PostgreSQL en la máquina | Detén el otro, o cambia el puerto en `.env` (por ejemplo `5433`) y ajusta `DATABASE_URL` |
-| `authentication method 10 not supported` | El cliente de base de datos es demasiado viejo para PostgreSQL 16 | Usa DBeaver Community o pgAdmin 4, o actualiza tu cliente |
-| Error de autenticación **en español** ("la autentificación password falló…") | Te estás conectando a un PostgreSQL instalado en Windows, no al de Docker, que responde en inglés | Detén o desinstala el PostgreSQL de Windows, o cambia el puerto del de Docker |
+| El puerto de la base de datos está ocupado (por ejemplo, 5432 o 3306) | Hay otra base de datos del mismo motor en la máquina, instalada a mano o de otro proyecto | Detén la otra, o cambia el puerto en `.env` (por ejemplo `5433`) y ajusta la dirección de la base de datos |
+| El cliente de base de datos no puede autenticarse (por ejemplo, `authentication method 10 not supported`) | El cliente es demasiado viejo para la versión del motor | Actualiza tu cliente, o usa uno al día como DBeaver Community |
+| La contraseña es correcta pero la conexión falla, o el error sale **en español** | Te estás conectando a una base de datos instalada en Windows (que puede responder en español), no a la de Docker, que ocupa el mismo puerto | Detén o desinstala la de Windows, o cambia el puerto de la de Docker |
 
 ## Commits rechazados
 
@@ -80,8 +80,6 @@ La base de datos y los demás servicios locales los define cada proyecto en su a
 | "Mensaje de commit inválido" | No sigue el formato Conventional Commits | Usa `feat: …`, `fix: …`, `docs: …`, etc. |
 | "No se permite commitear '.env'" | Se intentó subir un archivo con secretos | Sácalo del commit: `git restore --staged .env` |
 | "La constitución cambió" | El commit modifica las reglas del proyecto (`equipo/reglas.md`) o los principios (`equipo/principios.md`) | Revierte el cambio. Si dirección técnica aprueba el de las reglas: `APPROVED_CONSTITUTION=1 git commit ...`. Ver [La constitución](la-constitucion.md#si-algo-falla) |
-| "No modifiques migraciones existentes" | Se editó una migración ya versionada | Revierte y crea una migración nueva |
-| "Archivos Go sin formato" | Código sin formatear | `gofmt -w <archivo>` |
 | "El perfil del proyecto (equipo/perfil.json) cambió" | El commit crea, cambia o elimina el perfil y nadie lo confirmó | Revísalo con `make profile` y repite el commit con `APPROVED_PROFILE=1 git commit ...` |
 | "Estos archivos de la parte «…» no se modifican una vez versionados" | El commit cambia, renombra o borra un archivo que el perfil declara inmutable (por ejemplo, una migración) | Deja el archivo como estaba y crea uno nuevo |
 | "La parte «…» no pasa la revisión de formato" | El verbo `formato` del perfil falló en una parte que el commit toca | Formatea el código de esa parte y repite el commit |

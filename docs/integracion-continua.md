@@ -179,6 +179,8 @@ Hasta la versión 1.17, el kit traía un `ci.yml` propio, pensado para Go, React
 - Las versiones de las herramientas, que antes se cambiaban con variables del repositorio (`GOLANGCI_LINT_VERSION` y las demás), ahora se editan en el archivo.
 - Cuando el proyecto tenga perfil, `/bowser-ci` reescribe los grupos `backend` y `frontend` para que ejecuten los verbos.
 
+El paso completo de un proyecto 1.x a la 2.0, con la integración continua incluida, está en [Migrar a la 2.0](migrar-a-2.md).
+
 ## Lo que no hace
 
 - **No despliega.** La integración continua solo comprueba. El despliegue es otro workflow del proyecto, y siempre lo aprueba una persona.

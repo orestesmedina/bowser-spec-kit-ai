@@ -2,12 +2,13 @@
 
 - [Introducción](#introducción)
 - [Requisitos](#requisitos)
+    - [Las herramientas base](#las-herramientas-base)
+    - [Las herramientas de tu proyecto](#las-herramientas-de-tu-proyecto)
 - [Sistema operativo](#sistema-operativo)
-- [Herramientas base](#herramientas-base)
+- [Instalar las herramientas base](#instalar-las-herramientas-base)
     - [macOS](#macos)
     - [Ubuntu y WSL](#ubuntu-y-wsl)
 - [Spec Kit](#spec-kit)
-- [Herramientas de Go](#herramientas-de-go)
 - [El agente de código](#el-agente-de-código)
 - [GitHub](#github)
 - [Verificar la instalación](#verificar-la-instalación)
@@ -15,29 +16,36 @@
 
 ## Introducción
 
-Esta página prepara **tu máquina** para trabajar con el kit. Se hace una sola vez por computadora y toma entre una y dos horas. No instala nada dentro de un proyecto: eso viene después, en [Siguientes pasos](#siguientes-pasos).
+Esta página prepara **tu máquina** para trabajar con el kit. Se hace una sola vez por computadora. No instala nada dentro de un proyecto: eso viene después, en [Siguientes pasos](#siguientes-pasos).
 
-El kit no es un programa que se instala. Es un conjunto de archivos (instrucciones para los agentes, scripts y controles) que vive dentro de cada proyecto. Lo que instalas aquí son las herramientas que esos archivos necesitan para funcionar: el lenguaje del backend, el del frontend, la base de datos, Spec Kit y el agente de código.
+El kit no es un programa que se instala. Es un conjunto de archivos (instrucciones para los agentes, scripts y controles) que vive dentro de cada proyecto. Lo que instalas aquí son las herramientas que esos archivos necesitan para funcionar.
+
+Son de dos clases. Las **herramientas base** las usa el kit en cualquier proyecto, sea del lenguaje que sea. Las **herramientas de tu proyecto** (su lenguaje, su base de datos, su formateador) dependen de con qué esté hecho, y cada proyecto las declara en su perfil.
 
 ## Requisitos
+
+### Las herramientas base
 
 | Herramienta | Versión | Para qué la usa el kit |
 |---|---|---|
 | Git | 2.30 o superior | Control de versiones; los [hooks de git](hooks-de-git.md) revisan cada commit |
-| `make` | cualquiera | Ejecuta todos los comandos del kit (`make doctor`, `make up`, `make status`…) |
+| `make` | cualquiera | Ejecuta todos los comandos del kit (`make doctor`, `make test`, `make status`…) |
 | Python | 3.11 o superior | Los scripts del kit. No necesitan ninguna librería adicional |
 | `jq` | cualquiera | Lo usan los hooks que impiden al agente editar archivos protegidos |
-| Docker | 24 o superior | Levanta PostgreSQL en tu máquina; no se instala PostgreSQL a mano |
-| Go | 1.26 o superior | Backend |
-| Node.js | 24 | Frontend |
 | [uv](https://docs.astral.sh/uv/) | cualquiera | Instala Spec Kit |
 | Spec Kit (`specify`) | 1.0 o superior | El motor del proceso: genera specs, planes y tareas |
 | Un agente de código | — | Claude Code, Codex u OpenCode. Al menos uno |
+| GitHub CLI (`gh`) | cualquiera | Recomendada: los agentes abren los Pull Requests con ella |
+| gitleaks | cualquiera | Recomendada: busca secretos en el código antes de que lleguen a GitHub. Sin ella, ese control recién corre en la [integración continua](integracion-continua.md) |
 
-> [!NOTE]
-> Git, `make`, Python, `jq`, `uv`, Spec Kit y el agente de código hacen falta en cualquier proyecto. Docker, Go, Node y las herramientas de Go de esta página son las de un proyecto en Go, React y PostgreSQL, como ejemplo. Cada proyecto declara las suyas en los [`requisitos`](perfil-del-proyecto.md#los-requisitos-de-la-máquina) de su perfil, y `make doctor` revisa esas.
+### Las herramientas de tu proyecto
 
-Además, hay cinco herramientas recomendadas: `golangci-lint`, `govulncheck`, `migrate`, `sqlc` y `gitleaks`. Sin ellas el kit funciona, pero algunos controles se saltan en tu máquina y recién fallan en la [integración continua](integracion-continua.md).
+El lenguaje, la base de datos y las demás herramientas de un proyecto no las fija el kit: las declara el propio proyecto en los [`requisitos`](perfil-del-proyecto.md#los-requisitos-de-la-máquina) de su perfil, con la versión mínima y cómo instalar cada una. `make doctor` las revisa y te dice cuál falta.
+
+- **Te unes a un proyecto que ya usa el kit:** instala las herramientas base, clona el proyecto y ejecuta `make doctor`. La lista de lo que falta sale de ahí. Ver [Unirse a un proyecto](unirse-a-un-proyecto.md).
+- **Empiezas un proyecto o le instalas el kit a uno existente:** con las herramientas base alcanza para empezar. Los requisitos los escribe un agente al crear el perfil (`/bowser-profile`), y desde ese momento `make doctor` los revisa.
+
+**Docker** es un caso intermedio: el kit no lo necesita, pero lo pide si el proyecto tiene un entorno local (un archivo `compose.yaml` o `docker-compose.yml` en la raíz, que es lo que levanta `make up`).
 
 ## Sistema operativo
 
@@ -48,36 +56,33 @@ Además, hay cinco herramientas recomendadas: `golangci-lint`, `govulncheck`, `m
 > [!WARNING]
 > En Windows, mezclar programas instalados en Windows con programas instalados en Ubuntu es la causa de la mayoría de los errores. Antes de instalar nada, lee [Windows y WSL](windows-wsl.md).
 
-## Herramientas base
+## Instalar las herramientas base
 
 ### macOS
 
 Con [Homebrew](https://brew.sh):
 
 ```bash
-brew install git go node@24 python@3.12 jq make gh gitleaks golang-migrate
-brew install --cask docker
+brew install git python@3.12 jq make gh gitleaks
 ```
-
-Abre Docker Desktop una vez para que arranque.
 
 ### Ubuntu y WSL
 
 En la terminal de Ubuntu:
 
 ```bash
-sudo apt update && sudo apt install -y git jq make unzip curl build-essential python3 python3-pip
+sudo apt update && sudo apt install -y git jq make unzip curl python3
 ```
 
-Go, Node, Docker y la CLI de GitHub se instalan desde sus sitios oficiales, porque las versiones de `apt` suelen ser antiguas:
+La CLI de GitHub y gitleaks se instalan desde sus sitios oficiales, porque las versiones de `apt` suelen ser antiguas:
 
 | Herramienta | Cómo instalarla |
 |---|---|
-| Go 1.26+ | [go.dev/doc/install](https://go.dev/doc/install) |
-| Node 24 | [nvm](https://github.com/nvm-sh/nvm), y luego `nvm install 24` |
-| Docker | En Windows, Docker Desktop con la integración de WSL activada. En Linux nativo, [docs.docker.com/engine/install/ubuntu](https://docs.docker.com/engine/install/ubuntu/) |
 | GitHub CLI (`gh`) | [Instrucciones para Linux](https://github.com/cli/cli/blob/trunk/docs/install_linux.md) |
 | gitleaks | [Instrucciones de instalación](https://github.com/gitleaks/gitleaks#installing) |
+
+> [!NOTE]
+> Si tu proyecto usa Docker: en Windows, instala Docker Desktop con la integración de WSL activada; en Linux, sigue [docs.docker.com/engine/install/ubuntu](https://docs.docker.com/engine/install/ubuntu/); en macOS, `brew install --cask docker` y abre Docker Desktop una vez para que arranque.
 
 ## Spec Kit
 
@@ -89,30 +94,6 @@ uv tool install specify-cli
 specify --version
 ```
 
-## Herramientas de Go
-
-```bash
-go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0
-go install golang.org/x/vuln/cmd/govulncheck@v1.8.0
-go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.20.1
-go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1
-```
-
-| Herramienta | Qué hace | Dónde la usa un proyecto así |
-|---|---|---|
-| `golangci-lint` | Revisa la calidad del código Go | El verbo `revisar` del perfil (`make lint`) |
-| `govulncheck` | Busca vulnerabilidades conocidas en las dependencias de Go | El verbo `auditar` (`make security`) |
-| `migrate` | Aplica las migraciones de la base de datos | Un comando propio del proyecto, en su `proyecto.mk` |
-| `sqlc` | Genera código Go a partir de las consultas SQL | El verbo `generar` (`make generate`) |
-
-Las versiones deben ser las mismas que fija la integración continua del proyecto. Usar otras puede hacer que algo pase en tu máquina y falle en GitHub, o al revés.
-
-> [!NOTE]
-> `go install` deja los programas en `$(go env GOPATH)/bin`. Si después de instalarlos la terminal dice `command not found`, agrega esa carpeta a tu `PATH`:
-> ```bash
-> echo 'export PATH="$PATH:$(go env GOPATH)/bin"' >> ~/.bashrc && source ~/.bashrc
-> ```
-
 ## El agente de código
 
 Instala el que use tu equipo. Si te unes a un proyecto, está indicado en `"herramientas"` dentro de `equipo/config.json`.
@@ -120,7 +101,7 @@ Instala el que use tu equipo. Si te unes a un proyecto, está indicado en `"herr
 | Herramienta | Instalación | Primer inicio |
 |---|---|---|
 | Claude Code | `curl -fsSL https://claude.ai/install.sh \| bash` | `claude` y luego iniciar sesión |
-| Codex | `npm install -g @openai/codex` | `codex` y luego iniciar sesión |
+| Codex | `npm install -g @openai/codex` (necesita Node.js) | `codex` y luego iniciar sesión |
 | OpenCode | `curl -fsSL https://opencode.ai/install \| bash` | `opencode` y luego configurar el proveedor |
 
 > [!WARNING]
@@ -154,6 +135,12 @@ Cada línea empieza con un símbolo:
 | `!` | Recomendado, pero no obligatorio | Conviene resolverlo; no te bloquea |
 | `✗` | Falta algo necesario | Corrígelo antes de trabajar. El mensaje dice cómo |
 
+Primero revisa las herramientas base y después las del proyecto. En un proyecto que todavía no tiene perfil verás este aviso, que es lo esperado: el siguiente paso es crearlo.
+
+```text
+  ! El proyecto no tiene perfil: no se sabe qué tecnología usa ni qué herramientas necesita (en el chat: /bowser-profile)
+```
+
 Además de las herramientas, `make doctor` revisa cosas que solo aparecen al trabajar: que Docker esté corriendo (si el proyecto lo usa), que los hooks de git estén activos, que exista el archivo `.env` (si el proyecto declara alguna variable en `.env.example`), que el kit del proyecto esté al día y, en Windows, que no se estén usando por error programas instalados del lado de Windows.
 
 La instalación está completa cuando termina con:
@@ -171,6 +158,7 @@ Con la máquina lista, el siguiente paso depende de tu situación:
 
 - **Vas a empezar un proyecto desde cero:** [Crear un proyecto nuevo](proyecto-nuevo.md).
 - **Ya tienes un proyecto con código:** [Integrar el kit en un proyecto existente](proyecto-existente.md).
+- **Tu proyecto ya usa una versión 1.x del kit:** [Migrar a la 2.0](migrar-a-2.md).
 - **Te unes a un proyecto que ya usa el kit:** [Unirse a un proyecto](unirse-a-un-proyecto.md).
 - **Quieres entender cómo funciona antes de usarlo:** [Desarrollo guiado por especificaciones](sdd.md).
 

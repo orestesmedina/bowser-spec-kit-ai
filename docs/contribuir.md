@@ -64,7 +64,7 @@ make test-kit
 Instalan el kit en proyectos temporales, lo actualizan desde la versión anterior publicada y comprueban que los controles sigan bloqueando lo que deben bloquear. Prueban la carpeta de trabajo tal como está: no hace falta hacer commit antes. Tardan cerca de un minuto.
 
 ```text
-Pruebas del kit 1.10.0 · actualización desde v1.9.0
+Pruebas del kit 1.24.0 · actualización desde v1.12.2
 
 nucleo/repositorio
   ✓ los archivos generados del kit (CLAUDE.md, .claude/, .codex/, .opencode/) están al día  (0.2 s)
@@ -73,10 +73,11 @@ nucleo/repositorio
 nucleo/costos
   ✓ make costs con OpenCode 1.x y 2.x: mismos totales, subagente enlazado y sin duplicar al repetir  (2.4 s)
   …
-go/cobertura
-  ✓ make coverage con Go real: falla con pruebas insuficientes y pasa al completarlas  (12.7 s)
+nucleo/perfil
+  ✓ make ci con perfil ejecuta todos los verbos aunque uno falle y termina con un resumen de lo comprobado y lo que no  (2.4 s)
+  …
 
-Resultado: 32 pasaron, 0 fallaron, 0 omitidas · 58 s
+Resultado: 67 pasaron, 0 fallaron, 0 omitidas · 168 s
 ✓ Todo pasó.
 ```
 

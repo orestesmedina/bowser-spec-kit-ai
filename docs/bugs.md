@@ -32,7 +32,7 @@ Cuanto más concreto, mejor diagnóstico:
 |---|---|---|
 | 1. Diagnóstico | Se busca la causa raíz leyendo el código y los registros, y se explica **antes de tocar nada** | Orquestador |
 | 2. Reproducción | Se escribe una prueba automática que falla por este bug | `qa-tester` |
-| 3. Arreglo | El cambio mínimo que hace pasar la prueba sin romper las demás | `dev-backend` o `dev-frontend` |
+| 3. Arreglo | El cambio mínimo que hace pasar la prueba sin romper las demás | El desarrollador de esa parte (`dev-backend`, `dev-frontend` o `dev-dba`) |
 | 4. Validación | QA, revisión y seguridad sobre el cambio | Los tres revisores |
 | 5. Registro | Una entrada en el registro de cambios, en la sección "Corregido" | `documentador` |
 

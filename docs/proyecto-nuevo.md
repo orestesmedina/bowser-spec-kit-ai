@@ -7,13 +7,14 @@
     - [2. Agregar el kit](#2-agregar-el-kit)
     - [3. Preparar el entorno local](#3-preparar-el-entorno-local)
     - [4. Guardar](#4-guardar)
+    - [5. Describir el proyecto](#5-describir-el-proyecto)
 - [Qué hizo la instalación](#qué-hizo-la-instalación)
 - [Lo que debes ajustar](#lo-que-debes-ajustar)
 - [Siguientes pasos](#siguientes-pasos)
 
 ## Introducción
 
-Esta página crea un proyecto desde cero con el kit instalado. Al terminar tendrás un repositorio con las instrucciones de los agentes, los controles activos y PostgreSQL corriendo, listo para escribir la idea del producto.
+Esta página crea un proyecto desde cero con el kit instalado. Al terminar tendrás un repositorio con las instrucciones de los agentes, los controles activos y el perfil que describe con qué se va a construir, listo para escribir la idea del producto.
 
 Si el proyecto ya existe y tiene código, usa [Integrar el kit en un proyecto existente](proyecto-existente.md).
 
@@ -66,6 +67,32 @@ git add . && git commit -m "chore: instala kit de desarrollo"
 ```
 
 Este commit ya pasa por los [hooks de git](hooks-de-git.md). Si alguno lo bloquea, el mensaje indica qué corregir.
+
+### 5. Describir el proyecto
+
+El kit no supone ninguna tecnología: con qué se construye el proyecto lo declara su [perfil](perfil-del-proyecto.md). Sin perfil, `make test` y los demás verbos piden crearlo, y el orquestador no reparte tareas de implementación porque no sabe qué partes hay ni quién las trabaja.
+
+En un proyecto sin código, el perfil sale de una conversación sobre qué se va a construir: qué partes tendrá (una API, un panel web, una aplicación móvil), con qué lenguaje y base de datos, y cómo se probará cada una. En el chat:
+
+```text
+/bowser-profile
+```
+
+El agente te pregunta lo que necesita, te muestra la propuesta en lenguaje simple y, con tu "sí", escribe el perfil y trae las skills de las tecnologías elegidas. Revísalo y guárdalo:
+
+```bash
+make profile
+git add . && APPROVED_PROFILE=1 git commit -m "chore: agrega el perfil del proyecto"
+```
+
+Si todavía no decidiste la tecnología, puedes dejarlo para después de [escribir el roadmap](idea-al-roadmap.md): el `arquitecto` la propone en el plan de la primera funcionalidad, y el perfil se crea con esa decisión antes de implementar.
+
+Hay dos comandos que vienen después, cuando ya tienen sentido:
+
+| Comando | Cuándo |
+|---|---|
+| `/bowser-ci` | Cuando exista el perfil: redacta la integración continua para que ejecute sus verbos. Ver [Integración continua](integracion-continua.md) |
+| `/bowser-conventions <parte>` | Cuando una parte ya tenga código: escribe cómo hace las cosas este proyecto, para que los agentes lo sigan. Ver [Convenciones del proyecto](convenciones-del-proyecto.md) |
 
 ## Qué hizo la instalación
 

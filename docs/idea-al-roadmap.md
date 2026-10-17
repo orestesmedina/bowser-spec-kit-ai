@@ -50,7 +50,7 @@ El resultado es una tabla:
 
 | # | Funcionalidad | Qué incluye | Depende de | Estado | Rama / PR |
 |---|---|---|---|---|---|
-| 1 | Estructura base | Backend con `/healthz`, frontend, PostgreSQL, Docker Compose e integración continua | — | pendiente | |
+| 1 | Estructura base | Las partes del proyecto con lo mínimo para arrancar, la base de datos, el entorno local y la integración continua | — | pendiente | |
 | 2 | Registro de usuarios | Alta con correo y contraseña, confirmación por correo | 1 | pendiente | |
 | 3 | Inicio de sesión | Entrada, cierre de sesión y recuperación de contraseña | 2 | pendiente | |
 
@@ -65,7 +65,9 @@ El resultado es una tabla:
 
 La primera funcionalidad de cualquier proyecto es el esqueleto:
 
-> Usa la skill equipo-feature: estructura base del proyecto. Backend en Go con endpoint /healthz conectado a PostgreSQL, frontend React que muestre el estado del backend, Docker Compose levantando todo, y CI en verde.
+> Usa la skill equipo-feature: estructura base del proyecto. Una API con un endpoint /healthz conectado a la base de datos, una interfaz que muestre el estado de la API, el entorno local levantando todo con make up, y la integración continua en verde.
+
+Con qué tecnología se hace cada parte lo dice el [perfil del proyecto](perfil-del-proyecto.md). Si todavía no existe, créalo con `/bowser-profile` antes de implementar (ver [Describir el proyecto](proyecto-nuevo.md#5-describir-el-proyecto)); si la tecnología aún no está decidida, el `arquitecto` la propone en el plan de esta funcionalidad. Sin perfil, el orquestador no sabe qué partes hay ni a quién delegarlas.
 
 Parece poco, pero es la más importante: **los agentes copian los patrones del código que ya existe**. Un esqueleto limpio y aprobado hace que todo lo siguiente salga consistente. Uno descuidado se multiplica en cada funcionalidad.
 

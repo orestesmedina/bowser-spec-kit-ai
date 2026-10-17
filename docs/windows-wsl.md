@@ -21,7 +21,7 @@ En Windows con WSL conviven **dos sistemas, cada uno con sus propios programas**
 
 | | Windows | Ubuntu (WSL) |
 |---|---|---|
-| Qué va aquí | Navegador, DBeaver, Docker Desktop, VS Code (la ventana) | `make`, `python3`, `jq`, Go, Node, Spec Kit, git, **el agente de código** y **los proyectos** |
+| Qué va aquí | Navegador, DBeaver, Docker Desktop, VS Code (la ventana) | `make`, `python3`, `jq`, Spec Kit, git, las herramientas de cada proyecto (su lenguaje, su gestor de paquetes), **el agente de código** y **los proyectos** |
 | Terminal | PowerShell | Terminal "Ubuntu" |
 
 Un programa instalado en uno **no existe** en el otro. Por eso la regla es una sola: **todo lo del desarrollo se instala y se ejecuta dentro de Ubuntu**.
@@ -42,8 +42,8 @@ Un programa instalado en uno **no existe** en el otro. Por eso la regla es una s
    ```
    Abajo a la izquierda debe decir **"WSL: Ubuntu"**.
 6. **El agente de código** (Claude Code, Codex u OpenCode) se instala y se ejecuta en Ubuntu. El agente ejecuta comandos como `make test` o `git commit` en el sistema donde está instalado.
-7. **PostgreSQL.** No instales PostgreSQL en Windows: el proyecto lo levanta con Docker. Si ya tienes uno instalado, ocupa el puerto 5432 y tu cliente se conectará a ese en lugar del de Docker.
-8. **Cliente de base de datos.** Usa uno actualizado que soporte PostgreSQL 16, como [DBeaver Community](https://dbeaver.io/download/) o pgAdmin 4. Los clientes antiguos (por ejemplo Navicat 11) no pueden autenticarse con PostgreSQL moderno.
+7. **La base de datos.** Si el proyecto levanta su base de datos con Docker, no instales el mismo motor en Windows: ocuparía el mismo puerto (5432 en PostgreSQL, 3306 en MySQL) y tu cliente se conectaría a ese en lugar del de Docker.
+8. **Cliente de base de datos.** Usa uno actualizado, como [DBeaver Community](https://dbeaver.io/download/). Los clientes antiguos (por ejemplo Navicat 11) no pueden autenticarse con las versiones actuales de los motores.
 
 Con Windows preparado, continúa con la [Instalación](instalacion.md), ejecutando todo en la terminal de Ubuntu.
 
@@ -92,10 +92,10 @@ Ejemplo con OpenCode:
 |---|---|
 | El commit falla desde VS Code pero funciona desde la terminal, con varios `✗` a la vez | VS Code abrió el proyecto desde Windows. Ábrelo con `code .` desde Ubuntu |
 | "No se encontró python3" al hacer commit | El commit se está haciendo con el Git de Windows |
-| El agente no puede ejecutar `make`, `go` o `git` | El agente es el de Windows. Revisa `which -a <agente>` |
+| El agente no puede ejecutar `make`, `git` o las herramientas del proyecto | El agente es el de Windows. Revisa `which -a <agente>` |
 | `make doctor` dice "Se están usando versiones de Windows de: …" | Esas herramientas no están instaladas en Ubuntu |
 | `make doctor` avisa que el proyecto está en el disco de Windows | El proyecto está en `/mnt/...`. Muévelo a `~/proyectos/` |
-| Error de autenticación de la base de datos **en español** | Te estás conectando a un PostgreSQL instalado en Windows, no al de Docker |
+| Error de autenticación de la base de datos **en español** | Te estás conectando a una base de datos instalada en Windows, no a la de Docker |
 
 La lista completa está en [Problemas comunes](problemas-comunes.md).
 

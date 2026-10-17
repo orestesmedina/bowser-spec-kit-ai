@@ -1,8 +1,10 @@
 # bowser-spec-kit-ai
 
-Un kit para que un equipo de agentes de IA construya software con **React + TypeScript, Go y PostgreSQL**, siguiendo **Spec-Driven Development** con [Spec Kit](https://github.com/github/spec-kit): todo empieza por escrito, y las personas aprueban en los puntos clave.
+Un kit para que un equipo de agentes de IA construya software **con cualquier tecnología**, siguiendo **Spec-Driven Development** con [Spec Kit](https://github.com/github/spec-kit): todo empieza por escrito, y las personas aprueban en los puntos clave.
 
 **Funciona con Claude Code, Codex y OpenCode.** El proceso, las reglas y los roles se definen una sola vez; un script genera el formato que necesita cada herramienta.
+
+**No impone una tecnología.** Cada proyecto declara en su perfil sus partes, su lenguaje, su base de datos y cómo se prueba cada cosa, y un agente lo redacta leyendo el código o conversando sobre lo que se va a construir. El kit trae skills con el estándar oficial de varias tecnologías (Go, React, PostgreSQL, PHP, MySQL, web sin framework) y el proyecto puede sumar las suyas.
 
 > **[Documentación completa →](docs/README.md)**
 
@@ -24,7 +26,7 @@ Idea
 
 ## Empezar
 
-Requisitos: Git, `make`, `jq`, Docker, Go 1.26+, Node 24, Python 3.11+, [uv](https://docs.astral.sh/uv/) y al menos un agente de código. El detalle está en [Instalación](docs/instalacion.md); en Windows, lee antes [Windows y WSL](docs/windows-wsl.md).
+Requisitos: Git, `make`, `jq`, Python 3.11+, [uv](https://docs.astral.sh/uv/) y al menos un agente de código. Las herramientas de tu tecnología las declara el proyecto y `make doctor` te dice cuáles faltan. El detalle está en [Instalación](docs/instalacion.md); en Windows, lee antes [Windows y WSL](docs/windows-wsl.md).
 
 ```bash
 # 1. Spec Kit, una vez por máquina
@@ -44,13 +46,14 @@ cp .env.example .env      # las variables las agrega el proyecto
 make doctor
 ```
 
-Después abre tu agente en la carpeta del proyecto y pídele lo que necesitas.
+Después abre tu agente en la carpeta del proyecto y escribe `/bowser-profile`: un agente describe el proyecto (sus partes y su tecnología) y, con tu aprobación, el kit queda listo para trabajar con ella.
 
 | Tu situación | Empieza por |
 |---|---|
 | Proyecto desde cero | [Crear un proyecto nuevo](docs/proyecto-nuevo.md) |
 | Ya tienes un proyecto con código | [Integrar el kit en un proyecto existente](docs/proyecto-existente.md) |
 | Te unes a un proyecto que ya usa el kit | [Unirse a un proyecto](docs/unirse-a-un-proyecto.md) |
+| Tu proyecto usa una versión 1.x del kit | [Migrar a la 2.0](docs/migrar-a-2.md) |
 | Quieres entender la idea primero | [Desarrollo guiado por especificaciones](docs/sdd.md) |
 
 ## Uso diario
@@ -74,7 +77,7 @@ Todos los comandos están en [Comandos](docs/comandos.md), y los errores frecuen
 | [Primeros pasos](docs/README.md#primeros-pasos) | Instalación, proyectos nuevos y existentes, estructura y configuración |
 | [Conceptos](docs/README.md#conceptos) | El proceso, el equipo de agentes, la constitución y cómo funciona el kit por dentro |
 | [El flujo de trabajo](docs/README.md#el-flujo-de-trabajo) | De la idea al roadmap, funcionalidades, aprobaciones, bugs y cómo retomar |
-| [Profundizando](docs/README.md#profundizando) | Roles, skills, modelos, costos y personalización |
+| [Profundizando](docs/README.md#profundizando) | Roles, skills, perfil y convenciones del proyecto, modelos, costos y personalización |
 | [Controles](docs/README.md#controles) | Hooks de git, hooks del agente, integración continua, cobertura |
 | [Referencia](docs/README.md#referencia) | Comandos, problemas comunes, reglas de oro y glosario |
 

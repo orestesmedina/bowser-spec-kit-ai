@@ -29,7 +29,9 @@ mi-proyecto/
 │   ├── agentes/*.md                 # Los 11 roles, sin tecnología
 │   ├── comandos/*.md                # Comandos del chat (/bowser-status…)
 │   ├── config.json                  # Herramientas activas y modelo de cada agente
-│   ├── perfil.json                  # Partes del proyecto y comando de cada verbo (opcional)
+│   ├── principios.md                # Principios de la constitución (del kit)
+│   ├── reglas.md                    # Reglas propias del proyecto
+│   ├── perfil.json                  # Partes del proyecto, tecnología y comando de cada verbo (lo crea /bowser-profile)
 │   └── adaptadores/claude/          # Permisos y hooks propios de Claude Code
 ├── .agents/skills/                  # Skills: flujos del equipo y las de tecnología que pide el perfil
 ├── .githooks/                       # Controles en cada commit
@@ -48,8 +50,7 @@ mi-proyecto/
 │   └── plantillas/                  # Plantillas de idea, roadmap y estado
 ├── specs/<NNN-funcionalidad>/       # Una carpeta por funcionalidad
 │
-├── backend/                         # Go
-├── frontend/                        # React + TypeScript
+├── <carpetas de cada parte>/        # El código, donde el proyecto quiera (las nombra el perfil)
 ├── docker-compose.yml               # Servicios locales del proyecto (lo crea el proyecto)
 ├── .env.example                     # Variables de entorno, sin valores reales
 │
@@ -123,10 +124,7 @@ Todo archivo que no es código del producto pertenece a una de estas clases. Sab
 
 | Carpeta | Qué contiene |
 |---|---|
-| `backend/` | Go. Su organización interna está en la skill `go-backend` |
-| `backend/migrations/` | Los cambios de esquema de la base de datos, numerados |
-| `backend/api/openapi.yaml` | El contrato de la API |
-| `frontend/` | React + TypeScript. Su organización interna está en la skill `react-frontend` |
+| Las carpetas de cada parte | El código. El kit no fija sus nombres ni su organización: el [perfil](perfil-del-proyecto.md) dice qué parte vive en qué carpeta, con qué tecnología, y qué archivos no se modifican una vez versionados (por ejemplo, las migraciones de la base de datos). Su organización interna está en las [convenciones del proyecto](convenciones-del-proyecto.md) |
 | `docker-compose.yml` (o `compose.yaml`) | Los servicios locales que levanta `make up`. Es del proyecto: el kit no trae ninguno y lo crea el rol `devops` |
 | `.env.example` | Las variables de entorno que necesita el proyecto, sin valores reales (semilla: llega vacía) |
 | `.env` | Los valores reales. Nunca se sube a git |
@@ -149,7 +147,7 @@ Cómo funciona esto por dentro está en [El kit como submódulo](submodulo.md).
 
 | Archivo | ¿Lo editas? |
 |---|---|
-| `specs/`, `docs/producto/`, `backend/`, `frontend/`, `proyecto.mk` | Sí. Es el trabajo de todos los días |
+| `specs/`, `docs/producto/`, el código de cada parte, `proyecto.mk` | Sí. Es el trabajo de todos los días |
 | `equipo/config.json`, `.github/CODEOWNERS`, `.env.example` | Sí, con el acuerdo de quien lidera el proyecto |
 | `equipo/reglas.md` | Sí, con la aprobación de dirección técnica (`APPROVED_CONSTITUTION=1`) |
 | Archivos del kit | No. El cambio se propone en el repositorio del kit, o el archivo se marca como propio. Ver [Personalizar un proyecto](personalizar.md) |

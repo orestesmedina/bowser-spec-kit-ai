@@ -16,6 +16,9 @@
 
 El kit mejora con el tiempo, y cada proyecto decide cuándo adoptar una versión nueva. Actualizar es un comando, pero conviene saber qué hace, qué no hace y qué revisar después.
 
+> [!NOTE]
+> **¿Tu proyecto usa una versión 1.x?** Pasar a la 2.0 tiene pasos obligatorios: sigue [Migrar a la 2.0](migrar-a-2.md), que usa los comandos de esta página en orden.
+
 ## Cómo se numeran las versiones
 
 El kit usa tres números, por ejemplo `1.7.1`:
@@ -24,7 +27,7 @@ El kit usa tres números, por ejemplo `1.7.1`:
 |---|---|---|
 | El tercero (`1.7.0` → `1.7.1`) | Correcciones y documentación | Nada que hacer |
 | El segundo (`1.6.4` → `1.7.0`) | Funciones nuevas, compatibles | Puede traer pasos opcionales |
-| El primero (`1.x` → `2.0.0`) | El proyecto debe hacer algo a mano para seguir funcionando | Lee los pasos antes de actualizar |
+| El primero (`1.x` → `2.0.0`) | El proyecto debe hacer algo a mano para seguir funcionando | Lee los pasos antes de actualizar. Para la 2.0: [Migrar a la 2.0](migrar-a-2.md) |
 
 La versión instalada en un proyecto está en `.kit-manifest.json`. Cada cambio queda registrado en las [novedades de cada versión](../CHANGELOG.md).
 
@@ -204,6 +207,7 @@ Cuando no queda nada:
 
 ## Siguientes pasos
 
+- [Migrar a la 2.0](migrar-a-2.md): el paso de la 1.x a la 2.0, de punta a punta.
 - [Novedades de cada versión](../CHANGELOG.md): el historial completo.
 - [El kit como submódulo](submodulo.md): cómo funciona la instalación por dentro.
 - [Problemas comunes](problemas-comunes.md): errores frecuentes al actualizar.

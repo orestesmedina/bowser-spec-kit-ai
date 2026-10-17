@@ -36,7 +36,7 @@ Cuanto antes se detiene un error, menos cuesta corregirlo. Cuanto más tarde est
 |---|---|---|---|---|
 | **Instrucciones** | `AGENTS.md`, roles, skills, constitución | Mientras el agente piensa | Errores de criterio | Sí: el agente puede equivocarse |
 | **[Hooks del agente](hooks-del-agente.md)** | `equipo/adaptadores/claude/hooks/` | Cuando el agente intenta editar un archivo | Ediciones a archivos protegidos | Solo existen en Claude Code |
-| **[Hooks de git](hooks-de-git.md)** | `.githooks/` | En cada commit | Secretos, migraciones editadas, formato, mensajes mal escritos, archivos del kit modificados | Con `--no-verify`, o si no están activos |
+| **[Hooks de git](hooks-de-git.md)** | `.githooks/` | En cada commit | Secretos, archivos inmutables editados (como las migraciones), formato, mensajes mal escritos, archivos del kit modificados | Con `--no-verify`, o si no están activos |
 | **[Integración continua](integracion-continua.md)** | `.github/workflows/` (`bowser.yml`, del kit, y el workflow del proyecto) | En cada Pull Request | Todo lo anterior, más pruebas, cobertura, código generado y vulnerabilidades | No |
 | **CODEOWNERS** | `.github/CODEOWNERS` | Al aprobar un Pull Request | Cambios a las reglas y a los agentes sin la aprobación de quien decide | No, si la rama está protegida |
 | **[Aprobación de una persona](aprobaciones.md)** | El chat y GitHub | En las cuatro puertas | Que se construya algo que nadie pidió | No |
@@ -50,7 +50,7 @@ Las reglas más importantes están protegidas en varias capas a la vez:
 | Regla | Instrucciones | Hook del agente | Hook de git | Integración continua |
 |---|:-:|:-:|:-:|:-:|
 | No subir secretos | ✓ | ✓ | ✓ | ✓ |
-| No modificar una migración aplicada | ✓ | ✓ | ✓ | ✓ |
+| No modificar un archivo inmutable (una migración aplicada) | ✓ | ✓ | ✓ | ✓ |
 | No editar la constitución (principios y reglas del proyecto) | ✓ | ✓ | ✓ | Avisa |
 | No editar archivos del kit | ✓ | ✓ | ✓ | ✓ |
 | No editar `costos.json` a mano | ✓ | ✓ | Si está cerrado | |

@@ -64,7 +64,7 @@ Un archivo **nuevo**, que todavía no está en git, sí se puede escribir y corr
 | Situación | Qué protege el hook |
 |---|---|
 | El proyecto tiene perfil | Lo que el perfil declara en `inmutables`, y nada más |
-| El proyecto no tiene perfil | `backend/migrations/*.sql`, como antes de existir el perfil |
+| El proyecto no tiene perfil | Ningún archivo: sin perfil, el kit no sabe cuáles son inmutables |
 | El perfil tiene errores | Ningún archivo inmutable, hasta que se corrija. El [hook de git](hooks-de-git.md) rechaza el commit mientras tanto |
 
 Es la misma lista que revisan el hook de git en cada commit y la [integración continua](integracion-continua.md) en cada Pull Request. El hook del agente solo se adelanta: el agente se entera al intentar la edición.

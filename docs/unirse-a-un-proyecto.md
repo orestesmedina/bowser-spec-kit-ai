@@ -23,7 +23,7 @@ Pídelos a quien lidera el proyecto antes de empezar:
 
 ## Clonar y preparar el proyecto
 
-Con tu máquina lista según la página de [Instalación](instalacion.md):
+Con las herramientas base instaladas según la página de [Instalación](instalacion.md) (las del proyecto te las pedirá `make doctor`):
 
 ```bash
 git clone --recursive git@github.com:<organizacion>/<proyecto>.git
@@ -43,7 +43,7 @@ Qué hace cada paso:
 | `make install-hooks` | La activación de los [hooks de git](hooks-de-git.md) no viaja con el repositorio: cada persona la hace una vez por clon. Sin ella, tus commits no pasan por ningún control local |
 | `cp .env.example .env` | `.env` tiene los valores reales (contraseñas, direcciones) y nunca se sube a git |
 | `make up` | Levanta con Docker los servicios que el proyecto definió en su archivo de Docker Compose. Si responde "todavía no tiene entorno local", el proyecto aún no lo creó: sáltate este paso |
-| `make doctor` | Comprueba todo lo anterior. Debe terminar con "Todo listo para trabajar" |
+| `make doctor` | Comprueba todo lo anterior y las herramientas que el proyecto declara en su perfil (su lenguaje, su base de datos): si falta alguna, dice cuál y cómo instalarla. Debe terminar con "Todo listo para trabajar" |
 
 > [!WARNING]
 > Ajusta las contraseñas en `.env` **antes** del primer `make up`. Los motores de base de datos (PostgreSQL y MySQL, entre otros) solo las toman al crear la base; si las cambias después, hay que recrearla con `docker compose down -v && make up`, que borra los datos locales.

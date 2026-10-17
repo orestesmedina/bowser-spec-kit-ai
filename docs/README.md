@@ -1,16 +1,25 @@
 # Documentación de bowser-spec-kit-ai
 
-Un kit para que un equipo de agentes de IA construya software con **React + TypeScript, Go y PostgreSQL**, siguiendo un proceso en el que todo empieza por escrito y las personas aprueban en los puntos clave. Funciona con Claude Code, Codex y OpenCode.
+Un kit para que un equipo de agentes de IA construya software **con cualquier tecnología**, siguiendo un proceso en el que todo empieza por escrito y las personas aprueban en los puntos clave. Funciona con Claude Code, Codex y OpenCode. Cada proyecto declara en su [perfil](perfil-del-proyecto.md) con qué está hecho, y el kit se adapta a eso.
 
 Esta documentación está pensada para leerse de arriba hacia abajo la primera vez y para consultarse por tema después. Cada página explica **qué es** una pieza del kit, **para qué sirve**, **cuándo se usa** y **qué hacer cuando falla**.
 
-> [!TIP]
-> **¿Por dónde empiezo?** Si quieres entender la idea antes de instalar nada, lee [Desarrollo guiado por especificaciones](sdd.md) y [El equipo de agentes](equipo-de-agentes.md). Si prefieres empezar con las manos, ve a [Instalación](instalacion.md).
+## Ruta para empezar
+
+| Tu situación | Lee, en este orden |
+|---|---|
+| Quieres entender la idea antes de instalar nada | [Desarrollo guiado por especificaciones](sdd.md) → [El equipo de agentes](equipo-de-agentes.md) → [Capas de control](capas-de-control.md) |
+| Vas a empezar un proyecto desde cero | [Instalación](instalacion.md) → [Crear un proyecto nuevo](proyecto-nuevo.md) → [De la idea al roadmap](idea-al-roadmap.md) → [Construir una funcionalidad](funcionalidad.md) |
+| Tienes un proyecto con código y quieres sumarle el kit | [Instalación](instalacion.md) → [Integrar el kit en un proyecto existente](proyecto-existente.md) → [El perfil del proyecto](perfil-del-proyecto.md) → [Convenciones del proyecto](convenciones-del-proyecto.md) |
+| Tu proyecto usa una versión 1.x del kit | [Migrar a la 2.0](migrar-a-2.md) |
+| Te unes a un proyecto que ya usa el kit | [Instalación](instalacion.md) → [Unirse a un proyecto](unirse-a-un-proyecto.md) → [Construir una funcionalidad](funcionalidad.md) |
+| Vas a aprobar el trabajo, sin programar | [Desarrollo guiado por especificaciones](sdd.md) → [Aprobaciones](aprobaciones.md) → [Reglas de oro](reglas-de-oro.md) |
 
 ## Prólogo
 
 - [Novedades de cada versión](../CHANGELOG.md)
 - [Guía de actualización](actualizacion.md)
+- [Migrar a la 2.0](migrar-a-2.md)
 - [Cómo contribuir](contribuir.md)
 - [Hoja de ruta](../HOJA-DE-RUTA.md)
 

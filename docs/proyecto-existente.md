@@ -9,9 +9,10 @@
     - [3. Instalar el kit](#3-instalar-el-kit)
     - [4. Recuperar lo que fue reemplazado](#4-recuperar-lo-que-fue-reemplazado)
     - [5. Ajustar la configuración](#5-ajustar-la-configuración)
-    - [6. Verificar y guardar](#6-verificar-y-guardar)
-- [Si la estructura del proyecto es distinta](#si-la-estructura-del-proyecto-es-distinta)
-- [Si el stack es distinto](#si-el-stack-es-distinto)
+    - [6. Guardar la instalación](#6-guardar-la-instalación)
+    - [7. Describir el proyecto](#7-describir-el-proyecto)
+    - [8. Verificar](#8-verificar)
+- [Lo que el kit aprende de tu proyecto](#lo-que-el-kit-aprende-de-tu-proyecto)
 - [Adoptar el proceso con código ya escrito](#adoptar-el-proceso-con-código-ya-escrito)
 - [Siguientes pasos](#siguientes-pasos)
 
@@ -19,20 +20,23 @@
 
 El kit se puede instalar sobre un repositorio que ya tiene código. La instalación es la misma que en un proyecto nuevo, con una diferencia: tu proyecto ya tiene archivos con los mismos nombres que usa el kit, y hay que decidir qué pasa con ellos.
 
-Esta página explica qué va a cambiar en tu repositorio, cómo recuperar lo que el kit reemplace y qué hacer si tu proyecto no se parece al que el kit espera.
+Esta página explica qué va a cambiar en tu repositorio, cómo recuperar lo que el kit reemplace y cómo hacer que el kit conozca tu proyecto.
+
+> [!NOTE]
+> Si tu proyecto ya usa una versión 1.x del kit, esta página no es para ti: sigue [Migrar a la 2.0](migrar-a-2.md).
 
 ## Antes de decidir
 
-El kit está hecho para un tipo de proyecto concreto. Cuanto más se parezca el tuyo, menos trabajo de integración:
+El kit no exige una tecnología ni una estructura de carpetas: el lenguaje, la base de datos, dónde está cada parte y cómo se prueba los declara el proyecto en su [perfil](perfil-del-proyecto.md), y un agente lo redacta leyendo tu código. Lo que sí pide:
 
-| El kit asume | Si tu proyecto es distinto |
+| El kit necesita | Si tu proyecto es distinto |
 |---|---|
-| Backend en Go en `backend/`, frontend en React + TypeScript en `frontend/` | Los controles de esa capa se omiten solos, pero las skills y los roles hablan de ese stack. Ver [Si el stack es distinto](#si-el-stack-es-distinto) |
-| PostgreSQL, con migraciones en `backend/migrations/` | Lo mismo |
-| El proyecto está en GitHub y usa GitHub Actions | La integración continua no aplica; el resto funciona |
+| Que el proyecto esté en git | Inicializa el repositorio antes de empezar (`git init`) |
 | `make` como punto de entrada de los comandos | El kit trae su propio `Makefile`. Tus comandos pasan a `proyecto.mk` |
+| GitHub y GitHub Actions para la integración continua | La integración continua no aplica; el resto funciona |
+| Herramientas que se puedan ejecutar desde la terminal para probar, revisar o formatear | Un verbo sin comando no falla: avisa que esa parte no tiene ese control. Un proyecto sin pruebas funciona, y lo dice en sus reglas |
 
-Lo que no depende del stack (el proceso, los roles de analista, arquitecto y revisores, el estado del trabajo, los hooks de secretos y de mensajes de commit) funciona en cualquier proyecto.
+El proceso, los roles, el estado del trabajo, los costos y los hooks de secretos y de mensajes de commit funcionan igual en cualquier proyecto.
 
 ## Qué reemplaza el kit y qué respeta
 
@@ -106,41 +110,56 @@ Si prefieres conservar tu propia versión de alguno de esos archivos, agrégalo 
 
 Igual que en un proyecto nuevo: revisa `equipo/config.json` y `.github/CODEOWNERS`, y crea tu `.env` a partir de `.env.example`. El detalle está en [Lo que debes ajustar](proyecto-nuevo.md#lo-que-debes-ajustar).
 
-### 6. Verificar y guardar
+### 6. Guardar la instalación
 
 ```bash
-make doctor
 git add . && git commit -m "chore: instala kit de desarrollo"
 ```
 
-Este commit ya pasa por los hooks. En un proyecto con historia es normal que el primero se bloquee por formato: los hooks solo revisan los archivos incluidos en el commit, así que basta con formatear esos.
+Este commit ya pasa por los [hooks de git](hooks-de-git.md). Todavía no revisan nada de tu tecnología: eso empieza cuando existe el perfil.
 
-Antes de integrar la rama, ejecuta lo mismo que hará la integración continua:
+### 7. Describir el proyecto
+
+Hasta que el perfil exista, el kit **no ejecuta ningún control de tecnología**: `make test`, `make lint` y `make ci` piden crearlo, el commit no revisa formato ni archivos inmutables, y los agentes no saben qué carpeta es de quién. Tres comandos del chat lo resuelven, en este orden:
+
+| Comando | Qué hace | Ver |
+|---|---|---|
+| `/bowser-profile` | Un agente lee el proyecto y propone el perfil: sus partes, en qué carpeta está cada una, con qué tecnología, qué comando prueba, revisa o formatea cada parte y qué herramientas necesita una máquina | [El perfil del proyecto](perfil-del-proyecto.md) |
+| `/bowser-conventions <parte>` | Un agente lee el código de una parte y escribe cómo hace las cosas este proyecto: nombres, carpetas, patrones y bibliotecas. Es lo que los agentes van a copiar | [Convenciones del proyecto](convenciones-del-proyecto.md) |
+| `/bowser-ci` | Un agente redacta o ajusta la integración continua para que ejecute los verbos del perfil | [Integración continua](integracion-continua.md) |
+
+Revisa cada propuesta antes de guardarla. El perfil lo confirmas tú en el commit, porque sus comandos se ejecutan en cada máquina y en GitHub:
 
 ```bash
-make ci
+make profile                     # muestra y valida el perfil
+make install-kit                 # trae las skills de tecnología que el perfil nombra
+git add . && APPROVED_PROFILE=1 git commit -m "chore: agrega el perfil del proyecto"
 ```
 
-Si falla por reglas que tu código actual no cumple (por ejemplo, la cobertura mínima), decide con tu equipo si se corrige el código o si se cambia la regla en el perfil del proyecto.
+Si el proyecto ya tenía una constitución de Spec Kit escrita a mano, la instalación la pasó completa a `equipo/reglas.md` y generó la constitución con los principios del kit encima. Revisa ese archivo y borra lo que ya dicen los principios; ese commit pide `APPROVED_CONSTITUTION=1`. Ver [La constitución](la-constitucion.md).
 
-## Si la estructura del proyecto es distinta
+### 8. Verificar
 
-El kit no busca el código en rutas fijas: dónde está cada parte y cómo se revisa lo dice el [perfil del proyecto](perfil-del-proyecto.md). No hace falta mover nada.
+```bash
+make doctor      # las herramientas que pide el perfil
+make ci          # lo mismo que hará la integración continua
+```
 
-Hasta que el perfil exista, el kit se instala sin errores pero **no ejecuta ningún control de tecnología**: `make test`, `make lint` y `make ci` piden crearlo, el commit no revisa formato ni archivos inmutables, y los agentes no saben qué carpeta es de quién. Por eso, en un proyecto existente, lo primero después de instalar es `/bowser-profile`. La integración continua tampoco depende de las carpetas: es del proyecto y la redacta `/bowser-ci`.
+En un proyecto con historia es normal que el primer commit con perfil se bloquee por formato: los hooks solo revisan los archivos incluidos en el commit, así que basta con formatear esos.
 
-## Si el stack es distinto
+Si `make ci` falla por reglas que tu código actual no cumple (por ejemplo, una cobertura mínima), decide con tu equipo si se corrige el código o si se cambia la regla en el perfil.
 
-El kit nació para React, Go y PostgreSQL, y ya no depende de ellas:
+## Lo que el kit aprende de tu proyecto
 
-- **Los roles ya no nombran ninguna tecnología.** Cada uno recibe del [perfil del proyecto](perfil-del-proyecto.md) sus carpetas, sus skills y sus comandos. Ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto).
-- **Los comandos (`make test`, `make lint`…) ejecutan lo que el perfil declara.**
-- **Las skills de tecnología** llegan del [catálogo del kit](skills.md#el-catálogo-de-skills-de-tecnología) y traen el estándar de cada una, según su documentación oficial. Hoy tiene las de Go, React, PostgreSQL, PHP, MySQL y web sin framework; para otra tecnología, el proyecto escribe su propia skill en `.agents/skills/` y el perfil la nombra.
-- **Lo propio de tu proyecto** (cómo nombra las cosas, cómo se organiza, qué patrones y bibliotecas usa) lo redacta un agente leyendo el código, con `/bowser-conventions`. Ver [Convenciones del proyecto](convenciones-del-proyecto.md).
-- **Los archivos iniciales no traen tecnología:** el kit no instala base de datos ni servicios, `.env.example` llega vacío y su bloque de `.gitignore` solo cubre secretos, editores y archivos del kit.
-- **Si el proyecto ya tenía una constitución de Spec Kit escrita a mano**, la instalación la pasa completa a `equipo/reglas.md` y genera la constitución con los principios del kit encima. Revisa ese archivo y borra lo que ya dicen los principios. Ver [La constitución](la-constitucion.md).
+El kit no busca el código en rutas fijas ni supone ninguna tecnología. No hace falta mover nada ni cambiar de lenguaje: lo que necesita saber lo aprende del proyecto.
 
-Así que el primer paso con otro stack es crear el perfil, `/bowser-profile`; el segundo, las convenciones, `/bowser-conventions`; y el tercero, la integración continua, `/bowser-ci`. El proceso, el estado, los costos y la instalación no dependen del stack. La página [Cómo contribuir](contribuir.md) explica cómo está organizado el kit por dentro.
+- **Los roles no nombran ninguna tecnología.** Cada uno recibe del perfil sus carpetas, sus skills y sus comandos. Ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto).
+- **Los comandos (`make test`, `make lint`…) ejecutan lo que el perfil declara**, en la carpeta de cada parte.
+- **Las skills de tecnología** llegan del [catálogo del kit](skills.md#el-catálogo-de-skills-de-tecnología), solo las que el perfil nombra, y traen el estándar de cada una según su documentación oficial. Para una tecnología que el catálogo no tiene, el proyecto escribe su propia skill en `.agents/skills/` y el perfil la nombra.
+- **Lo propio de tu proyecto** (cómo nombra las cosas, cómo se organiza, qué patrones y bibliotecas usa) queda en sus convenciones. Si se contradicen con el estándar, manda el proyecto, salvo en seguridad.
+- **Los archivos iniciales no traen tecnología:** el kit no instala base de datos ni servicios, `.env.example` llega vacío y su bloque de `.gitignore` solo cubre secretos, editores y archivos del kit. Lo que tu tecnología necesita ignorar lo propone `/bowser-profile`.
+
+La página [Cómo contribuir](contribuir.md) explica cómo está organizado el kit por dentro.
 
 ## Adoptar el proceso con código ya escrito
 
