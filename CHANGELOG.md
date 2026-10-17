@@ -13,6 +13,43 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.23.0] - 2026-10-14
+
+Segundo paso (D2) de la entrega D de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.
+
+Sin perfil, el kit ya no supone que el proyecto es Go y PostgreSQL en `backend/` y React en `frontend/`. Era lo último del kit, fuera del catálogo de skills, que traía una tecnología.
+
+### Cambiado
+- **Sin perfil, los comandos de los verbos no ejecutan nada.** `make test`, `lint`, `coverage`, `security`, `generate`, `check-generated` y `ci` terminan con error y piden crearlo: `✗ Este proyecto no tiene perfil (equipo/perfil.json). Para crearlo, escribe en el chat: /bowser-profile`.
+- **Sin perfil no llega ninguna skill de tecnología.** Antes llegaban `go-backend`, `postgres-db` y `react-frontend`.
+- **Sin perfil, los controles no suponen carpetas.** El commit no revisa el formato (`gofmt`, prettier) ni las migraciones de `backend/`; el hook de Claude Code y `bowser.yml` no protegen ningún archivo inmutable.
+- **Sin perfil, `make doctor` revisa solo las herramientas base** y avisa que falta el perfil. Antes pedía Go, Node y las herramientas de Go.
+- **Sin perfil, los roles no reciben partes.** Su sección "Este proyecto" dice que no hay perfil y que no supongan carpetas, tecnologías ni comandos. El orquestador no delega tareas de implementación hasta que exista.
+- `make ci` ejecuta siempre todos los verbos y termina con su resumen.
+- `make skills` y `make profile` sin perfil dicen que falta y cómo crearlo.
+
+### Agregado
+- **Un proyecto que viene de una versión anterior sin perfil, y con `backend/` o `frontend/`, no se actualiza sin crearlo.** La instalación se detiene antes de cambiar nada y ofrece dos salidas: crear el perfil con `/bowser-profile` y repetir la instalación (y después un solo commit con todo), o seguir con `FORCE=1`. Ver [Si el proyecto no tiene perfil](docs/actualizacion.md#si-el-proyecto-no-tiene-perfil).
+- **Un archivo que el kit retira y que el proyecto todavía usa no se borra: se le entrega.** "Usa" quiere decir que su ruta aparece en el perfil, en `proyecto.mk` o en un workflow propio. Queda en el proyecto, sale del manifiesto y la instalación lo avisa.
+
+### Retirado
+- `make test-backend`, `make test-frontend` y `make db-migrate`. Si el proyecto los necesita, se definen en su `proyecto.mk`.
+- `scripts/generar.sh` (sqlc y los tipos de la API) y `scripts/cobertura.py` (cobertura de `service*.go`, mínimo fijo de 80 %). Lo que hacían lo declara cada proyecto en los verbos `generar` y `cobertura` de su perfil.
+- Las pruebas del kit que necesitaban Go, Node y sqlc (`pruebas/go/`), y su instalación en `kit.yml`.
+
+### Corregido
+- La prueba que compara `make estado` con `make status` fallaba a veces: `make status` dice hace cuántos segundos fue el último commit de cada rama, y el número cambiaba entre las dos ejecuciones.
+
+### Límites
+- La detención solo mira si existen `backend/` o `frontend/`. Un proyecto 1.x sin perfil con otra estructura se actualiza sin aviso. Los comandos que pierde no le servían (buscaban esas carpetas), pero también pierde las tres skills y la revisión de formato de los archivos Go del commit, que no dependían de la carpeta.
+- "El proyecto lo usa" se decide buscando la ruta como texto: un script que se llama de otra forma (por ejemplo, armando la ruta en una variable) no se reconoce y se borra.
+- No se probó en las copias de validación ni en una herramienta real.
+
+### Al actualizar
+- **Si el proyecto no tiene perfil, créalo antes de actualizar** con `/bowser-profile` (existe desde la 1.12.0). Si no lo creas, la actualización se detiene; con `FORCE=1` sigue, y hasta que exista el perfil no funcionan `make test`, `make lint` ni `make ci`.
+- Si el proyecto usaba `make test-backend`, `make test-frontend` o `make db-migrate` (en su workflow, en `proyecto.mk` o en su documentación), cámbialos por `make test PART=<parte>` o defínelos en `proyecto.mk`.
+- Si el perfil o el workflow usan `scripts/cobertura.py` o `scripts/generar.sh`, la actualización los conserva y avisa: desde ahora son del proyecto. Muévelos a `tools/` y ajusta quien los llama.
+
 ## [1.22.0] - 2026-10-12
 
 Primer paso (D1) de la entrega D de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.

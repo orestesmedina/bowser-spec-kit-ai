@@ -107,7 +107,7 @@ Las herramientas van en dos grupos:
 | Grupo | Qué revisa | De dónde sale |
 |---|---|---|
 | Herramientas base | Git, Python, `uv`, `jq`, `make`, Spec Kit y `gitleaks` | Fijo: es lo que el kit necesita en cualquier proyecto |
-| Herramientas del proyecto | Las de su tecnología | De los [`requisitos`](perfil-del-proyecto.md#los-requisitos-de-la-máquina) del perfil. Sin perfil, Go, Node y las herramientas de Go |
+| Herramientas del proyecto | Las de su tecnología | De los [`requisitos`](perfil-del-proyecto.md#los-requisitos-de-la-máquina) del perfil. Sin perfil no revisa ninguna: avisa que falta |
 
 Docker (instalado y corriendo) se revisa solo si el proyecto tiene un archivo de Docker Compose en la raíz o si su perfil lo pide.
 
@@ -126,11 +126,7 @@ Este proyecto todavía no tiene entorno local: falta compose.yaml (o docker-comp
 
 - **Cuándo:** `make up` al empezar a trabajar.
 
-### `make db-migrate`
-
-Aplica las migraciones pendientes a la base de datos indicada en `DATABASE_URL`.
-
-- **Cuándo:** después de traer cambios que incluyen migraciones nuevas, o al crear una.
+Aplicar las migraciones de la base de datos depende de la herramienta que use el proyecto: si lo necesita, es un [comando propio](#comandos-propios-del-proyecto) (por ejemplo, `make db-migrate` en su `proyecto.mk`).
 
 ### `make install-hooks`
 
@@ -141,30 +137,24 @@ Activa los hooks de git en tu copia del repositorio y les da permiso de ejecuci�
 
 ## Calidad y pruebas
 
-| Comando | Qué ejecuta | Cuándo |
+El kit no sabe cómo se prueba tu proyecto: lo dice su [perfil](perfil-del-proyecto.md). Cada comando ejecuta el verbo que el proyecto declaró para cada una de sus partes, dentro de la carpeta de la parte:
+
+| Comando | Verbo del perfil | Cuándo |
 |---|---|---|
-| `make test` | Todas las pruebas, de backend y de frontend | Antes de dar algo por terminado |
-| `make test-backend` | Pruebas unitarias y de integración de Go | Al trabajar solo en el backend |
-| `make test-frontend` | Pruebas del frontend | Al trabajar solo en el frontend |
-| `make lint` | Formato, `go vet`, `golangci-lint`, y lint y tipos del frontend | Antes de un commit grande |
-| `make coverage` | La cobertura de la capa de servicio. Falla bajo 80 % | Después de agregar lógica de negocio |
-| `make security` | Vulnerabilidades en las dependencias de Go y de Node | Después de agregar o actualizar una dependencia |
-| `make ci` | Todo lo anterior, más la verificación del código generado | Antes de abrir un Pull Request |
+| `make test` | `probar` | Antes de dar algo por terminado |
+| `make lint` | `formato` y `revisar` | Antes de un commit grande |
+| `make coverage` | `cobertura` | Después de agregar lógica de negocio |
+| `make security` | `auditar` | Después de agregar o actualizar una dependencia |
+| `make generate`, `make check-generated` | `generar` | Ver [Código generado](#código-generado) |
+| `make ci` | Los seis, y al final un [resumen](perfil-del-proyecto.md#el-resumen-de-make-ci) de qué se comprobó y qué quedó sin comprobar | Antes de abrir un Pull Request |
 
-Esto es lo que ejecutan en un proyecto **sin perfil**: asumen `backend/` en Go y `frontend/` en React. Las pruebas de integración necesitan la base de datos levantada: `make up`.
+`PART=nombre` limita el comando a una parte: `make test PART=api`. Una parte que no define un verbo se omite con un aviso.
 
-En un proyecto **con [perfil](perfil-del-proyecto.md)**, cada comando ejecuta el verbo que el proyecto declaró para cada una de sus partes:
+Sin perfil, estos comandos no ejecutan nada y terminan con error:
 
-| Comando | Verbo del perfil |
-|---|---|
-| `make test` | `probar` |
-| `make lint` | `formato` y `revisar` |
-| `make coverage` | `cobertura` |
-| `make security` | `auditar` |
-| `make generate`, `make check-generated` | `generar` |
-| `make ci` | Los seis, y al final un [resumen](perfil-del-proyecto.md#el-resumen-de-make-ci) de qué se comprobó y qué quedó sin comprobar |
-
-`PART=nombre` limita el comando a una parte: `make test PART=api`. Una parte que no define un verbo se omite con un aviso. `make test-backend` y `make test-frontend` no leen el perfil.
+```text
+✗ Este proyecto no tiene perfil (equipo/perfil.json). Para crearlo, escribe en el chat: /bowser-profile
+```
 
 ### `make profile`
 
@@ -194,7 +184,7 @@ Más: [Integración continua](integracion-continua.md) y [Cobertura y código ge
 
 | Comando | Qué hace | Cuándo |
 |---|---|---|
-| `make generate` | Regenera el código de sqlc y los tipos de la API | Después de cambiar una consulta SQL, una migración o el contrato de la API |
+| `make generate` | Ejecuta el verbo `generar` de cada parte: regenera el código que el proyecto genera a partir de otro archivo (consultas SQL, el contrato de la API…) | Después de cambiar lo que da origen a ese código |
 | `make check-generated` | Regenera y falla si quedó algo sin subir a git | Antes de abrir un Pull Request |
 
 Más: [Cobertura y código generado](cobertura-y-codigo-generado.md#código-generado).

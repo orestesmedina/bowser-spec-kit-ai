@@ -31,12 +31,4 @@ Hallazgos por severidad: **Crítica**, **Alta**, **Media**, **Baja**.
 Veredicto: APROBADO o RECHAZADO (cualquier Crítica o Alta rechaza).
 
 ## Este proyecto
-El proyecto no tiene perfil: se supone la estructura original del kit. Sus partes:
-
-- **backend**, en `backend`.
-  - La trabajan: `dev-backend`.
-  - Comandos: `cd backend && gofmt -l . && go vet ./... && go test ./...`, `make generate`, `make coverage`.
-  - No se modifican una vez versionados (se crea un archivo nuevo): `backend/migrations/*.sql`.
-- **frontend**, en `frontend`.
-  - La trabajan: `dev-frontend`.
-  - Comandos: `cd frontend && npm run lint && npm run typecheck && npm test -- --run`, `make generate`.
+El proyecto todavía no tiene perfil (`equipo/perfil.json`): no se sabe qué partes tiene, con qué tecnología ni cómo se prueba. No supongas carpetas, tecnologías ni comandos: avisa al orquestador antes de trabajar. El perfil se crea con el comando `bowser-profile`.

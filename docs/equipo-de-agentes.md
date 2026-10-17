@@ -81,7 +81,7 @@ El arquitecto marca cada tarea de `tasks.md` con la parte del proyecto que toca,
 | `[infra]` | `devops` |
 | `[P]` | Puede ir en paralelo con otras tareas `[P]` que no dependan entre sí |
 
-Sin perfil, las partes son `backend` (la trabaja `dev-backend`, con la base de datos) y `frontend` (`dev-frontend`). Las tareas marcadas `[db]` en un `tasks.md` escrito antes de este cambio las sigue haciendo `dev-backend`.
+Sin [perfil](perfil-del-proyecto.md) no se sabe qué partes hay ni quién las trabaja: el orquestador no delega tareas de implementación y pide crearlo con `/bowser-profile`.
 
 Cada tarea terminada es un commit, y queda marcada con `[X]` en `tasks.md`.
 

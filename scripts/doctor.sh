@@ -32,7 +32,7 @@ opcional() { # nombre comando
   command -v "$2" >/dev/null 2>&1 && verde "$1" || ambar "$1 no está instalado (recomendado)"
 }
 
-# Lo que el proyecto necesita lo dice su perfil ("requisitos"). Sin perfil, lo de siempre: Go y Node.
+# Lo que el proyecto necesita lo dice su perfil ("requisitos"). Sin perfil, no se sabe: solo las herramientas base.
 SEP=$'\x1f'
 PERFIL=sin; REQUISITOS=""
 if [ -f equipo/perfil.json ]; then
@@ -42,7 +42,6 @@ DEL_PROYECTO=""
 while IFS=$SEP read -r cmd _; do
   [ -n "$cmd" ] && DEL_PROYECTO="$DEL_PROYECTO $cmd"
 done <<< "$REQUISITOS"
-[ "$PERFIL" = sin ] && DEL_PROYECTO=" go node npm"
 # Docker hace falta si el proyecto tiene entorno local (make up) o si su perfil lo pide.
 COMPOSE=""
 for f in compose.yaml compose.yml docker-compose.yaml docker-compose.yml; do [ -f "$f" ] && COMPOSE=$f && break; done
@@ -61,13 +60,8 @@ opcional "gitleaks"               gitleaks
 
 case $PERFIL in
   sin)
-    echo "Herramientas del proyecto (sin perfil: Go y Node)"
-    requerido "Go"             go      "1.26" "go version"
-    requerido "Node.js"        node    "24.0" "node --version"
-    opcional "golangci-lint"          golangci-lint
-    opcional "govulncheck"            govulncheck
-    opcional "golang-migrate"         migrate
-    opcional "sqlc"                   sqlc
+    echo "Herramientas del proyecto"
+    ambar "El proyecto no tiene perfil: no se sabe qué tecnología usa ni qué herramientas necesita (en el chat: /bowser-profile)"
     ;;
   bien)
     echo "Herramientas del proyecto (según su perfil)"

@@ -199,3 +199,80 @@ def entregados(e):
     p.agregar(ci, "# otro cambio\n")
     p.commit("ci: integración continua del proyecto")
     contiene(p.make("install-kit").salida, "Sin cambios: el proyecto ya estaba al día.")
+
+
+@prueba("un archivo que el kit retira y el proyecto todavía nombra (perfil, proyecto.mk o un workflow) se le entrega en vez de borrarlo")
+def retirados_en_uso(e):
+    kit = e.kit()
+    nombres = ("en-el-perfil.sh", "en-proyecto-mk.sh", "en-workflow.sh", "sin-uso.sh")
+    for nombre in nombres:
+        (kit / "scripts" / nombre).write_text("echo hola\n", encoding="utf-8")
+    e.commit_kit(kit, "cuatro scripts más")
+    p = e.proyecto(kit)
+    p.escribir("servidor/index.php", "<?php\n")
+    perfil = {"partes": [{"nombre": "api", "carpeta": "servidor", "verbos": {"cobertura": "bash ../scripts/en-el-perfil.sh"}}]}
+    p.escribir("equipo/perfil.json", json.dumps(perfil, ensure_ascii=False, indent=2) + "\n")
+    p.escribir("proyecto.mk", "propio:\n\tbash scripts/en-proyecto-mk.sh\n")
+    p.escribir(".github/workflows/ci.yml", "jobs:\n  pruebas:\n    steps:\n      - run: bash scripts/en-workflow.sh\n")
+    p.make("install-kit")
+    p.commit("chore: perfil y comandos propios", extra={"APPROVED_PROFILE": "1"})
+    for nombre in nombres:
+        (kit / "scripts" / nombre).unlink()
+    e.commit_kit(kit, "retira los scripts")
+
+    r = p.make("update-kit")
+    for nombre, quien in (("en-el-perfil.sh", "equipo/perfil.json"), ("en-proyecto-mk.sh", "proyecto.mk"),
+                          ("en-workflow.sh", ".github/workflows/ci.yml")):
+        afirmar(p.existe(f"scripts/{nombre}"), f"se borró scripts/{nombre}, que {quien} todavía usa")
+        contiene(r.salida, f"scripts/{nombre} ya no viene del kit, pero {quien} lo usa")
+    afirmar(not p.existe("scripts/sin-uso.sh"), "un archivo retirado que nadie usa sigue en el proyecto")
+    manifiesto = json.loads(p.leer(".kit-manifest.json"))["archivos"]
+    afirmar(not [n for n in nombres if f"scripts/{n}" in manifiesto], "un script retirado sigue en el manifiesto")
+    p.verificar_kit()
+    contiene(p.make("coverage").salida, "hola", "el verbo que usa el script entregado")
+
+
+def con_backend_desde_la_anterior(e):
+    """Un proyecto instalado con la versión anterior publicada, sin perfil y con la estructura que esta suponía."""
+    e.version_anterior()
+    kit = e.kit("anterior")
+    p = e.proyecto(kit)
+    p.escribir("backend/main.go", "package main\n")
+    p.commit("feat: primer código del backend")
+    e.pasar_kit_a(kit, "actual")
+    return p
+
+
+@prueba("un proyecto que viene de la 1.x sin perfil y con backend/ o frontend/ no se actualiza hasta crear el perfil")
+def sin_perfil_desde_la_anterior(e):
+    p = con_backend_desde_la_anterior(e)
+    antes = p.leer(".kit-manifest.json")
+    r = p.make("actualizar-kit", espera=1)
+    contiene(r.salida, "Este proyecto no tiene perfil (equipo/perfil.json)")
+    contiene(r.salida, "aquí hay backend/")
+    contiene(r.salida, "No se cambió nada en el proyecto.")
+    # Nombra los comandos que entiende el Makefile que el proyecto tiene todavía.
+    contiene(r.salida, "Sin hacer commit todavía, repite: make instalar-kit\n")
+    contiene(r.salida, "make instalar-kit FORZAR=1")
+    afirmar(p.leer(".kit-manifest.json") == antes, "la actualización detenida cambió el manifiesto")
+    afirmar(p.existe(".agents/skills/go-backend/SKILL.md"), "la actualización detenida retiró una skill")
+
+    # Con el perfil escrito (todavía sin commit: el submódulo ya cambió y el control del commit no lo dejaría pasar),
+    # la actualización sigue, y después todo entra en un solo commit.
+    perfil = {"partes": [{"nombre": "backend", "carpeta": "backend", "rol": "dev-backend"}]}
+    p.escribir("equipo/perfil.json", json.dumps(perfil, ensure_ascii=False, indent=2) + "\n")
+    p.make("instalar-kit")
+    p.verificar_kit()
+    p.commit("chore: actualiza el kit y crea el perfil", extra={"APPROVED_PROFILE": "1"})
+    contiene(p.leer(".claude/agents/dev-backend.md"), "- **backend**, en `backend`", "el rol dev-backend")
+
+
+@prueba("forzando, un proyecto de la 1.x sin perfil se actualiza y se le avisa de lo que deja de funcionar")
+def sin_perfil_forzando(e):
+    p = con_backend_desde_la_anterior(e)
+    r = p.make("actualizar-kit", "FORZAR=1")
+    contiene(r.salida, "Este proyecto no tiene perfil: make test, make lint, make ci y los demás verbos no funcionan")
+    p.verificar_kit()
+    afirmar(not p.existe(".agents/skills/go-backend"), "sin perfil no debe quedar ninguna skill de tecnología")
+    # Ya instalada la versión nueva, una actualización posterior sin perfil no se detiene.
+    contiene(p.make("install-kit").salida, "instalado")

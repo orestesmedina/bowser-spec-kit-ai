@@ -27,11 +27,5 @@ Resumen breve: archivos cambiados, pruebas agregadas, resultado de los comandos,
 No toques las partes que no son tuyas. Si una tarea exige cambiar el contrato de la API, detente y avisa al orquestador.
 
 ## Este proyecto
-El proyecto no tiene perfil: se supone la estructura original del kit. Tus partes:
-
-- **backend**, en `backend`.
-  - Comandos: `cd backend && gofmt -l . && go vet ./... && go test ./...`, `make generate`, `make coverage`.
-  - No se modifican una vez versionados (se crea un archivo nuevo): `backend/migrations/*.sql`.
-
-Las demás partes no son tuyas: `frontend` (`frontend`, de `dev-frontend`).
+El proyecto todavía no tiene perfil (`equipo/perfil.json`): no se sabe qué partes tiene, con qué tecnología ni cómo se prueba. No supongas carpetas, tecnologías ni comandos: avisa al orquestador antes de trabajar. El perfil se crea con el comando `bowser-profile`.
 '''

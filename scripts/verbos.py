@@ -25,7 +25,7 @@ import os
 import subprocess
 import sys
 
-from perfil import RAIZ, RUTA, SIN_PERFIL, VERBOS, ErrorPerfil, cargar, comando_de, perfil_valido, validar
+from perfil import RAIZ, RUTA, VERBOS, ErrorPerfil, cargar, comando_de, perfil_valido, validar
 
 
 def correr(comando: str, parte: dict) -> int:
@@ -151,8 +151,11 @@ def inmutables_tocados(perfil: dict, tocados: list[str]) -> list[str]:
 
 def inmutables_desde(base: str) -> int:
     """Para la integración continua: lo mismo que revisa el commit, sobre todo lo que la rama cambió desde `base`.
-    Sin perfil se usa la estructura supuesta (las migraciones de backend/), como antes de existir el perfil."""
-    perfil = perfil_valido() or SIN_PERFIL
+    Sin perfil no hay archivos inmutables declarados."""
+    perfil = perfil_valido()
+    if perfil is None:
+        print(f"Este proyecto no tiene perfil ({RUTA}): no declara archivos inmutables.")
+        return 0
     r = subprocess.run(["git", "diff", "--name-only", "--no-renames", "--diff-filter=MD", f"{base}...HEAD"],
                        cwd=RAIZ, capture_output=True)
     if r.returncode != 0:
@@ -168,13 +171,11 @@ def inmutables_desde(base: str) -> int:
 
 def es_inmutable(archivo: str) -> int:
     """Para el hook del agente (Claude Code): 1 si el archivo es inmutable y ya está versionado, con el motivo;
-    0 si se puede editar. Sin perfil se usa la estructura supuesta. Con un perfil que no se puede leer no se
-    bloquea nada: lo dirá el commit, y bloquear aquí impediría hasta corregir el perfil."""
+    0 si se puede editar. Sin perfil no hay inmutables. Con un perfil que no se puede leer no se bloquea nada:
+    lo dirá el commit, y bloquear aquí impediría hasta corregir el perfil."""
     try:
         perfil = cargar()
-        if perfil is None:
-            perfil = SIN_PERFIL
-        elif validar(perfil)[0]:
+        if perfil is None or validar(perfil)[0]:
             return 0
     except ErrorPerfil:
         return 0
@@ -211,7 +212,7 @@ def pre_commit() -> int:
     except ErrorPerfil as e:
         fallar(str(e))
         return 1
-    if perfil is None:          # el commit lo está eliminando
+    if perfil is None:          # sin perfil (o el commit lo está eliminando): no declara nada que revisar
         return 1 if errores else 0
     problemas, _ = validar(perfil)
     for p in problemas:

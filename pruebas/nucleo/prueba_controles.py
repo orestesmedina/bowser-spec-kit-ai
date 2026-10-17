@@ -116,21 +116,18 @@ def principios_del_kit(e):
     q.commit("chore: actualiza kit")
 
 
-@prueba("una migración ya versionada no se modifica; una nueva sí se puede agregar")
-def migraciones(e):
+@prueba("sin perfil, el commit no supone carpetas ni tecnologías: no protege ni formatea nada")
+def sin_perfil_no_supone(e):
     p = e.proyecto()
+    afirmar(not p.archivo("equipo/perfil.json").exists(), "un proyecto recién instalado no debería tener perfil")
     p.escribir("backend/migrations/000001_inicio.up.sql", "CREATE TABLE a (id int);\n")
+    p.escribir("backend/main.go", "package main\nfunc main() {   }\n")      # sin formato de Go
     p.commit("feat(db): primera migración")
+    # Antes, sin perfil, se suponían las migraciones de backend/ y gofmt: ahora eso lo declara el perfil.
     p.agregar("backend/migrations/000001_inicio.up.sql", "ALTER TABLE a ADD b int;\n")
-    contiene(p.commit("fix(db): cambia la migración", espera=1).salida, "No modifiques migraciones existentes")
-    p.git("checkout", "-q", "HEAD", "--", "backend/migrations/000001_inicio.up.sql")
-    # Eliminarla también es modificarla, aunque el commit no traiga nada más.
+    p.commit("fix(db): cambia la migración")
     p.git("rm", "-q", "backend/migrations/000001_inicio.up.sql")
-    contiene(p.git("commit", "-m", "chore(db): elimina la migración", espera=1).salida, "No modifiques migraciones existentes")
-    p.git("reset", "-q", "HEAD", "--", "backend/migrations/000001_inicio.up.sql")
-    p.git("checkout", "-q", "HEAD", "--", "backend/migrations/000001_inicio.up.sql")
-    p.escribir("backend/migrations/000002_columna.up.sql", "ALTER TABLE a ADD b int;\n")
-    p.commit("feat(db): agrega una columna")
+    p.git("commit", "-m", "chore(db): elimina la migración")
 
 
 @prueba("sin python3, el commit se bloquea y el mensaje explica cómo resolverlo")
@@ -177,11 +174,12 @@ def hook_de_claude(e):
     p.escribir("backend/migrations/000001_inicio.up.sql", "CREATE TABLE a (id int);\n")
     p.commit("feat(db): primera migración")
 
-    # Sin perfil, los inmutables son los de la estructura supuesta: las migraciones de backend/.
     for rel in (".env", "secrets/clave.txt", "certificado.pem", CONSTITUCION, PRINCIPIOS, REGLAS, "AGENTS.md", "equipo/orquestador.md",
-                ".bowser-spec-kit-ai/README.md", "backend/migrations/000001_inicio.up.sql", "specs/001-x/costos.json"):
+                ".bowser-spec-kit-ai/README.md", "specs/001-x/costos.json"):
         se_bloquea(e, p, rel)
-    for rel in (".env.example", "src/app.go", "equipo/config.json", "backend/migrations/000002_nueva.up.sql", "specs/001-x/spec.md"):
+    # Sin perfil no hay inmutables: el kit ya no supone las migraciones de backend/.
+    for rel in (".env.example", "src/app.go", "equipo/config.json", "backend/migrations/000001_inicio.up.sql",
+                "backend/migrations/000002_nueva.up.sql", "specs/001-x/spec.md"):
         se_permite(e, p, rel)
 
 

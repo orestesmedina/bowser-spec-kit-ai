@@ -1,5 +1,6 @@
 """Nombres en inglés: los comandos de make, sus opciones y las confirmaciones, con los nombres anteriores aceptados."""
 import json
+import re
 
 from apoyo import afirmar, contiene, prueba
 
@@ -27,11 +28,13 @@ def comandos_anteriores(e):
         afirmar(r.salida.strip() != p.make("-n", nuevo).salida.strip(), f"make {nuevo} también muestra el aviso")
     # Ejecutados de verdad: dan lo mismo que el nombre nuevo, y el aviso va al final.
     for viejo in ("estado", "novedades", "modelos", "verificar-kit", "sincronizar"):
-        r, nuevo = p.make(viejo), p.make(ANTERIORES[viejo])
+        # make status dice hace cuánto fue el último commit de cada rama ("5 seconds ago"): eso cambia entre una
+        # ejecución y la otra.
+        r, nuevo = (re.sub(r"\d+ \w+ ago", "hace un rato", p.make(orden).salida) for orden in (viejo, ANTERIORES[viejo]))
         aviso = f"Aviso: 'make {viejo}' ahora se llama 'make {ANTERIORES[viejo]}'."
-        afirmar(r.salida.startswith(nuevo.salida), f"make {viejo} no dio lo mismo que make {ANTERIORES[viejo]}")
-        contiene(r.salida[len(nuevo.salida):], aviso, f"el final de make {viejo}")
-        afirmar("Aviso: 'make" not in nuevo.salida, f"make {ANTERIORES[viejo]} avisa de un nombre anterior")
+        afirmar(r.startswith(nuevo), f"make {viejo} no dio lo mismo que make {ANTERIORES[viejo]}:\n{r}\n---\n{nuevo}")
+        contiene(r[len(nuevo):], aviso, f"el final de make {viejo}")
+        afirmar("Aviso: 'make" not in nuevo, f"make {ANTERIORES[viejo]} avisa de un nombre anterior")
 
 
 @prueba("las opciones de los comandos se aceptan con el nombre nuevo y con el anterior")

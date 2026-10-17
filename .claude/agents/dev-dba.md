@@ -31,4 +31,4 @@ Resumen breve: archivos de cambio creados, cómo se revierten, cómo los probast
 No toques las partes que no son tuyas ni el código de la aplicación. Si `data-model.md` no alcanza o se contradice con lo que hay, detente y avisa al orquestador.
 
 ## Este proyecto
-El proyecto no tiene perfil: se supone la estructura original del kit. Hoy no te asigna ninguna parte. Si te delegan una tarea, no supongas carpetas ni tecnologías: avisa al orquestador.
+El proyecto todavía no tiene perfil (`equipo/perfil.json`): no se sabe qué partes tiene, con qué tecnología ni cómo se prueba. No supongas carpetas, tecnologías ni comandos: avisa al orquestador antes de trabajar. El perfil se crea con el comando `bowser-profile`.

@@ -64,19 +64,26 @@ def catalogo_valido(e):
     contiene(correr(["python3", "scripts/catalogo.py", "--verificar"], kit, e.entorno, espera=1).salida, "falta SKILL.md")
 
 
-@prueba("sin perfil llegan las tres skills de siempre; con perfil, solo las que nombra, y las demás se retiran")
+@prueba("sin perfil no llega ninguna skill de tecnología; con perfil, solo las que nombra, y las demás se retiran")
 def solo_las_del_perfil(e):
     p = e.proyecto()
-    afirmar(instaladas(p) == list(DE_SIEMPRE), f"sin perfil deben llegar las tres de siempre: {instaladas(p)}")
+    afirmar(instaladas(p) == [], f"sin perfil no debe llegar ninguna skill de tecnología: {instaladas(p)}")
+    afirmar(not p.existe("catalogo"), "el catálogo se copió a la raíz del proyecto")
+    afirmar("\nskills:" not in p.leer(".claude/agents/dev-backend.md"), "el rol dev-backend sin perfil declara skills")
+    r = p.make("skills")
+    contiene(r.salida, "go-backend         redactada  —")
+    contiene(r.salida, "Este proyecto todavía no tiene perfil")
+
+    perfil_con(p, list(DE_SIEMPRE), roles=["dev-backend"])
+    p.make("install-kit")
+    afirmar(instaladas(p) == list(DE_SIEMPRE), f"deben llegar las tres que nombra el perfil: {instaladas(p)}")
     manifiesto = json.loads(p.leer(".kit-manifest.json"))["archivos"]
     for nombre in DE_SIEMPRE:
         afirmar(f".agents/skills/{nombre}/SKILL.md" in manifiesto, f"{nombre} no quedó registrada como archivo del kit")
         afirmar(p.existe(f".claude/skills/{nombre}/SKILL.md"), f"{nombre} no llegó a Claude Code")
-    afirmar(not p.existe("catalogo"), "el catálogo se copió a la raíz del proyecto")
-    contiene(p.leer(".claude/agents/dev-backend.md"), "skills: go-backend, postgres-db\n", "el rol dev-backend sin perfil")
-    r = p.make("skills")
-    contiene(r.salida, "go-backend         redactada  en el proyecto")
-    contiene(r.salida, "sin perfil, las de siempre")
+    contiene(p.leer(".claude/agents/dev-backend.md"), "skills: go-backend, postgres-db, react-frontend\n", "el rol dev-backend")
+    contiene(p.make("skills").salida, "go-backend         redactada  en el proyecto")
+    p.commit("chore: perfil del proyecto", extra=APROBADO)
 
     # El proyecto tiene además una skill propia, que el perfil también nombra.
     p.escribir(".agents/skills/pagos/SKILL.md", skill("pagos", None))
@@ -111,8 +118,11 @@ def solo_las_del_perfil(e):
 @prueba("cambiar las skills del perfil sin instalar se detecta: make profile lo avisa y el commit se rechaza")
 def perfil_cambia_las_skills(e):
     p = e.proyecto()
+    perfil_con(p, list(DE_SIEMPRE))
+    p.make("install-kit")
+    p.commit("chore: perfil", extra=APROBADO)
     perfil_con(p, ["go-backend"])
-    # Sobran dos: el proyecto todavía tiene las tres de siempre.
+    # Sobran dos: el proyecto todavía tiene las tres.
     r = p.verificar_kit(espera=1)
     contiene(r.salida, f"Las skills instaladas no son las que pide el perfil ({PERFIL}). Ejecuta: make install-kit")
     contiene(r.salida, "react-frontend: sobra")

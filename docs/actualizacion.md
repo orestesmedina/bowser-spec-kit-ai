@@ -7,6 +7,7 @@
 - [Pasos manuales](#pasos-manuales)
 - [Cuando el kit recomienda otros modelos](#cuando-el-kit-recomienda-otros-modelos)
 - [Cuando la actualización se detiene](#cuando-la-actualización-se-detiene)
+    - [Si el proyecto no tiene perfil](#si-el-proyecto-no-tiene-perfil)
 - [Después de actualizar](#después-de-actualizar)
 - [Siguientes pasos](#siguientes-pasos)
 
@@ -97,6 +98,30 @@ Alguien editó en el proyecto un archivo que viene del kit. La actualización no
 
 > [!WARNING]
 > `FORCE=1` es una decisión de una persona, no de un agente. Antes de usarlo, mira qué cambió: ese cambio local puede ser importante.
+
+### Si el proyecto no tiene perfil
+
+Hasta la versión 1.22.0, un proyecto sin [perfil](perfil-del-proyecto.md) funcionaba igual: el kit suponía Go y PostgreSQL en `backend/` y React en `frontend/`. Desde la 1.23.0 el kit no supone nada. Si un proyecto así se actualiza sin crear el perfil, dejan de funcionar `make test`, `make lint`, `make ci` y los demás verbos, los controles del commit dejan de revisar el formato y las migraciones, y los agentes pierden las skills `go-backend`, `postgres-db` y `react-frontend`.
+
+Por eso, si el proyecto viene de una versión anterior, no tiene perfil y tiene `backend/` o `frontend/`, la actualización se detiene antes de cambiar nada:
+
+```text
+✗ Este proyecto no tiene perfil (equipo/perfil.json), y desde la versión 1.23.0 el kit lo necesita.
+  …
+  No se cambió nada en el proyecto. Opciones:
+  • Recomendado: crea el perfil antes de seguir. En el chat, escribe /bowser-profile (existe desde la 1.12.0) y revísalo. Sin hacer commit todavía, repite: make instalar-kit
+    Al terminar, haz un solo commit con todo (el control te pide confirmar el perfil).
+  • Si tu versión no tiene /bowser-profile o prefieres crearlo después, actualiza igual con: make instalar-kit FORZAR=1 (también descarta los cambios locales a archivos del kit, con respaldo).
+```
+
+Los comandos que nombra son los que entiende el `Makefile` que el proyecto tiene en ese momento, que todavía es el de la versión anterior.
+
+El commit va al final porque el submódulo ya quedó en la versión nueva y los archivos del kit en la raíz todavía no: hasta que termine la instalación, el control del commit lo rechaza con `Los archivos del kit no coinciden`. Es lo esperado.
+
+Si eliges forzar, la actualización termina y avisa de lo que no va a funcionar hasta que crees el perfil.
+
+> [!NOTE]
+> Un proyecto que ya tenía perfil, o que no tiene ni `backend/` ni `frontend/`, se actualiza sin detenerse. Un proyecto instalado desde la 1.23.0 tampoco se detiene: nunca dependió de esa suposición.
 
 ## Después de actualizar
 

@@ -100,7 +100,7 @@ Reinicia el agente de código para que tome la configuración nueva, e incluye e
 cp .env.example .env
 ```
 
-El kit lo instala vacío, solo con la explicación: las variables son del proyecto, porque dependen de su tecnología. La única que usa un comando del kit es `DATABASE_URL`, que lee `make db-migrate` en los proyectos sin [perfil](perfil-del-proyecto.md).
+El kit lo instala vacío, solo con la explicación: las variables son del proyecto, porque dependen de su tecnología. Ningún comando del kit lee una.
 
 Cuando una funcionalidad necesita una variable nueva, se agrega a `.env.example` sin su valor real. Eso lo hace el rol `devops`.
 

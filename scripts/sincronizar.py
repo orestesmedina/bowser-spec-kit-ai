@@ -125,16 +125,16 @@ def leer_agente(ruta: Path) -> dict:
 VISTAS_DEL_PROYECTO = {"", "partes", "mapa"}
 
 
-def leer_perfil() -> tuple[dict | None, bool, list[str]]:
-    """(perfil, es el supuesto para un proyecto sin perfil, errores). Con errores, el perfil es None."""
+def leer_perfil() -> tuple[dict | None, list[str]]:
+    """(perfil, errores). Sin perfil o con errores, el perfil es None."""
     try:
         perfil = perfil_proyecto.cargar(RAIZ)
     except perfil_proyecto.ErrorPerfil as e:
-        return None, False, [str(e)]
+        return None, [str(e)]
     if perfil is None:
-        return perfil_proyecto.SIN_PERFIL, True, []
+        return None, []
     errores, _ = perfil_proyecto.validar(perfil, RAIZ)
-    return (None, False, [f"{perfil_proyecto.RUTA}: {e}" for e in errores]) if errores else (perfil, False, [])
+    return (None, [f"{perfil_proyecto.RUTA}: {e}" for e in errores]) if errores else (perfil, [])
 
 
 def instaladas(skills: list[str]) -> list[str]:
@@ -154,7 +154,7 @@ def dentro_de(parte: dict, rutas: list[str]) -> list[str]:
     return [r if carpeta in ("", ".") else f"{carpeta}/{r}" for r in rutas]
 
 
-def aplicar_perfil(agente: dict, perfil: dict | None, supuesto: bool) -> None:
+def aplicar_perfil(agente: dict, perfil: dict | None, con_errores: bool) -> None:
     """Agrega a las instrucciones del rol la sección «Este proyecto» y le da las skills de sus partes.
 
     Un rol con `proyecto: partes` ve las partes que el perfil le asigna; uno con `proyecto: mapa`, todas.
@@ -165,13 +165,17 @@ def aplicar_perfil(agente: dict, perfil: dict | None, supuesto: bool) -> None:
         return
     lineas = ["## Este proyecto"]
     if perfil is None:
-        lineas.append(f"El perfil del proyecto (`{perfil_proyecto.RUTA}`) tiene errores y no se pudo leer. "
-                      "No supongas carpetas, tecnologías ni comandos: avisa al orquestador antes de trabajar.")
+        if con_errores:
+            lineas.append(f"El perfil del proyecto (`{perfil_proyecto.RUTA}`) tiene errores y no se pudo leer. "
+                          "No supongas carpetas, tecnologías ni comandos: avisa al orquestador antes de trabajar.")
+        else:
+            lineas.append(f"El proyecto todavía no tiene perfil (`{perfil_proyecto.RUTA}`): no se sabe qué partes "
+                          "tiene, con qué tecnología ni cómo se prueba. No supongas carpetas, tecnologías ni comandos: "
+                          "avisa al orquestador antes de trabajar. El perfil se crea con el comando `bowser-profile`.")
         agente["instrucciones"] += "\n\n" + "\n".join(lineas)
         return
 
-    origen = ("El proyecto no tiene perfil: se supone la estructura original del kit." if supuesto else
-              f"Sale del perfil del proyecto (`{perfil_proyecto.RUTA}`), que no editas tú.")
+    origen = f"Sale del perfil del proyecto (`{perfil_proyecto.RUTA}`), que no editas tú."
     propias: list[str] = []
     ajenas: list[str] = []
     detalle: list[str] = []
@@ -202,19 +206,16 @@ def aplicar_perfil(agente: dict, perfil: dict | None, supuesto: bool) -> None:
             if skills:
                 detalle.append(f"  - Sus convenciones están en las skills {en_codigo(skills)} (en `.agents/skills/`).")
 
-        if supuesto:
-            detalle.append(f"  - Comandos: {en_codigo(parte['_comandos'])}.")
-        else:
-            definidos, faltan = [], []
-            for verbos, orden in perfil_proyecto.MAKE_DE_VERBOS:
-                con_comando = [v for v in verbos if perfil_proyecto.comando_de(parte, v)]
-                if con_comando:
-                    definidos.append(f"make {orden} PART={parte['nombre']}")
-                faltan += [v for v in verbos if v not in con_comando]
-            if definidos:
-                detalle.append(f"  - Comandos: {en_codigo(definidos)}.")
-            if faltan:
-                detalle.append(f"  - El proyecto todavía no tiene cómo: {', '.join(faltan)}. No inventes un comando: dilo en tu entrega.")
+        definidos, faltan = [], []
+        for verbos, orden in perfil_proyecto.MAKE_DE_VERBOS:
+            con_comando = [v for v in verbos if perfil_proyecto.comando_de(parte, v)]
+            if con_comando:
+                definidos.append(f"make {orden} PART={parte['nombre']}")
+            faltan += [v for v in verbos if v not in con_comando]
+        if definidos:
+            detalle.append(f"  - Comandos: {en_codigo(definidos)}.")
+        if faltan:
+            detalle.append(f"  - El proyecto todavía no tiene cómo: {', '.join(faltan)}. No inventes un comando: dilo en tu entrega.")
         if parte.get("terceros"):
             detalle.append(f"  - Código de terceros, que no se toca: {en_codigo(dentro_de(parte, parte['terceros']))}.")
         if parte.get("inmutables"):
@@ -663,14 +664,14 @@ def main() -> int:
             print(f"Error: {e}", file=sys.stderr)
         return 1
 
-    perfil, supuesto, errores = leer_perfil()
+    perfil, errores = leer_perfil()
     for e in errores:
         print(f"Aviso: {e}", file=sys.stderr)
     if errores:
         print("Aviso: con el perfil así, los roles se generan sin los datos del proyecto. Corrígelo (make profile) "
               "y ejecuta `make sync`.", file=sys.stderr)
     for a in agentes:
-        aplicar_perfil(a, perfil, supuesto)
+        aplicar_perfil(a, perfil, bool(errores))
 
     if "--modelos" in args:
         return informe_modelos(agentes, config, activas)

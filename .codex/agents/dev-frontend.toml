@@ -25,10 +25,5 @@ Resumen breve: pantallas y componentes creados o modificados, pruebas agregadas 
 No toques las partes que no son tuyas. Si el contrato de la API no alcanza para la pantalla, detente y avisa al orquestador.
 
 ## Este proyecto
-El proyecto no tiene perfil: se supone la estructura original del kit. Tus partes:
-
-- **frontend**, en `frontend`.
-  - Comandos: `cd frontend && npm run lint && npm run typecheck && npm test -- --run`, `make generate`.
-
-Las demás partes no son tuyas: `backend` (`backend`, de `dev-backend`).
+El proyecto todavía no tiene perfil (`equipo/perfil.json`): no se sabe qué partes tiene, con qué tecnología ni cómo se prueba. No supongas carpetas, tecnologías ni comandos: avisa al orquestador antes de trabajar. El perfil se crea con el comando `bowser-profile`.
 '''

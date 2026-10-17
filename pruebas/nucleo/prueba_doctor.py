@@ -48,12 +48,13 @@ def problemas(salida: str) -> int:
     return int(m.group(1))
 
 
-@prueba("make doctor: sin perfil revisa Go y Node; con perfil, solo lo que declara en «requisitos»; Docker, solo si hace falta")
+@prueba("make doctor: sin perfil no supone ninguna tecnología; con perfil, revisa lo que declara en «requisitos»; Docker, solo si hace falta")
 def doctor_segun_el_perfil(e):
     p = e.proyecto()
     s = doctor(p).salida
-    contiene(s, "Herramientas del proyecto (sin perfil: Go y Node)")
-    contiene(s, "golangci-lint")
+    afirmar("!" in linea(s, "El proyecto no tiene perfil"), "sin perfil, make doctor debe avisar que falta")
+    for sobra in ("Go ", "Node.js", "golangci-lint", "sqlc", "migrate"):
+        afirmar(sobra not in s, f"sin perfil, make doctor revisa {sobra.strip()}:\n{s}")
     # Un proyecto sin entorno local no necesita Docker.
     afirmar("Docker" not in s, f"make doctor revisa Docker en un proyecto sin archivo de Docker Compose:\n{s}")
     p.escribir("compose.yaml", "services: {}\n")
@@ -67,7 +68,7 @@ def doctor_segun_el_perfil(e):
     p.escribir(".env", "PUERTO=8080\n")
     afirmar("✓" in linea(doctor(p).salida, "Archivo .env existe"), "make doctor no reconoce el .env")
 
-    # Con perfil, lo de Go y Node deja de revisarse. Sin requisitos, se avisa.
+    # Con perfil pero sin requisitos, se avisa.
     p = con_perfil(e)
     s = doctor(p).salida
     contiene(s, "Herramientas del proyecto (según su perfil)")

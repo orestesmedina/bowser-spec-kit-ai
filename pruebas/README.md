@@ -28,8 +28,7 @@ Prueban la carpeta de trabajo **tal como está**, con los cambios sin commit y l
 |---|---|
 | `ejecutar.py` | El ejecutor: corre las pruebas, muestra el resultado de cada una y termina con error si alguna falla |
 | `apoyo.py` | Lo que usan las pruebas: copias del kit, proyectos temporales y comprobaciones |
-| `nucleo/` | Las pruebas de lo que no depende de ninguna tecnología |
-| `go/` | Las pruebas de lo que hoy es propio de Go, sqlc y los tipos de la API: código generado y cobertura |
+| `nucleo/` | Las pruebas del kit, que no dependen de ninguna tecnología |
 | `opencode_simulado.py` | Un OpenCode falso, en formato 1.x y 2.x, para probar `make costs` sin gastar |
 | `enlaces.py` | Revisor de enlaces de la documentación. Con `--externos` revisa también los enlaces a otros sitios; eso se hace a mano, porque depende de la red |
 
@@ -39,32 +38,25 @@ Las pruebas de `nucleo/`:
 |---|---|
 | `prueba_repositorio.py` | Archivos generados al día, `VERSION` con su entrada en el `CHANGELOG`, lista del instalador y enlaces internos de la documentación |
 | `prueba_instalacion.py` | Instalación en un proyecto nuevo y en uno existente, qué llega y qué no llega al proyecto, que lo que llega no traiga tecnología (servicios, variables, reglas de `.gitignore`), y permisos de los hooks |
-| `prueba_actualizacion.py` | Actualización desde la versión anterior con el `Makefile` viejo, las reglas de `.gitignore` que salen del bloque del kit y quedan en el proyecto, archivos editados en el proyecto, `kit.excluir`, archivos retirados, archivos que el kit entrega al proyecto (`ci.yml`) y novedades |
-| `prueba_controles.py` | Mensajes de commit, secretos, constitución, migraciones, falta de `python3` y el hook de Claude Code |
+| `prueba_actualizacion.py` | Actualización desde la versión anterior con el `Makefile` viejo, las reglas de `.gitignore` que salen del bloque del kit y quedan en el proyecto, archivos editados en el proyecto, `kit.excluir`, archivos retirados, archivos que el kit entrega al proyecto (`ci.yml` y los retirados que el proyecto todavía usa), la detención de un proyecto 1.x sin perfil y novedades |
+| `prueba_controles.py` | Mensajes de commit, secretos, constitución, que sin perfil no se suponga ninguna carpeta, falta de `python3` y el hook de Claude Code |
 | `prueba_comandos.py` | Comandos del chat: generados para las tres herramientas, retirados al desactivar una, los de Spec Kit intactos, comandos propios, errores de formato y llegada al actualizar |
 | `prueba_costos.py` | `make costs` con OpenCode 1.x y 2.x, avisos y costo cerrado |
-| `prueba_catalogo.py` | Catálogo de skills: que esté bien escrito, que sin perfil lleguen las tres de siempre y con perfil solo las que nombra, el rechazo del commit cuando el perfil y las skills instaladas no coinciden, y los avisos (skill inexistente, skill solo redactada, perfil ilegible) |
-| `prueba_roles.py` | Roles sin tecnología: que ningún rol del kit nombre una, que cada rol generado reciba del perfil sus partes, skills, comandos y límites (y sin perfil, la estructura de siempre), que cambiar el perfil sin regenerar bloquee el commit, y qué pasa con un perfil ilegible |
-| `prueba_doctor.py` | `make doctor`: sin perfil revisa Go y Node; con perfil, los `requisitos` (instalado, versión mínima, opcional, cómo se instala); Docker solo si hace falta; requisitos mal escritos |
+| `prueba_catalogo.py` | Catálogo de skills: que esté bien escrito, que sin perfil no llegue ninguna y con perfil solo las que nombra, el rechazo del commit cuando el perfil y las skills instaladas no coinciden, y los avisos (skill inexistente, skill solo redactada, perfil ilegible) |
+| `prueba_roles.py` | Roles sin tecnología: que ningún rol del kit nombre una, que cada rol generado reciba del perfil sus partes, skills, comandos y límites (y sin perfil, que no supongan nada), que cambiar el perfil sin regenerar bloquee el commit, y qué pasa con un perfil ilegible |
+| `prueba_doctor.py` | `make doctor`: sin perfil no supone ninguna tecnología; con perfil, los `requisitos` (instalado, versión mínima, opcional, cómo se instala); Docker solo si hace falta; requisitos mal escritos |
 | `prueba_nombres.py` | Nombres en inglés: cada comando de `make` con nombre anterior sigue funcionando y avisa del nuevo; las opciones, las confirmaciones del commit y los workflows se aceptan con los dos nombres; el mensaje para forzar una actualización usa el nombre que entiende el `Makefile` viejo |
-| `prueba_perfil.py` | Perfil del proyecto: `make` ejecuta los verbos de cada parte, perfiles mal escritos, varios roles por parte, las variables `PERFIL_RAIZ` y `PERFIL_TERCEROS`, el resumen de `make ci`, controles del commit (confirmación, inmutables, formato), `make profile DETECT=1`, `make check-ci` y el control de inmutables de la integración continua |
+| `prueba_perfil.py` | Perfil del proyecto: sin perfil los verbos piden crearlo, `make` ejecuta los verbos de cada parte, perfiles mal escritos, varios roles por parte, las variables `PERFIL_RAIZ` y `PERFIL_TERCEROS`, el resumen de `make ci`, controles del commit (confirmación, inmutables, formato), `make profile DETECT=1`, `make check-ci` y el control de inmutables de la integración continua |
 
-Las pruebas de `go/`:
-
-| Archivo | Qué comprueba | Necesita |
-|---|---|---|
-| `prueba_generados.py` | `make generate` y `make check-generated`: qué se omite, y que una consulta o un contrato cambiado sin regenerar hace fallar la verificación | `sqlc`, `node` y `npm` |
-| `prueba_cobertura.py` | `make coverage`: qué archivos se miden, el mínimo de 80 % y una ejecución con Go real | `go` |
-
-Van en un grupo aparte porque en la versión 2.0 dejan de ser del núcleo: se irán con la skill de Go (ver la [hoja de ruta](../HOJA-DE-RUTA.md)). Si en tu máquina falta alguno de esos programas, las pruebas que lo necesitan se omiten y el resultado lo dice. Las demás del grupo no necesitan nada instalado.
+Si en tu máquina falta un programa que una prueba necesita (por ejemplo, `jq`), esa prueba se omite y el resultado lo dice.
 
 ## En GitHub
 
-El workflow `.github/workflows/kit.yml` ejecuta `make test-kit STRICT=1` en cada Pull Request y en cada push a `main`, con Go, Node y `sqlc` instalados: ahí ninguna prueba puede quedar omitida. Es solo del repositorio del kit: no se copia a los proyectos, aunque esté en una carpeta que sí se copia (`scripts/instalar_kit.py` lo tiene en la lista `NUNCA`).
+El workflow `.github/workflows/kit.yml` ejecuta `make test-kit STRICT=1` en cada Pull Request y en cada push a `main`: ahí ninguna prueba puede quedar omitida. Es solo del repositorio del kit: no se copia a los proyectos, aunque esté en una carpeta que sí se copia (`scripts/instalar_kit.py` lo tiene en la lista `NUNCA`).
 
 ## Agregar una prueba
 
-Una prueba es una función con el decorador `@prueba` en un archivo `prueba_<tema>.py`, dentro de `nucleo/` o de `go/`. Recibe el entorno, con el que pide un kit y crea proyectos:
+Una prueba es una función con el decorador `@prueba` en un archivo `prueba_<tema>.py`, dentro de `nucleo/`. Recibe el entorno, con el que pide un kit y crea proyectos:
 
 ```python
 from apoyo import afirmar, contiene, prueba
@@ -88,7 +80,6 @@ Después de escribir una prueba, **rompe a propósito lo que comprueba** y mira 
 
 - `make costs` se prueba contra un OpenCode simulado. Detecta si se rompe el código del kit, no si OpenCode cambia su formato en una versión nueva.
 - La descarga de precios de models.dev no se prueba: las pruebas usan un archivo local de precios.
-- El workflow `ci.yml` que se copia a los proyectos solo se prueba de verdad en GitHub.
+- El workflow `bowser.yml` que se copia a los proyectos solo se prueba de verdad en GitHub. Los verbos se prueban con comandos simples (`echo`, `exit 3`), no con las herramientas de una tecnología real.
 - La prueba de actualización necesita los tags del repositorio. En un clon sin tags se omite: `git fetch --tags`.
-- `make generate` se prueba con `sqlc` real y con un generador de tipos mínimo, no con el de un proyecto real. Que falte `sqlc` en la máquina no se prueba.
 - `make status` y `make update-models` todavía no tienen pruebas automáticas. De `make doctor` se prueban las herramientas (base, del perfil y Docker); lo de WSL, los hooks, `.env` y el kit, a mano.

@@ -14,7 +14,7 @@ Los términos que aparecen en esta documentación, en orden alfabético. Cada un
 
 **Ciclo de corrección.** Una vuelta de "los revisores rechazan, el desarrollador corrige". Tras tres sin éxito, el orquestador se detiene y pide ayuda. Ver [Construir una funcionalidad](funcionalidad.md#paso-7-validación).
 
-**Cobertura.** El porcentaje del código que se ejecuta cuando corren las pruebas. El kit exige 80 % en la capa de servicio. Ver [Cobertura y código generado](cobertura-y-codigo-generado.md).
+**Cobertura.** El porcentaje del código que se ejecuta cuando corren las pruebas. El mínimo lo fijan las reglas del proyecto, y lo mide el verbo `cobertura` del perfil. Ver [Cobertura y código generado](cobertura-y-codigo-generado.md).
 
 **CODEOWNERS.** El archivo que le dice a GitHub quién debe aprobar un cambio según los archivos que toca. Ver [Configuración](configuracion.md#codeowners).
 

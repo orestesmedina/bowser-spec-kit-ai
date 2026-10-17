@@ -243,7 +243,7 @@ Tres cosas a tener en cuenta:
 
 - **Después de cambiar el perfil hay que regenerar.** `make install-kit` lo hace (y además trae las skills nuevas); si las skills no cambiaron, alcanza con `make sync`. Si no, el commit se rechaza con `La configuración de agentes está desactualizada`.
 - **Un rol de desarrollo sin ninguna parte lo sabe.** Sus instrucciones dicen "Hoy no te asigna ninguna parte", y si le llega una tarea avisa al orquestador en vez de suponer.
-- **Sin perfil se supone la estructura original del kit:** `backend/` para `dev-backend` (con la base de datos) y `frontend/` para `dev-frontend`. Esa suposición se retira en la versión 2.0.
+- **Sin perfil, ningún rol recibe partes ni skills.** Sus instrucciones dicen que el proyecto todavía no tiene perfil, que no supongan carpetas, tecnologías ni comandos y que avisen al orquestador antes de trabajar.
 
 Para que `dev-dba` lleve la base de datos de un proyecto cuyo esquema vive dentro de la carpeta del servidor, la parte declara los dos roles y le da a cada uno su skill:
 

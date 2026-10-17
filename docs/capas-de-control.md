@@ -58,7 +58,7 @@ Las reglas más importantes están protegidas en varias capas a la vez:
 | Código formateado | ✓ | | ✓ | ✓ |
 | Mensajes de commit con formato | ✓ | | ✓ | |
 | Pruebas pasando | ✓ | | | ✓ |
-| Cobertura mínima de la capa de servicio | ✓ | | | ✓ |
+| Cobertura mínima (la que fijen las reglas del proyecto) | ✓ | | | ✓ |
 | Código generado al día | ✓ | | | ✓ |
 | Sin vulnerabilidades conocidas | ✓ | | | ✓ |
 

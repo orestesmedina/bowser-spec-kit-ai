@@ -28,9 +28,9 @@ sys.dont_write_bytecode = True
 
 import apoyo  # noqa: E402
 
-GRUPOS = ["nucleo", "go"]
+GRUPOS = ["nucleo"]
 # Orden de lectura: primero lo más básico. Un archivo que no esté aquí se ejecuta al final.
-ORDEN = ["repositorio", "instalacion", "actualizacion", "controles", "costos", "generados", "cobertura"]
+ORDEN = ["repositorio", "instalacion", "actualizacion", "controles", "costos"]
 
 
 def posicion(archivo: Path) -> tuple[int, str]:

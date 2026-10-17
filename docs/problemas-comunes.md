@@ -33,7 +33,10 @@ Revisa el entorno completo y marca con `✗` lo que falta, indicando cómo corre
 | `make: command not found` | Falta `make`. Es común en Ubuntu y WSL | `sudo apt install -y make build-essential` |
 | `make: *** No rule to make target 'up'` | Estás en otra carpeta | `cd` a la carpeta del proyecto. `ls Makefile` debe encontrarlo |
 | `make doctor` dice que falta `jq` | No está instalado | `sudo apt install -y jq` |
-| `make doctor` me pide Go o Node y mi proyecto no los usa | El proyecto no tiene perfil, y sin perfil el kit supone Go y Node | Crea el perfil con `/bowser-profile`: desde entonces revisa lo que el perfil declara en `requisitos` |
+| `make doctor` dice "El proyecto no tiene perfil" | Sin perfil no sabe qué tecnología usa el proyecto: solo revisa las herramientas base | Crea el perfil con `/bowser-profile`: desde entonces revisa lo que el perfil declara en `requisitos` |
+| `make test`, `make lint` o `make ci`: "Este proyecto no tiene perfil" | El kit no sabe cómo se prueba ni se revisa el proyecto | Crea el perfil con `/bowser-profile` |
+| `make test-backend`, `make test-frontend` o `make db-migrate`: "No rule to make target" | Se retiraron en la 1.23.0: solo servían a la estructura que el kit suponía sin perfil | Usa `make test PART=<parte>`. Si el proyecto necesita esos comandos, defínelos en `proyecto.mk` |
+| La actualización se detiene con "Este proyecto no tiene perfil" | El proyecto viene de una versión anterior a la 1.23.0, no tiene perfil y tiene `backend/` o `frontend/` | Ver [Si el proyecto no tiene perfil](actualizacion.md#si-el-proyecto-no-tiene-perfil) |
 | `make doctor` dice "El perfil no declara requisitos" | Es un aviso: no sabe qué herramientas usa la tecnología del proyecto | `/bowser-profile`, o agrega `requisitos` al perfil. Ver [Los requisitos de la máquina](perfil-del-proyecto.md#los-requisitos-de-la-máquina) |
 | `make doctor` dice "El perfil tiene errores" | `equipo/perfil.json` está mal escrito | `make profile` dice qué corregir |
 | `make doctor` ya no revisa Docker | El proyecto no tiene archivo de Docker Compose ni lo pide su perfil | Nada, si el proyecto no usa Docker. Si lo usa, agrégalo a `requisitos` |
@@ -111,8 +114,8 @@ Qué revisa cada comprobación y por qué: [Hooks de git](hooks-de-git.md).
 | Un verbo falla en GitHub con "command not found" | El workflow del proyecto no instala esa herramienta | `/bowser-ci`, o agrega el paso a tu `ci.yml` |
 | Una herramienta fijada en el workflow ya no soporta la versión del lenguaje (por ejemplo, un linter anterior al lenguaje que usa el proyecto) | El proyecto subió de versión y el workflow no | Sube la versión de la herramienta en tu `ci.yml` |
 | Después de actualizar el kit, algunas comprobaciones corren dos veces | Tu `ci.yml` venía del kit y repite lo que ahora hace `bowser.yml` | Borra de `ci.yml` los grupos `agentes`, `controles` y `secretos` |
-| "El código generado no está al día" | Se cambió una consulta SQL, una migración o el contrato de la API sin regenerar | `make generate` y agrega el resultado al commit |
-| "Cobertura de servicio … por debajo del mínimo" | La capa de servicio tiene menos de 80 % cubierto | Pide las pruebas que faltan. `make coverage` muestra el porcentaje por archivo |
+| "El código generado de la parte … no estaba al día" | Se cambió la fuente del código generado (una consulta, el contrato de la API…) sin regenerar, o hay otros cambios sin commit en esa parte | `make generate` y agrega el resultado al commit |
+| "cobertura falló en la parte …" | La cobertura quedó bajo el mínimo que fijan las reglas del proyecto | Pide las pruebas que faltan. La salida del verbo, justo encima, muestra dónde. Ver [Cobertura](cobertura-y-codigo-generado.md#cuando-no-alcanza-el-mínimo) |
 | Pasa en mi máquina y falla en GitHub | Versiones distintas de las herramientas, o un archivo sin subir | Instala las versiones que fija el workflow del proyecto y revisa `git status` |
 
 Más: [Integración continua](integracion-continua.md#cuando-falla).

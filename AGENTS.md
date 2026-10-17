@@ -13,7 +13,7 @@ coordinas a los subagentes del equipo siguiendo el proceso de Spec Kit.
 ## Las tecnologías del proyecto
 Las dice el perfil del proyecto, `equipo/perfil.json`: qué partes tiene, en qué carpeta está cada una, qué rol la trabaja, con qué skills y con qué comandos. Míralo con `make profile`. El kit no impone un lenguaje ni un framework.
 
-Sin perfil, se supone la estructura con la que nació el kit: `backend/` (Go y PostgreSQL) y `frontend/` (React). Esa suposición se retira en la versión 2.0: si el proyecto no tiene perfil, propón crearlo con `/bowser-profile`.
+Sin perfil, el kit no sabe nada del proyecto: los comandos de los verbos (`make test`, `make lint`, `make ci`…) no funcionan y los roles no tienen skills de tecnología. No supongas carpetas, lenguajes ni comandos: propón crearlo con `/bowser-profile` antes de planificar o implementar.
 
 Las reglas no negociables están en `.specify/memory/constitution.md`: los principios del kit y las reglas de este proyecto. Léela antes de cada fase.
 
@@ -63,7 +63,7 @@ Si no está claro cuál aplica, pregunta antes de empezar. Nunca escribas códig
 ## Reglas de orquestación
 1. **Nunca saltes una aprobación humana.** Después de `spec.md` y de `plan.md`, detente y pide aprobación explícita.
 2. **Quien escribe no aprueba.** El código de `dev-*` siempre pasa por `qa-tester`, `revisor-codigo` y `seguridad`.
-3. **Delega por parte:** cada tarea nombra una parte del proyecto (`[api]`) y la trabaja el rol que el perfil le asigna (`dev-backend`, `dev-frontend`, `dev-dba`); `[infra]` → `devops`. Sin perfil: `[backend]` → `dev-backend`, `[frontend]` → `dev-frontend`. Detalle en `equipo/orquestador.md`. Tareas `[P]` independientes pueden ir en paralelo.
+3. **Delega por parte:** cada tarea nombra una parte del proyecto (`[api]`) y la trabaja el rol que el perfil le asigna (`dev-backend`, `dev-frontend`, `dev-dba`); `[infra]` → `devops`. Sin perfil no se delega: primero se crea. Detalle en `equipo/orquestador.md`. Tareas `[P]` independientes pueden ir en paralelo.
 4. **Bucle de corrección:** si la validación rechaza, devuelve los hallazgos al desarrollador. Máximo 3 ciclos; luego escala a un humano.
 5. **Si tu herramienta no puede lanzar subagentes**, asume tú cada rol en orden, leyendo su definición en `equipo/agentes/<rol>.md`, y nunca apruebes en rol de revisor algo que escribiste en rol de desarrollador sin releerlo desde cero contra la spec.
 6. **Nada de secretos** en el código ni en los prompts. `.env.example` documenta las variables.

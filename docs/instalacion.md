@@ -35,7 +35,7 @@ El kit no es un programa que se instala. Es un conjunto de archivos (instruccion
 | Un agente de código | — | Claude Code, Codex u OpenCode. Al menos uno |
 
 > [!NOTE]
-> Git, `make`, Python, `jq`, `uv`, Spec Kit y el agente de código hacen falta en cualquier proyecto. Docker, Go, Node y las herramientas de Go de esta página son las de un proyecto sin [perfil](perfil-del-proyecto.md). Un proyecto con perfil declara las suyas en [`requisitos`](perfil-del-proyecto.md#los-requisitos-de-la-máquina), y `make doctor` revisa esas.
+> Git, `make`, Python, `jq`, `uv`, Spec Kit y el agente de código hacen falta en cualquier proyecto. Docker, Go, Node y las herramientas de Go de esta página son las de un proyecto en Go, React y PostgreSQL, como ejemplo. Cada proyecto declara las suyas en los [`requisitos`](perfil-del-proyecto.md#los-requisitos-de-la-máquina) de su perfil, y `make doctor` revisa esas.
 
 Además, hay cinco herramientas recomendadas: `golangci-lint`, `govulncheck`, `migrate`, `sqlc` y `gitleaks`. Sin ellas el kit funciona, pero algunos controles se saltan en tu máquina y recién fallan en la [integración continua](integracion-continua.md).
 
@@ -98,14 +98,14 @@ go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.
 go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1
 ```
 
-| Herramienta | Qué hace | Comando del kit que la usa |
+| Herramienta | Qué hace | Dónde la usa un proyecto así |
 |---|---|---|
-| `golangci-lint` | Revisa la calidad del código Go | `make lint` |
-| `govulncheck` | Busca vulnerabilidades conocidas en las dependencias de Go | `make security` |
-| `migrate` | Aplica las migraciones de la base de datos | `make db-migrate` |
-| `sqlc` | Genera código Go a partir de las consultas SQL | `make generate` |
+| `golangci-lint` | Revisa la calidad del código Go | El verbo `revisar` del perfil (`make lint`) |
+| `govulncheck` | Busca vulnerabilidades conocidas en las dependencias de Go | El verbo `auditar` (`make security`) |
+| `migrate` | Aplica las migraciones de la base de datos | Un comando propio del proyecto, en su `proyecto.mk` |
+| `sqlc` | Genera código Go a partir de las consultas SQL | El verbo `generar` (`make generate`) |
 
-Las versiones son las mismas que fija la integración continua. Usar otras puede hacer que algo pase en tu máquina y falle en GitHub, o al revés.
+Las versiones deben ser las mismas que fija la integración continua del proyecto. Usar otras puede hacer que algo pase en tu máquina y falle en GitHub, o al revés.
 
 > [!NOTE]
 > `go install` deja los programas en `$(go env GOPATH)/bin`. Si después de instalarlos la terminal dice `command not found`, agrega esa carpeta a tu `PATH`:

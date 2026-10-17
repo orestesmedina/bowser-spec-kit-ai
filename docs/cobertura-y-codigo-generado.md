@@ -2,12 +2,11 @@
 
 - [Introducción](#introducción)
 - [Cobertura de pruebas](#cobertura-de-pruebas)
-    - [Qué mide el kit](#qué-mide-el-kit)
+    - [Quién decide el mínimo](#quién-decide-el-mínimo)
     - [Medirla](#medirla)
     - [Cuando no alcanza el mínimo](#cuando-no-alcanza-el-mínimo)
     - [Lo que la cobertura no garantiza](#lo-que-la-cobertura-no-garantiza)
 - [Código generado](#código-generado)
-    - [Qué se genera](#qué-se-genera)
     - [Regenerarlo](#regenerarlo)
     - [Verificar que está al día](#verificar-que-está-al-día)
     - [Cuando la verificación falla](#cuando-la-verificación-falla)
@@ -23,21 +22,33 @@ Esta página describe dos controles que protegen contra errores que **no se nota
 
 Los dos son el tipo de descuido que un agente de IA puede cometer sin avisar: entregar menos pruebas de las pedidas u olvidar un paso mecánico. Por eso no dependen de que alguien se acuerde de revisarlos: los comprueba la integración continua en cada Pull Request.
 
+Cómo se mide la cobertura y cómo se regenera el código depende de la tecnología. El kit no lo sabe: lo declara cada proyecto en su [perfil](perfil-del-proyecto.md), con los verbos `cobertura` y `generar`.
+
 ## Cobertura de pruebas
 
 La cobertura es el porcentaje del código que se ejecuta cuando corren las pruebas. Si una función tiene diez instrucciones y las pruebas pasan por ocho, su cobertura es del 80 %. Las dos restantes son código que nadie comprobó que funcione.
 
-### Qué mide el kit
+### Quién decide el mínimo
 
-La constitución exige un mínimo de **80 % en la capa de servicio** del backend. El kit lo mide así:
+Los principios de la [constitución](la-constitucion.md) dicen que el mínimo lo fijan las reglas del proyecto (`equipo/reglas.md`). Una regla típica:
 
-- Toma los archivos `service*.go` dentro de `backend/internal/` (por ejemplo `internal/users/service.go`), sin contar los de pruebas.
-- Suma todos los dominios y calcula un único porcentaje.
-- Falla si ese porcentaje queda por debajo de 80.
+```markdown
+## Pruebas
+- La cobertura mínima de las reglas de negocio DEBE ser 80 %.
+```
 
-Se mide esa capa, y no todo el backend, porque ahí viven las reglas del negocio: cuánto se cobra, quién puede hacer qué, qué pasa cuando algo falla. Es donde un error cuesta más y donde las pruebas son más baratas de escribir, porque no dependen de la base de datos ni de HTTP.
+Conviene medir la capa donde viven las reglas del negocio (cuánto se cobra, quién puede hacer qué, qué pasa cuando algo falla) y no todo el código: ahí un error cuesta más, y las pruebas son más baratas de escribir porque no dependen de la base de datos ni de la red.
 
-El mínimo es fijo. No se configura por proyecto, porque lo define la constitución.
+El verbo `cobertura` del perfil es el que hace cumplir esa regla: ejecuta las pruebas, mide y **falla** si el resultado queda bajo el mínimo. Un ejemplo en una parte escrita en Go:
+
+```json
+"cobertura": "go test -coverprofile=coverage.out ./... && bash $PERFIL_RAIZ/tools/cobertura-minima.sh coverage.out 80"
+```
+
+Ahí, `tools/cobertura-minima.sh` es un script del propio proyecto: si la herramienta de la tecnología no sabe fallar bajo un mínimo, el proyecto agrega el suyo en `tools/` (la carpeta `scripts/` es del kit).
+
+> [!NOTE]
+> Hasta la versión 1.22.0, el kit traía `scripts/cobertura.py`, que medía los archivos `service*.go` con un mínimo fijo de 80 %. Si el perfil o un workflow del proyecto todavía lo usa, la actualización no lo borra: queda como archivo del proyecto. Conviene moverlo a `tools/`.
 
 ### Medirla
 
@@ -45,32 +56,28 @@ El mínimo es fijo. No se configura por proyecto, porque lo define la constituci
 make coverage
 ```
 
-Ejecuta las pruebas del backend y muestra el resultado por archivo:
+Ejecuta el verbo `cobertura` en cada parte que lo define. Una parte que no lo define se omite con un aviso:
 
-```
-COBERTURA DE LA CAPA DE SERVICIO · mínimo 80 %
-  status/service.go                                     8/8     100.0 %
-  Total                                                 8/8     100.0 %
-
-✓ Cumple el mínimo.
+```text
+⚠ La parte «panel» no define el verbo «cobertura»: se omite.
 ```
 
-Los dos números son instrucciones cubiertas sobre instrucciones totales. Lo que cuenta para aprobar es la fila **Total**, no cada archivo por separado.
-
-Si el proyecto todavía no tiene ningún archivo de servicio, el comando lo indica y pasa.
+Si ninguna parte lo define, el proyecto todavía no mide la cobertura: `make ci` lo marca como «sin definir» en su [resumen](perfil-del-proyecto.md#el-resumen-de-make-ci).
 
 ### Cuando no alcanza el mínimo
 
-```
-✗ Cobertura de servicio 50.0 % por debajo del mínimo 80 % (constitución, III). Agrega pruebas a la capa de servicio.
+`make coverage` termina con error y dice en qué parte:
+
+```text
+✗ cobertura falló en la parte «api» (código 1).
 ```
 
-La tabla muestra qué archivo tiene el porcentaje más bajo: ahí faltan las pruebas. Pídele al agente que las agregue, indicando el archivo:
+Arriba de ese mensaje está lo que imprimió la herramienta de la parte, normalmente el porcentaje por archivo: el más bajo es donde faltan las pruebas. Pídele al agente que las agregue, indicando el archivo:
 
-> La cobertura de `internal/pedidos/service.go` está en 40 %. Agrega pruebas para los casos que faltan, incluidos los de error.
+> La cobertura de `pedidos/servicio` está en 40 %. Agrega pruebas para los casos que faltan, incluidos los de error.
 
 > [!WARNING]
-> No aceptes como solución que el agente saque código de la capa de servicio, cambie el nombre del archivo para que deje de contarse o escriba pruebas que ejecutan el código sin comprobar nada. Las tres suben el número sin probar nada.
+> No aceptes como solución que el agente saque código de la capa que se mide, cambie el nombre de un archivo para que deje de contarse, baje el mínimo o escriba pruebas que ejecutan el código sin comprobar nada. Todas suben el número sin probar nada. Bajar el mínimo es cambiar las reglas del proyecto: lo decide una persona.
 
 ### Lo que la cobertura no garantiza
 
@@ -78,23 +85,17 @@ Un 100 % no significa que el código esté bien. La cobertura dice que las prueb
 
 ## Código generado
 
-Parte del código de un proyecto no lo escribe nadie: lo produce una herramienta a partir de otro archivo, que es la verdadera fuente. Si la fuente cambia y el código generado no se actualiza, los dos quedan contando historias distintas.
+Parte del código de un proyecto no lo escribe nadie: lo produce una herramienta a partir de otro archivo, que es la verdadera fuente. Por ejemplo, el código que consulta la base de datos a partir de archivos `.sql`, o los tipos de la API a partir de su contrato. Si la fuente cambia y el código generado no se actualiza, los dos quedan contando historias distintas.
 
-### Qué se genera
-
-| Qué | Fuente | Resultado | Herramienta |
-|---|---|---|---|
-| Consultas a la base de datos | Los archivos `.sql` de `backend/internal/db/queries/` y las migraciones | Código Go en `backend/internal/db/` | [sqlc](https://sqlc.dev) |
-| Tipos de la API para el frontend | El contrato `backend/api/openapi.yaml` | Tipos TypeScript en `frontend/src/api/` | [openapi-typescript](https://openapi-ts.dev), mediante el script `api:gen` |
-
-El caso típico: se agrega un campo a una respuesta de la API y se actualiza el contrato, pero no se regeneran los tipos. El frontend sigue creyendo que el campo no existe. Todo compila y la pantalla no muestra el dato.
+El caso típico: se agrega un campo a una respuesta de la API y se actualiza el contrato, pero no se regeneran los tipos. La interfaz sigue creyendo que el campo no existe. Todo compila y la pantalla no muestra el dato.
 
 El código generado **se sube a git**, igual que el resto. Así cualquiera puede leer el proyecto y compilarlo sin tener instaladas las herramientas de generación.
 
-Para que el kit pueda regenerar, el proyecto debe seguir estas convenciones:
+Qué se genera y con qué herramienta lo dice el verbo `generar` de cada parte del perfil:
 
-- La configuración de sqlc está en `backend/sqlc.yaml`.
-- El archivo `frontend/package.json` tiene un script llamado `api:gen`, y su salida queda dentro de `frontend/src/api/`.
+```json
+"generar": "sqlc generate"
+```
 
 ### Regenerarlo
 
@@ -102,16 +103,7 @@ Para que el kit pueda regenerar, el proyecto debe seguir estas convenciones:
 make generate
 ```
 
-Ejecuta las dos generaciones. Úsalo **después de cambiar una fuente**:
-
-- Agregaste o cambiaste una consulta SQL.
-- Creaste una migración que afecta a una tabla que ya tiene consultas.
-- Cambiaste el contrato de la API.
-
-Después, incluye en el mismo commit tanto la fuente como el código generado.
-
-> [!NOTE]
-> Cada parte se omite si el proyecto todavía no la tiene: sin `sqlc.yaml`, sin ninguna consulta o sin el script `api:gen`. Un proyecto recién creado puede ejecutar `make generate` sin que falle.
+Ejecuta el verbo `generar` en cada parte que lo define. Úsalo **después de cambiar una fuente** (una consulta, el contrato de la API, lo que el proyecto genere) e incluye en el mismo commit la fuente y el código generado.
 
 ### Verificar que está al día
 
@@ -119,26 +111,28 @@ Después, incluye en el mismo commit tanto la fuente como el código generado.
 make check-generated
 ```
 
-Regenera todo y falla si quedó algún cambio sin subir a git. Es la misma comprobación que hace la integración continua, así que conviene ejecutarla antes de abrir un Pull Request.
+Regenera y falla si la parte quedó con algún cambio sin subir a git. Es la misma comprobación que hace la integración continua, así que conviene ejecutarla antes de abrir un Pull Request.
 
 ### Cuando la verificación falla
 
-```
-✗ El código generado no está al día (o tiene cambios sin commit):
- M frontend/src/api/schema.d.ts
+```text
+✗ El código generado de la parte «api» no estaba al día (o hay cambios sin commit):
+   M servidor/db/consultas.go
   Ejecuta 'make generate' y agrega el resultado al commit.
 ```
 
 Significa que alguien cambió una fuente y no regeneró. La solución es la que indica el mensaje: `make generate` y un commit con el resultado.
 
-Si el error es `Falta sqlc` o `Faltan las dependencias del frontend`, no es un problema del código sino de tu máquina: instala lo que falta según la página de [Instalación](instalacion.md).
+La comprobación mira toda la carpeta de la parte: un archivo cualquiera de esa parte que todavía no tenga commit también la hace fallar. Haz el commit de tu trabajo antes de verificar.
+
+Si el error es que falta un programa, no es un problema del código sino de tu máquina: `make doctor` dice qué falta, según los [requisitos](perfil-del-proyecto.md#los-requisitos-de-la-máquina) del perfil.
 
 > [!WARNING]
 > Nunca edites a mano un archivo generado para que "coincida". La próxima generación borra el cambio. Si el resultado no es el que quieres, lo que hay que cambiar es la fuente.
 
 ## En la integración continua
 
-En cada Pull Request, GitHub ejecuta estas comprobaciones por su cuenta, si el workflow del proyecto las incluye. Con perfil son los verbos `generar` y `cobertura`, que `make ci` ejecuta junto a los demás. Ver [Integración continua](integracion-continua.md#el-workflow-del-proyecto).
+En cada Pull Request, GitHub ejecuta estas comprobaciones por su cuenta si el workflow del proyecto las incluye: `make ci` ejecuta los verbos `generar` (verificando) y `cobertura` junto a los demás. Ver [Integración continua](integracion-continua.md#el-workflow-del-proyecto).
 
 Si alguna falla, el Pull Request queda en rojo y no se puede integrar hasta corregirlo.
 
@@ -150,7 +144,7 @@ make ci
 
 ## Siguientes pasos
 
+- [El perfil del proyecto](perfil-del-proyecto.md): cómo se declaran los verbos `cobertura` y `generar`.
 - [Hooks de git](hooks-de-git.md): los controles que se ejecutan en cada commit, antes de llegar a GitHub.
 - [Capas de control](capas-de-control.md): cómo se complementan todas las protecciones.
 - [Integración continua](integracion-continua.md): el resto de lo que GitHub comprueba.
-- [Instalación](instalacion.md#herramientas-de-go): cómo instalar `sqlc` y el resto de las herramientas.

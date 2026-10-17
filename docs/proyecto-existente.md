@@ -125,18 +125,13 @@ Si falla por reglas que tu código actual no cumple (por ejemplo, la cobertura m
 
 ## Si la estructura del proyecto es distinta
 
-Los controles del kit buscan el código en rutas fijas. Cuando una ruta no existe, el control correspondiente **se omite**, no falla:
+El kit no busca el código en rutas fijas: dónde está cada parte y cómo se revisa lo dice el [perfil del proyecto](perfil-del-proyecto.md). No hace falta mover nada.
 
-| Si no existe | Se omite |
-|---|---|
-| `backend/sqlc.yaml` o el script `api:gen` | La verificación de [código generado](cobertura-y-codigo-generado.md) |
-| Archivos `service*.go` en `backend/internal/` | La medición de cobertura |
-
-Eso significa que un proyecto con otra organización de carpetas instala sin errores, pero queda **sin esos controles**. Para tenerlos hay dos caminos: mover el código a la estructura que el kit espera, o, mejor, crear el [perfil del proyecto](perfil-del-proyecto.md), que le dice al kit dónde está cada parte y cómo se revisa. La integración continua no entra en esto: es del proyecto y la redacta `/bowser-ci`.
+Hasta que el perfil exista, el kit se instala sin errores pero **no ejecuta ningún control de tecnología**: `make test`, `make lint` y `make ci` piden crearlo, el commit no revisa formato ni archivos inmutables, y los agentes no saben qué carpeta es de quién. Por eso, en un proyecto existente, lo primero después de instalar es `/bowser-profile`. La integración continua tampoco depende de las carpetas: es del proyecto y la redacta `/bowser-ci`.
 
 ## Si el stack es distinto
 
-El kit nació para React, Go y PostgreSQL y está dejando de depender de ellas. Hoy:
+El kit nació para React, Go y PostgreSQL, y ya no depende de ellas:
 
 - **Los roles ya no nombran ninguna tecnología.** Cada uno recibe del [perfil del proyecto](perfil-del-proyecto.md) sus carpetas, sus skills y sus comandos. Ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto).
 - **Los comandos (`make test`, `make lint`…) ejecutan lo que el perfil declara.**

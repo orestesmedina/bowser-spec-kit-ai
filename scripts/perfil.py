@@ -41,7 +41,7 @@ un verbo necesite van en tools/ (scripts/ es del kit).
 "version" (el comando que imprime la versión; por defecto, `<comando> --version`), "opcional" (true: si falta es
 un aviso y no un problema) e "instalar" (cómo se instala, para mostrarlo cuando falta).
 
-Sin perfil, el kit se comporta como antes de tenerlo (Go en backend/ y React en frontend/).
+Sin perfil, el kit no supone nada del proyecto: los comandos que ejecutan verbos piden crearlo (/bowser-profile).
 
 Uso:
   python3 scripts/perfil.py              muestra el perfil y lo valida
@@ -82,16 +82,6 @@ MAKE_DE_VERBOS = (
     (("generar",), "generate"),
     (("auditar",), "security"),
 )
-# Lo que el kit supone de un proyecto sin perfil: la estructura con la que nació. Solo lo usa
-# scripts/sincronizar.py, para decirle a cada rol dónde trabaja. Se retira en la 2.0, con el resto de lo que
-# hoy funciona sin perfil. "_comandos" son los de antes de existir los verbos.
-SIN_PERFIL = {"partes": [
-    {"nombre": "backend", "carpeta": "backend", "roles": ["dev-backend"], "skills": ["go-backend", "postgres-db"],
-     "inmutables": ["migrations/*.sql"],
-     "_comandos": ["cd backend && gofmt -l . && go vet ./... && go test ./...", "make generate", "make coverage"]},
-    {"nombre": "frontend", "carpeta": "frontend", "roles": ["dev-frontend"], "skills": ["react-frontend"],
-     "_comandos": ["cd frontend && npm run lint && npm run typecheck && npm test -- --run", "make generate"]},
-]}
 CAMPOS = {"nombre", "carpeta", "descripcion", "rol", "roles", "skills", "terceros", "inmutables", "verbos"}
 NOMBRE = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
 CAMPOS_REQUISITO = {"comando", "nombre", "minima", "version", "opcional", "instalar"}
@@ -596,7 +586,8 @@ def main() -> int:
             print("Sin perfil: no hay nada que verificar.")
             return 0
         print(f"Este proyecto no tiene perfil ({RUTA}).")
-        print("Sin perfil, el kit usa los comandos de siempre: Go en backend/ y React en frontend/.")
+        print("Sin perfil, el kit no sabe qué partes tiene el proyecto ni cómo se prueban: make test, make lint, "
+              "make ci y los demás verbos no funcionan, y los agentes no reciben skills de tecnología.")
         print("Para crearlo, escribe en el chat: /bowser-profile")
         return 0
 

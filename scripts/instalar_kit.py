@@ -6,7 +6,7 @@ en la raíz del proyecto, no dentro del submódulo. Este script:
 
   1. Copia a la raíz los archivos GESTIONADOS por el kit (se reemplazan en cada actualización).
   2. Copia del catálogo (catalogo/skills/) a .agents/skills/ solo las skills de tecnología que nombra el perfil
-     del proyecto (equipo/perfil.json); sin perfil, las tres de siempre. También quedan gestionadas.
+     del proyecto (equipo/perfil.json); sin perfil, ninguna. También quedan gestionadas.
   3. Copia las SEMILLAS solo si no existen (después son del proyecto: config.json, reglas.md, CODEOWNERS…).
      Si el proyecto tenía una constitución escrita a mano, sus reglas pasan a equipo/reglas.md.
   4. Mantiene un bloque del kit dentro de .gitignore (solo lo que no depende de la tecnología).
@@ -75,6 +75,13 @@ SEMILLAS = ["equipo/config.json", REGLAS, ".github/CODEOWNERS", ".env.example"]
 # La integración continua depende de la tecnología: la redacta el proyecto desde su perfil (comando bowser-ci).
 # La constitución ya no se copia: se genera en cada proyecto con los principios del kit y sus propias reglas.
 ENTREGADOS = [".github/workflows/ci.yml", CONSTITUCION]
+# Dónde un proyecto nombra los archivos que usa. Un archivo que el kit retira y que el proyecto todavía nombra
+# ahí (ej. un verbo del perfil que ejecuta scripts/cobertura.py) también se le entrega: borrarlo lo rompería.
+NOMBRAN_ARCHIVOS = [perfil_proyecto.RUTA, "proyecto.mk", ".github/workflows/"]
+# Hasta la 1.22, sin perfil, el kit suponía un proyecto en Go (backend/) y React (frontend/). Desde la 1.23 no
+# supone nada: un proyecto así que se actualiza sin perfil perdería sus comandos, sus controles y sus skills.
+SIN_SUPUESTO_DESDE = (1, 23, 0)
+CARPETAS_SUPUESTAS = ["backend", "frontend"]
 # Las constituciones que el kit instaló alguna vez (sha256 del texto, con saltos de línea de Unix) y el archivo con
 # las reglas que traían y que no son principios: al partirla en dos, esas reglas se le entregan al proyecto.
 CONSTITUCIONES_DEL_KIT = {
@@ -126,6 +133,27 @@ def archivos_del_kit(excluir: list[str]) -> dict[str, Path]:
     return resultado
 
 
+def quien_lo_nombra(rel: str, del_kit: dict) -> str | None:
+    """El archivo del proyecto (perfil, proyecto.mk o un workflow propio) que nombra la ruta, o None."""
+    textos: list[Path] = []
+    for entrada in NOMBRAN_ARCHIVOS:
+        ruta = DESTINO / entrada
+        if entrada.endswith("/"):
+            textos += sorted(p for p in ruta.glob("*") if p.suffix in (".yml", ".yaml")) if ruta.is_dir() else []
+        elif ruta.is_file():
+            textos.append(ruta)
+    for ruta in textos:
+        nombre = ruta.relative_to(DESTINO).as_posix()
+        if nombre in del_kit:           # los archivos del kit no cuentan: no son lo que el proyecto usa
+            continue
+        try:
+            if rel in ruta.read_text(encoding="utf-8", errors="replace"):
+                return nombre
+        except OSError:
+            continue
+    return None
+
+
 def skill_de(rel: str) -> str | None:
     """El nombre de la skill a la que pertenece un archivo de .agents/skills/, o None si no es de una skill."""
     partes = rel.split("/")
@@ -134,7 +162,7 @@ def skill_de(rel: str) -> str | None:
 
 def archivos_del_catalogo(excluir: list[str], anterior: dict) -> tuple[dict[str, Path], list[str]]:
     """Las skills del catálogo que le tocan a este proyecto (ruta en el proyecto -> archivo de origen) y avisos.
-    Con perfil, las que nombra; sin perfil, las de siempre."""
+    Con perfil, las que nombra; sin perfil, ninguna."""
     disponibles, _ = catalogo.leer(KIT / catalogo.CARPETA)
     avisos: list[str] = []
     try:
@@ -145,7 +173,7 @@ def archivos_del_catalogo(excluir: list[str], anterior: dict) -> tuple[dict[str,
         avisos.append(f"{perfil_proyecto.RUTA} no se puede leer: las skills del catálogo se dejan como estaban. "
                       "Corrígelo (make profile) y repite make install-kit.")
     else:
-        pedidas = list(catalogo.SIN_PERFIL) if perfil is None else perfil_proyecto.skills_nombradas(perfil)
+        pedidas = [] if perfil is None else perfil_proyecto.skills_nombradas(perfil)
         for s in pedidas:
             if s not in disponibles and not (DESTINO / catalogo.INSTALADAS / s / "SKILL.md").exists():
                 avisos.append(f"El perfil pide la skill «{s}», que no está en el catálogo del kit ni en "
@@ -325,7 +353,7 @@ def analizar(excluir: list[str]) -> dict:
     del_catalogo, avisos = archivos_del_catalogo(excluir, anterior)
     kit.update(del_catalogo)
     r = {"kit": kit, "nuevos": [], "actualizar": [], "iguales": [], "conflictos": [],
-         "previos": [], "eliminar": [], "eliminar_modificados": [], "entregados": [],
+         "previos": [], "eliminar": [], "eliminar_modificados": [], "entregados": [], "en_uso": {},
          "catalogo": set(del_catalogo), "avisos": avisos}
 
     for rel, origen in sorted(kit.items()):
@@ -353,6 +381,11 @@ def analizar(excluir: list[str]) -> dict:
         if rel in ENTREGADOS:
             r["entregados"].append(rel)
             continue
+        quien = quien_lo_nombra(rel, anterior)
+        if quien:
+            r["entregados"].append(rel)
+            r["en_uso"][rel] = quien
+            continue
         (r["eliminar"] if sha256(destino) == hash_anterior else r["eliminar_modificados"]).append(rel)
     return r
 
@@ -370,19 +403,52 @@ def respaldar(rels: list[str]) -> Path | None:
     return carpeta
 
 
-def forzar_con_make() -> str:
-    """El comando para forzar la instalación, con el nombre que entiende el Makefile que el proyecto tiene ahora:
+def instalar_con_make(forzar: bool = True) -> str:
+    """El comando para repetir la instalación, con el nombre que entiende el Makefile que el proyecto tiene ahora:
     si la instalación se detuvo, sigue siendo el de la versión anterior, que puede no conocer los nombres nuevos."""
     try:
         nuevo = re.search(r"^install-kit:", (DESTINO / "Makefile").read_text(encoding="utf-8"), re.MULTILINE)
     except OSError:
-        return f"make -f {RUTA_KIT}/Makefile install-kit FORCE=1"
-    return "make install-kit FORCE=1" if nuevo else "make instalar-kit FORZAR=1"
+        return f"make -f {RUTA_KIT}/Makefile install-kit" + (" FORCE=1" if forzar else "")
+    if nuevo:
+        return "make install-kit" + (" FORCE=1" if forzar else "")
+    return "make instalar-kit" + (" FORZAR=1" if forzar else "")
+
+
+def sin_perfil_desde_antes(previo: dict) -> bool:
+    """Un proyecto que viene de una versión que suponía Go y React sin perfil, con esa estructura y sin perfil."""
+    if not previo.get("archivos") or (DESTINO / perfil_proyecto.RUTA).exists():
+        return False
+    version = clave_version(previo.get("version") or "")
+    if version is not None and version >= SIN_SUPUESTO_DESDE:
+        return False
+    return any((DESTINO / c).is_dir() for c in CARPETAS_SUPUESTAS)
+
+
+def detener_sin_perfil() -> None:
+    carpetas = " y ".join(f"{c}/" for c in CARPETAS_SUPUESTAS if (DESTINO / c).is_dir())
+    print(f"✗ Este proyecto no tiene perfil ({perfil_proyecto.RUTA}), y desde la versión "
+          f"{'.'.join(map(str, SIN_SUPUESTO_DESDE))} el kit lo necesita.", file=sys.stderr)
+    print(f"  Hasta ahora, sin perfil, el kit suponía Go y PostgreSQL en backend/ y React en frontend/ (aquí hay "
+          f"{carpetas}). Con esa suposición funcionaban make test, make lint, make ci, los controles del commit y las "
+          "skills go-backend, postgres-db y react-frontend. Sin perfil, todo eso deja de funcionar.", file=sys.stderr)
+    print("  No se cambió nada en el proyecto. Opciones:", file=sys.stderr)
+    print("  • Recomendado: crea el perfil antes de seguir. En el chat, escribe /bowser-profile (existe desde la "
+          "1.12.0) y revísalo. Sin hacer commit todavía, repite: "
+          f"{instalar_con_make(forzar=False)}", file=sys.stderr)
+    print("    Al terminar, haz un solo commit con todo (el control te pide confirmar el perfil).", file=sys.stderr)
+    print("  • Si tu versión no tiene /bowser-profile o prefieres crearlo después, actualiza igual con: "
+          f"{instalar_con_make()} (también descarta los cambios locales a archivos del kit, con respaldo).",
+          file=sys.stderr)
 
 
 def instalar(forzar: bool) -> int:
     previo = leer_manifiesto()
     version_previa = previo.get("version") if clave_version(previo.get("version") or "") else None
+    sin_perfil = sin_perfil_desde_antes(previo)
+    if sin_perfil and not forzar:
+        detener_sin_perfil()
+        return 1
     excluir = leer_excluir()
     a = analizar(excluir)
 
@@ -393,7 +459,7 @@ def instalar(forzar: bool) -> int:
         print("\nOpciones:", file=sys.stderr)
         print("  • Si el cambio sirve a todos los proyectos: llévalo al repositorio del kit y actualiza.", file=sys.stderr)
         print("  • Si es propio de este proyecto: agrégalo a \"kit.excluir\" en equipo/config.json.", file=sys.stderr)
-        print(f"  • Para descartarlo (se guarda un respaldo): {forzar_con_make()}", file=sys.stderr)
+        print(f"  • Para descartarlo (se guarda un respaldo): {instalar_con_make()}", file=sys.stderr)
         return 1
 
     respaldo = respaldar(a["previos"] + a["conflictos"] + a["eliminar_modificados"] if forzar else a["previos"])
@@ -461,7 +527,15 @@ def instalar(forzar: bool) -> int:
     if reglas_entregadas:
         print(f"  ! {reglas_entregadas}")
     for rel in [r for r in a["entregados"] if r != CONSTITUCION]:
-        print(f"  ! {rel} ya no viene del kit: se conservó tal como estaba y desde ahora es del proyecto.")
+        if rel in a["en_uso"]:
+            print(f"  ! {rel} ya no viene del kit, pero {a['en_uso'][rel]} lo usa: se conservó tal como estaba y desde "
+                  "ahora es del proyecto (los scripts propios van en tools/: muévelo ahí cuando puedas).")
+        else:
+            print(f"  ! {rel} ya no viene del kit: se conservó tal como estaba y desde ahora es del proyecto.")
+    if sin_perfil and forzar:
+        print("  ! Este proyecto no tiene perfil: make test, make lint, make ci y los demás verbos no funcionan, los "
+              "controles del commit no revisan formato ni archivos inmutables, y los agentes no tienen skills de "
+              "tecnología. Para crearlo, escribe en el chat: /bowser-profile")
     if heredadas:
         print(f"  ! El bloque del kit en .gitignore ya no trae {len(heredadas)} reglas de tecnología. "
               "Se conservaron debajo del bloque: ahora son del proyecto.")

@@ -92,12 +92,7 @@ Para repetir solo esa prueba, `make test-kit ONLY=Conventional`. Con `KEEP=1` la
 
 Si tu cambio agrega o cambia un comportamiento, agrega su prueba. Las opciones, la lista de lo que se comprueba y cómo escribir una prueba están en [`pruebas/README.md`](../pruebas/README.md).
 
-Las pruebas de código generado y de cobertura necesitan `go`, `sqlc`, `node` y `npm`. Si falta alguno, esas pruebas se omiten y el resultado lo dice:
-
-```text
-  – make coverage con Go real: falla con pruebas insuficientes y pasa al completarlas
-      omitida: falta go en esta máquina
-```
+Algunas pruebas necesitan un programa además de los del kit (por ejemplo, `jq`). Si falta, esas pruebas se omiten y el resultado lo dice con la palabra `omitida`.
 
 En GitHub las mismas pruebas corren solas en cada Pull Request y en cada push a `main` (workflow `kit.yml`), con todo instalado y sin permitir pruebas omitidas.
 

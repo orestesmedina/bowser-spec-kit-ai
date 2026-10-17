@@ -55,30 +55,21 @@ def roles_sin_tecnologia(e):
     contiene(r.salida, "equipo/agentes/dev-dba.md: proyecto debe ser 'partes'")
 
 
-@prueba("sin perfil, los roles reciben la estructura de siempre: backend y frontend, con sus skills y comandos")
+@prueba("sin perfil, los roles no suponen carpetas, tecnologías ni comandos: se les pide avisar antes de trabajar")
 def roles_sin_perfil(e):
     p = e.proyecto()
-    for herramienta in ("claude", "codex", "opencode"):
-        s = seccion(p, "dev-backend", herramienta)
-        contiene(s, "El proyecto no tiene perfil", f"dev-backend en {herramienta}")
-        contiene(s, "- **backend**, en `backend`")
-        contiene(s, "Skills que debes aplicar: `go-backend`, `postgres-db` (en `.agents/skills/`).")
-        contiene(s, "go test ./...")
-        contiene(s, "`backend/migrations/*.sql`")
-        contiene(s, "Las demás partes no son tuyas: `frontend` (`frontend`, de `dev-frontend`).")
-        afirmar("react-frontend" not in s, "dev-backend recibió la skill del frontend")
-    contiene(p.leer(".claude/agents/dev-backend.md"), "\nskills: go-backend, postgres-db\n", "la cabecera de dev-backend")
-    contiene(p.leer(".claude/agents/dev-frontend.md"), "\nskills: react-frontend\n", "la cabecera de dev-frontend")
-    contiene(seccion(p, "dev-dba"), "Hoy no te asigna ninguna parte", "dev-dba sin perfil")
-    afirmar("\nskills:" not in p.leer(".claude/agents/dev-dba.md"), "dev-dba sin partes no debe traer skills")
-
-    # Un rol que ve todo el proyecto recibe las dos partes; el analista, que no habla de tecnología, ninguna.
-    mapa = seccion(p, "revisor-codigo")
-    contiene(mapa, "- **backend**, en `backend`")
-    contiene(mapa, "- **frontend**, en `frontend`")
-    contiene(mapa, "La trabajan: `dev-frontend`.")
-    contiene(mapa, "Sus convenciones están en las skills `react-frontend`")
-    afirmar("\nskills:" not in p.leer(".claude/agents/revisor-codigo.md"), "un rol que solo ve el mapa no carga las skills")
+    p.escribir("backend/main.go", "package main\n")      # la estructura que antes se suponía ya no cuenta
+    p.make("sync")
+    for rol in ("dev-backend", "dev-frontend", "dev-dba", "revisor-codigo"):
+        for herramienta in ("claude", "codex", "opencode"):
+            s = seccion(p, rol, herramienta)
+            contiene(s, "El proyecto todavía no tiene perfil (`equipo/perfil.json`)", f"{rol} en {herramienta}")
+            contiene(s, "No supongas carpetas, tecnologías ni comandos")
+            contiene(s, "`bowser-profile`")
+            for palabra in ("backend", "frontend", "go test", "migrations"):
+                afirmar(palabra not in s, f"{rol} en {herramienta} sin perfil nombra «{palabra}»:\n{s}")
+        afirmar("\nskills:" not in p.leer(f".claude/agents/{rol}.md"), f"{rol} sin perfil no debe traer skills")
+    # El analista, que no habla de tecnología, no recibe la sección.
     afirmar(not seccion(p, "analista-producto"), "el analista de producto no debe recibir datos de tecnología")
 
 

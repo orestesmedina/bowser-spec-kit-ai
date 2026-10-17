@@ -84,8 +84,16 @@ Para cada archivo gestionado, la instalación compara tres cosas: la versión nu
 | Existe y **alguien lo modificó** en el proyecto | **Se detiene** y lo muestra. No pisa nada |
 | Existía antes de que el kit lo gestionara | Lo reemplaza y guarda el anterior en `.kit-respaldo/` |
 | El kit ya no lo trae | Lo borra del proyecto |
+| El kit ya no lo trae, pero **el proyecto lo usa** | Lo conserva y se lo entrega: sale del manifiesto y desde ahí es del proyecto |
+| El kit ya no lo trae, y alguien lo modificó | Lo conserva y avisa |
 
-El caso que importa es el tercero: una actualización nunca destruye en silencio un cambio local. Qué hacer cuando se detiene está en la [Guía de actualización](actualizacion.md#cuando-la-actualización-se-detiene).
+"El proyecto lo usa" quiere decir que su ruta aparece en el perfil (`equipo/perfil.json`), en `proyecto.mk` o en un workflow propio de `.github/workflows/`. Por ejemplo, un verbo del perfil que ejecuta `scripts/cobertura.py`: borrarlo rompería ese verbo. La instalación lo avisa:
+
+```text
+  ! scripts/cobertura.py ya no viene del kit, pero equipo/perfil.json lo usa: se conservó tal como estaba y desde ahora es del proyecto (los scripts propios van en tools/: muévelo ahí cuando puedas).
+```
+
+El caso que importa es el de un archivo modificado: una actualización nunca destruye en silencio un cambio local. Qué hacer cuando se detiene está en la [Guía de actualización](actualizacion.md#cuando-la-actualización-se-detiene).
 
 ## Cómo se evita que alguien edite el kit
 

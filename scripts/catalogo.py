@@ -3,7 +3,7 @@
 
 Las skills de tecnología (cómo se escribe código en Go, en React, en PostgreSQL…) viven en el kit, en
 catalogo/skills/, y no se copian todas a los proyectos: `make install-kit` lleva a .agents/skills/ solo las
-que nombra el perfil (equipo/perfil.json). Sin perfil, las tres de siempre (SIN_PERFIL).
+que nombra el perfil (equipo/perfil.json). Sin perfil, ninguna.
 
 Cada skill del catálogo es una carpeta con su SKILL.md, que declara su madurez en los metadatos:
 
@@ -34,8 +34,6 @@ MADUREZ = {
     "probada": "usada en un proyecto real",
     "redactada": "solo redactada: todavía no se usó en un proyecto real",
 }
-# Lo que recibe un proyecto sin perfil: lo mismo que antes de existir el catálogo.
-SIN_PERFIL = ["go-backend", "postgres-db", "react-frontend"]
 NOMBRE = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
 
 
@@ -117,7 +115,7 @@ def main() -> int:
         perfil = perfil_proyecto.cargar()
     except perfil_proyecto.ErrorPerfil:
         perfil = None
-    pedidas = SIN_PERFIL if perfil is None else perfil_proyecto.skills_nombradas(perfil)
+    pedidas = [] if perfil is None else perfil_proyecto.skills_nombradas(perfil)
 
     print(f"Catálogo de skills del kit ({donde.relative_to(RAIZ).as_posix()}/): {len(skills)}\n")
     ancho = max([len(n) for n in skills] + [5])
@@ -134,9 +132,9 @@ def main() -> int:
     for clave, significado in MADUREZ.items():
         print(f"  {clave}: {significado}")
     if not en_el_kit:
-        origen = f"las que nombra {perfil_proyecto.RUTA}" if perfil is not None else \
-            f"sin perfil, las de siempre ({', '.join(SIN_PERFIL)})"
-        print(f"\nAl proyecto llegan con `make install-kit`: {origen}.")
+        print(f"\nAl proyecto llegan con `make install-kit` las que nombra su perfil ({perfil_proyecto.RUTA}).")
+        if perfil is None and not (RAIZ / perfil_proyecto.RUTA).exists():
+            print("Este proyecto todavía no tiene perfil. Para crearlo, escribe en el chat: /bowser-profile")
         faltan = [s for s in pedidas if s not in skills and not (RAIZ / INSTALADAS / s / "SKILL.md").exists()]
         for s in faltan:
             print(f"⚠ el perfil pide la skill «{s}», que no está en el catálogo ni en {INSTALADAS}/", file=sys.stderr)

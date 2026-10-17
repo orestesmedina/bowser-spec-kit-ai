@@ -31,11 +31,17 @@ def con_perfil(e, perfil: dict | None = None):
     return p
 
 
-@prueba("sin perfil los comandos son los de siempre; con perfil, make ejecuta los verbos de cada parte en su carpeta")
+@prueba("sin perfil los comandos de los verbos piden crearlo; con perfil, make ejecuta los verbos de cada parte en su carpeta")
 def verbos_del_perfil(e):
     p = e.proyecto()
-    contiene(p.make("-n", "test").salida, "go test", "make test sin perfil")
-    contiene(p.make("-n", "lint").salida, "golangci-lint", "make lint sin perfil")
+    p.escribir("backend/main.go", "package main\n")      # la estructura que antes se suponía ya no cuenta
+    for orden in ("test", "lint", "coverage", "security", "generate", "check-generated", "ci"):
+        r = p.make(orden, espera=1)
+        contiene(r.salida, "Este proyecto no tiene perfil (equipo/perfil.json). Para crearlo, escribe en el chat: /bowser-profile",
+                 f"make {orden} sin perfil")
+        afirmar("go " not in r.salida, f"make {orden} sin perfil ejecutó algo de Go:\n{r.salida}")
+    for viejo in ("test-backend", "test-frontend", "db-migrate"):
+        contiene(p.make(viejo, espera=1).salida, "No rule to make target", f"make {viejo} se retiró")
     contiene(p.make("profile").salida, "no tiene perfil")
     p.correr("python3", "scripts/verbos.py", "probar", espera=1)
 
@@ -201,8 +207,6 @@ def variables_de_los_verbos(e):
 
 @prueba("make ci con perfil ejecuta todos los verbos aunque uno falle y termina con un resumen de lo comprobado y lo que no")
 def resumen_de_ci(e):
-    contiene(e.proyecto().make("-n", "ci").salida, "go test", "make ci sin perfil")
-
     p = con_perfil(e)
     r = p.make("ci")
     contiene(r.salida, "Resumen de lo comprobado")
@@ -279,14 +283,14 @@ def controles_del_commit(e):
     p.commit("feat: cambia la api")
     marca.unlink()
 
-    # Quitar el perfil también lo confirma una persona; sin él vuelven los controles de siempre.
+    # Quitar el perfil también lo confirma una persona; sin él no queda nada que revisar.
     p.git("rm", "-q", PERFIL)
-    p.make("install-kit")      # sin perfil, vuelven las tres skills de siempre
+    p.make("install-kit")
     p.git("add", "-A")
     contiene(p.git("commit", "-m", "chore: quita el perfil", espera=1).salida, "El perfil del proyecto (equipo/perfil.json) cambió")
     p.git("commit", "-m", "chore: quita el perfil", extra=APROBADO)
-    p.agregar("backend/migrations/000001_inicio.up.sql", "-- otra edición\n")
-    contiene(p.commit("fix(db): edita la migración", espera=1).salida, "No modifiques migraciones existentes")
+    p.agregar("servidor/cambios/001_inicio.sql", "-- otra edición\n")
+    p.commit("fix(db): edita el cambio de esquema")
 
 
 @prueba("make check-generated con perfil: falla si el verbo generar deja cambios sin commit")
@@ -400,7 +404,7 @@ def ci_del_proyecto(e):
     contiene(p.make("check-ci").salida, "✓ La integración continua ejecuta los 3 verbos")
 
 
-@prueba("verbos.py --inmutables: en la integración continua, la rama no modifica los archivos inmutables del perfil (sin perfil, las migraciones)")
+@prueba("verbos.py --inmutables: en la integración continua, la rama no modifica los archivos inmutables del perfil (sin perfil, no hay)")
 def inmutables_en_ci(e):
     p = con_perfil(e)
     p.escribir("servidor/cambios/001_inicio.sql", "CREATE TABLE a (id int);\n")
@@ -420,12 +424,11 @@ def inmutables_en_ci(e):
     contiene(r.salida, "servidor/cambios/001_inicio.sql")
     p.correr("python3", "scripts/verbos.py", "--inmutables", "no-existe", espera=None)
 
-    # Sin perfil se cuidan las migraciones de siempre.
+    # Sin perfil no hay inmutables: el kit ya no supone las migraciones de backend/.
     q = e.proyecto()
     q.escribir("backend/migrations/000001_inicio.up.sql", "CREATE TABLE a (id int);\n")
     q.commit("feat(db): primera migración")
     q.git("checkout", "-q", "-b", "rama")
     q.agregar("backend/migrations/000001_inicio.up.sql", "ALTER TABLE a ADD b int;\n")
     q.git("commit", "-qam", "fix(db): edita la migración", "--no-verify")
-    contiene(q.correr("python3", "scripts/verbos.py", "--inmutables", "main", espera=1).salida,
-             "backend/migrations/000001_inicio.up.sql")
+    contiene(q.correr("python3", "scripts/verbos.py", "--inmutables", "main").salida, "no declara archivos inmutables")

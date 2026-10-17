@@ -11,7 +11,7 @@
 - [Crear el perfil](#crear-el-perfil)
 - [Ver y validar el perfil](#ver-y-validar-el-perfil)
 - [El resumen de make ci](#el-resumen-de-make-ci)
-- [Qué cambia cuando hay perfil](#qué-cambia-cuando-hay-perfil)
+- [Sin perfil](#sin-perfil)
 - [Aprobar un cambio en el perfil](#aprobar-un-cambio-en-el-perfil)
 - [Cuando algo falla](#cuando-algo-falla)
 - [Límites](#límites)
@@ -24,13 +24,11 @@ El perfil es un archivo, `equipo/perfil.json`, en el que el proyecto se describe
 Es del proyecto, no del kit: el kit no lo instala ni lo reemplaza al actualizarse. Lo redacta un agente mirando el código y lo aprueba una persona.
 
 > [!NOTE]
-> El perfil es opcional por ahora. Un proyecto sin perfil funciona como siempre: el kit supone Go en `backend/` y React en `frontend/`. En la versión 2.0 del kit, el perfil pasará a ser la única forma (ver la [hoja de ruta](../HOJA-DE-RUTA.md)).
+> El kit necesita el perfil para todo lo que depende de la tecnología: sin él, no sabe cómo se prueba ni quién trabaja cada parte (ver [Sin perfil](#sin-perfil)). Si tu proyecto viene de una versión anterior a la 1.23.0 y no tiene perfil, lee [Si el proyecto no tiene perfil](actualizacion.md#si-el-proyecto-no-tiene-perfil) antes de actualizar.
 
 ## Para qué sirve
 
-Sin perfil, el kit trae escrito cómo es tu proyecto. `make test`, por ejemplo, ejecuta `go test` dentro de `backend/`. Eso sirve si el proyecto es exactamente así, y no sirve si la carpeta se llama distinto, si está en PHP o si todavía no tiene pruebas.
-
-Con perfil, el kit deja de suponer. Cuando alguien escribe `make test`, busca en el perfil qué significa "probar" en cada parte del proyecto y ejecuta eso. El mismo kit funciona entonces en un proyecto de Go, en uno de PHP o en uno con tres servicios distintos.
+El kit no sabe cómo es tu proyecto: en qué carpeta está cada cosa, en qué lenguaje, si tiene pruebas o cómo se ejecutan. El perfil se lo dice. Cuando alguien escribe `make test`, el kit busca en el perfil qué significa "probar" en cada parte del proyecto y ejecuta eso. El mismo kit funciona así en un proyecto de Go, en uno de PHP o en uno con tres servicios distintos.
 
 ## Qué contiene
 
@@ -234,7 +232,7 @@ En un proyecto recién creado, sin código todavía, el paso 1 no encuentra nada
 Si prefieres escribirlo a mano, es un archivo de texto: créalo con el formato de arriba, valídalo con `make profile` y ejecuta `make install-kit` para que las skills del proyecto sean las que el perfil nombra.
 
 > [!NOTE]
-> Sin perfil, el proyecto tiene las tres skills de siempre (`go-backend`, `postgres-db`, `react-frontend`). Al crear el perfil, `make install-kit` retira las que no nombres: es lo esperado, y esos archivos borrados van en el mismo commit que el perfil.
+> Un proyecto que viene de una versión anterior a la 1.23.0 tiene las tres skills que el kit instalaba sin perfil (`go-backend`, `postgres-db`, `react-frontend`). Al crear el perfil, `make install-kit` retira las que no nombres: es lo esperado, y esos archivos borrados van en el mismo commit que el perfil.
 
 ## Ver y validar el perfil
 
@@ -296,27 +294,32 @@ Resumen de lo comprobado
 
 Una "comprobación" es un verbo en una parte. Cuando algo falla, la línea del verbo lo dice (`FALLÓ: api`) y `make ci` termina con error. Cuando todo está definido y pasa, la última línea es `✓ Todo comprobado y sin fallos`.
 
-Con perfil, `make ci` ejecuta todos los verbos aunque uno falle, para que el resumen esté completo. Sin perfil se detiene en el primer error, como siempre.
+`make ci` ejecuta todos los verbos aunque uno falle, para que el resumen esté completo.
 
-## Qué cambia cuando hay perfil
+## Sin perfil
+
+Un proyecto recién instalado todavía no tiene perfil: el kit se instala antes de que exista. Mientras falte, el kit no supone nada sobre la tecnología:
 
 | Comando o control | Sin perfil | Con perfil |
 |---|---|---|
-| `make test` | `go test` en `backend/` y `npm test` en `frontend/` | El verbo `probar` de cada parte |
-| `make lint` | `gofmt`, `go vet`, `golangci-lint`; lint y tipos del frontend | Los verbos `formato` y `revisar` |
-| `make coverage` | Cobertura de la capa de servicio de Go, mínimo 80 % | El verbo `cobertura` |
-| `make security` | `govulncheck` y `npm audit` | El verbo `auditar` |
-| `make generate`, `make check-generated` | sqlc y los tipos de la API | El verbo `generar` |
-| `make ci` | Los cinco comandos anteriores, uno tras otro; se detiene en el primer error | Todos los verbos, y al final [un resumen](#el-resumen-de-make-ci) |
-| `make doctor` | Go, Node y las herramientas de Go | Los [requisitos](#los-requisitos-de-la-máquina) del perfil |
-| Commit: formato | `gofmt` y `prettier` | El verbo `formato`, solo en las partes que el commit toca |
-| Commit, integración continua y [hook de Claude Code](hooks-del-agente.md#los-archivos-inmutables-del-proyecto): archivos que no se modifican | `backend/migrations/*.sql` | Los `inmutables` de cada parte |
-| Lo que cada agente sabe del proyecto | `backend/` es de `dev-backend` (con la base de datos) y `frontend/` de `dev-frontend`, con las tres skills de siempre | Las partes, skills y comandos que el perfil asigna a cada rol. Ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto) |
-| Las marcas de las tareas | `[backend]`, `[frontend]`, `[infra]` | El nombre de cada parte (`[api]`), o `[infra]` |
+| `make test`, `lint`, `coverage`, `security`, `generate`, `check-generated` y `ci` | No ejecutan nada: terminan con error y piden crearlo | El verbo de cada parte |
+| `make doctor` | Solo las herramientas base, con un aviso | También los [requisitos](#los-requisitos-de-la-máquina) del perfil |
+| Commit: formato | No se revisa | El verbo `formato`, solo en las partes que el commit toca |
+| Commit, integración continua y [hook de Claude Code](hooks-del-agente.md#los-archivos-inmutables-del-proyecto): archivos que no se modifican | Ninguno | Los `inmutables` de cada parte |
+| Skills de tecnología | Ninguna | Las que el perfil nombra |
+| Lo que cada agente sabe del proyecto | Que no hay perfil: no debe suponer carpetas, tecnologías ni comandos, y avisa antes de trabajar | Las partes, skills y comandos que el perfil asigna a cada rol. Ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto) |
+| Las marcas de las tareas | El orquestador no delega tareas de implementación | El nombre de cada parte (`[api]`), o `[infra]` |
 
-Lo demás no cambia: estado, costos, instalación del kit, secretos, mensajes de commit y aprobaciones no dependen de la tecnología.
+El mensaje de los comandos de los verbos:
 
-`make test-backend` y `make test-frontend` siguen existiendo, pero son los comandos de siempre: no leen el perfil.
+```text
+✗ Este proyecto no tiene perfil (equipo/perfil.json). Para crearlo, escribe en el chat: /bowser-profile
+```
+
+Lo demás funciona igual con o sin perfil: estado, costos, instalación del kit, secretos, mensajes de commit, constitución y aprobaciones no dependen de la tecnología.
+
+> [!NOTE]
+> Hasta la versión 1.22.0, sin perfil el kit suponía Go y PostgreSQL en `backend/` y React en `frontend/`, y existían `make test-backend`, `make test-frontend` y `make db-migrate`. Si tu proyecto los usa, defínelos en su `proyecto.mk` (ver [Comandos propios](personalizar.md#comandos-propios)).
 
 ## Aprobar un cambio en el perfil
 
@@ -359,7 +362,7 @@ Con un perfil inválido el kit no ejecuta ningún verbo y bloquea los commits ha
 
 - **La integración continua no se actualiza sola.** El workflow del proyecto ejecuta los verbos, así que cambiar el comando de un verbo no exige tocarlo. Pero una parte nueva, o un verbo que necesita una herramienta que el workflow no instala, sí: `make check-ci` avisa de lo que nadie ejecuta y `/bowser-ci` lo corrige. Ver [Integración continua](integracion-continua.md#el-workflow-del-proyecto).
 - **`make doctor` no comprueba que `requisitos` esté completo.** Revisa lo que el perfil declara; si un verbo llama a un programa que nadie anotó, lo descubre quien no lo tiene, al ejecutar ese verbo.
-- **Sin perfil, algunos comandos todavía suponen Go, React y PostgreSQL.** La constitución, los roles, los archivos iniciales y `make doctor` ya no: el kit no instala servicios, variables de entorno ni reglas de `.gitignore` de ninguna tecnología, y cada uno recibe del perfil sus partes, skills y comandos (ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto)). Lo demás es de entregas posteriores.
+- **Sin perfil, el kit no sirve para trabajar en el código.** Se instala, guarda el estado y los costos y protege los secretos, pero no sabe probar, revisar ni formatear nada, y los agentes no tienen skills de tecnología. Es lo primero que hay que crear en un proyecto nuevo.
 - **Cambiar el perfil obliga a regenerar los roles.** Lo que cada agente sabe del proyecto queda escrito en sus instrucciones al generarlas, así que un perfil nuevo sin `make install-kit` (o `make sync`, si las skills no cambiaron) deja el commit bloqueado con `La configuración de agentes está desactualizada`.
 - **Los `inmutables` solo se adelantan al agente en Claude Code**, que es la única herramienta con [hooks del agente](hooks-del-agente.md). En Codex y OpenCode el agente se entera en el commit, que es el control que vale para las tres.
 - **`make check-generated` revisa toda la carpeta de la parte.** Si tienes otros cambios sin commit en ella, los toma por código generado desactualizado.
