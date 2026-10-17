@@ -1,7 +1,7 @@
 # Makefile del kit. En los proyectos lo gestiona `make install-kit`: no lo edites ahí.
 # Para agregar comandos propios de un proyecto, créalos en proyecto.mk (se incluye al final).
 
-.PHONY: help status costs news doctor profile skills check-ci models update-models sync check-agents install-hooks install-kit update-kit check-kit up down generate check-generated test coverage lint security ci
+.PHONY: help status costs news doctor profile skills check-ci upgrade models update-models sync check-agents install-hooks install-kit update-kit check-kit up down generate check-generated test coverage lint security ci
 
 # Carpeta del submódulo del kit: la del `make -f <carpeta>/Makefile` usado, o la guardada al instalar,
 # o el nombre por defecto. Se puede forzar con `make ... KIT=<carpeta>`.
@@ -59,6 +59,9 @@ models: ## Muestra qué modelo usa cada agente en cada herramienta
 
 update-models: ## Aplica al proyecto los modelos recomendados por el kit (muestra los cambios antes)
 	@python3 scripts/actualizar_modelos.py $(if $(YES),--si,)
+
+upgrade: ## Qué le falta al proyecto para aprovechar el kit (2.0), y arregla lo mecánico (YES=1 sin preguntar)
+	@python3 scripts/pasar_a_2.py $(if $(YES),--si,)
 
 check-agents: ## Comprueba que la configuración generada esté al día
 	python3 scripts/sincronizar.py --verificar

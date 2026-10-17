@@ -37,7 +37,7 @@ def seccion(p, rol: str, herramienta: str = "claude") -> str:
     return texto[texto.index("## Este proyecto"):] if "## Este proyecto" in texto else ""
 
 
-@prueba("ningún rol del kit nombra una tecnología, existe el rol de base de datos y un rol mal declarado se rechaza")
+@prueba("ningún rol del kit ni el orquestador nombran una tecnología, existe el rol de base de datos y un rol mal declarado se rechaza")
 def roles_sin_tecnologia(e):
     kit = e.kit()
     roles = sorted((kit / "equipo/agentes").glob("*.md"))
@@ -47,7 +47,11 @@ def roles_sin_tecnologia(e):
         nombradas = sorted({m.group(0) for m in TECNOLOGIAS.finditer(texto)})
         afirmar(not nombradas, f"equipo/agentes/{ruta.name} nombra tecnologías o carpetas fijas: {nombradas}")
         afirmar("\nskills:" not in texto.split("---\n", 2)[1], f"{ruta.name} trae skills escritas: las asigna el perfil")
-    dba = (kit / "equipo/agentes/dev-dba.md").read_text(encoding="utf-8")
+    # Las instrucciones del orquestador tampoco: Docker sí, porque el entorno local (make up) es Docker Compose.
+    for rel in ("AGENTS.md", "equipo/orquestador.md"):
+        nombradas = sorted({m.group(0) for m in TECNOLOGIAS.finditer((kit / rel).read_text(encoding="utf-8"))} - {"Docker"})
+        afirmar(not nombradas, f"{rel} nombra tecnologías o carpetas fijas: {nombradas}")
+    dba =(kit / "equipo/agentes/dev-dba.md").read_text(encoding="utf-8")
     contiene(dba, "\nproyecto: partes\n", "el rol dev-dba")
 
     (kit / "equipo/agentes/dev-dba.md").write_text(dba.replace("proyecto: partes", "proyecto: todo"), encoding="utf-8")

@@ -13,6 +13,30 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.24.0] - 2026-10-17
+
+Tercer paso (D3) de la entrega D de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.
+
+Un proyecto que pasa de la 1.x a la 2.0 queda con pendientes que la actualización no puede resolver sola. Ahora hay un comando que los junta, arregla lo mecánico y deja el resto a quien corresponde.
+
+### Agregado
+- **`make upgrade`** (y en el chat, **`/bowser-upgrade`**): lista lo que le falta al proyecto para aprovechar el kit, agrupado según quién lo resuelve. Ver [Lo que queda pendiente](docs/actualizacion.md#lo-que-queda-pendiente).
+  - **Un agente:** falta el perfil o sus `requisitos` (`/bowser-profile`); la integración continua no ejecuta algún verbo, o el `ci.yml` es el que instalaba el kit (`/bowser-ci`); una parte sin convenciones propias (`/bowser-conventions`, recomendado).
+  - **Una persona:** reglas heredadas de la constitución anterior en `equipo/reglas.md`, reglas de tecnología heredadas en `.gitignore`, y entradas de `kit.excluir` que ya no hacen nada.
+  - **Arreglos mecánicos:** los nombres anteriores de los comandos, opciones y confirmaciones en los workflows y `proyecto.mk` (`make cobertura PARTE=api` → `make coverage PART=api`); `make test-backend` y `make test-frontend` → `make test PART=…` cuando el perfil tiene esa parte; y los archivos de `scripts/` que no son del kit (como `scripts/cobertura.py`) pasan a `tools/`, corrigiendo quién los nombra. Se muestran antes y solo se aplican con confirmación (`YES=1` sin preguntar). Nunca hace commit.
+- `make install-kit` (y `make update-kit`) avisa al final si quedan pendientes: `Al proyecto le quedan N pendientes para aprovechar el kit: make upgrade`.
+
+### Corregido
+- El orquestador todavía decía que `make generate` era sqlc, que `make coverage` medía la capa de servicio con 80 %, que el commit revisaba "migraciones" y que la integración continua probaba con PostgreSQL. Ahora habla de los verbos del perfil. Una prueba revisa que ni `AGENTS.md` ni el orquestador nombren una tecnología.
+
+### Límites
+- Reconoce el `ci.yml` que instalaba el kit por los nombres de sus grupos. Uno que el proyecto ya modificó a fondo puede no reconocerse; `/bowser-ci` lo revisa igual.
+- Los nombres anteriores solo se cambian dentro de una llamada a `make` (`make …` o `$(MAKE) …`) y en las confirmaciones del commit. En la documentación del proyecto quedan como estén.
+- No se probó en las copias de validación ni en una herramienta real.
+
+### Al actualizar
+- Ejecuta `make upgrade` (o `/bowser-upgrade` en el chat) y resuelve lo que diga. Es el camino para pasar un proyecto de la 1.x a la 2.0.
+
 ## [1.23.0] - 2026-10-14
 
 Segundo paso (D2) de la entrega D de la etapa 2. Vive en la rama `etapa-2`: se publica con la 2.0.

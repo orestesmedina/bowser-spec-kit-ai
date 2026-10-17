@@ -9,6 +9,7 @@
 - [Cuando la actualización se detiene](#cuando-la-actualización-se-detiene)
     - [Si el proyecto no tiene perfil](#si-el-proyecto-no-tiene-perfil)
 - [Después de actualizar](#después-de-actualizar)
+- [Lo que queda pendiente](#lo-que-queda-pendiente)
 - [Siguientes pasos](#siguientes-pasos)
 
 ## Introducción
@@ -125,15 +126,81 @@ Si eliges forzar, la actualización termina y avisa de lo que no va a funcionar 
 
 ## Después de actualizar
 
-Tres comprobaciones rápidas:
+Cuatro comprobaciones rápidas:
 
 ```bash
 make doctor          # el entorno y el kit, al día
-make check-kit   # los archivos del proyecto coinciden con el kit
+make check-kit       # los archivos del proyecto coinciden con el kit
+make upgrade         # lo que el proyecto todavía tiene que hacer
 make ci              # lo mismo que hará la integración continua
 ```
 
 Si la versión nueva trae controles nuevos, el primer commit o el primer Pull Request puede ser rechazado por algo que antes no se revisaba. Es lo esperado: corrige lo que indique el mensaje.
+
+## Lo que queda pendiente
+
+Una actualización cambia los archivos del kit, pero hay cosas que no puede decidir sola: crear el perfil, redactar la integración continua del proyecto, revisar las reglas que heredó de la constitución anterior. Sobre todo al pasar de la 1.x a la 2.0, un proyecto queda con varios de esos pendientes repartidos.
+
+Cuando hay alguno, `make install-kit` (y por eso también `make update-kit`) lo avisa al terminar:
+
+```text
+  ! Al proyecto le quedan 9 pendientes para aprovechar el kit: make upgrade
+```
+
+`make upgrade` los muestra agrupados según quién los resuelve:
+
+```text
+Lo que le falta al proyecto para aprovechar el kit
+
+Lo resuelve un agente (escribe el comando en el chat)
+  • El perfil no declara `requisitos`: make doctor no sabe qué herramientas necesita una máquina para este proyecto. En el chat: /bowser-profile
+  • .github/workflows/ci.yml es el que instalaba el kit: repite lo que ya hace bowser.yml (kit, agentes y secretos) y copia los comandos en vez de ejecutar los verbos. En el chat: /bowser-ci
+
+Lo resuelve una persona
+  • equipo/reglas.md todavía tiene las reglas que traía la constitución anterior (de Go, React y PostgreSQL, o la constitución completa del proyecto). Conserva las que le sirven a este proyecto, borra las demás y quita el párrafo que lo explica. El commit pide APPROVED_CONSTITUTION=1.
+
+Avisos
+  • .github/workflows/ci.yml usa `make db-migrate`, que se retiró en la 1.23.0: defínelo en proyecto.mk.
+  • Recomendado: la parte backend no tiene convenciones propias (cómo nombra y organiza las cosas este proyecto). En el chat: /bowser-conventions
+
+Arreglos mecánicos (nombres anteriores, comandos retirados y scripts que pasan a tools/)
+  scripts/cobertura.py → tools/cobertura.py
+  equipo/perfil.json
+    -        "cobertura": "python3 ../scripts/cobertura.py"
+    +        "cobertura": "python3 ../tools/cobertura.py"
+  .github/workflows/ci.yml
+    -      - run: make cobertura PARTE=backend
+    -      - run: make test-backend
+    +      - run: make coverage PART=backend
+    +      - run: make test PART=backend
+
+¿Aplicar estos arreglos? [s/N]
+```
+
+Lo que revisa:
+
+| Pendiente | Quién lo resuelve |
+|---|---|
+| El proyecto no tiene [perfil](perfil-del-proyecto.md), o el perfil no declara sus `requisitos` | Un agente: `/bowser-profile` |
+| La integración continua no ejecuta algún verbo del perfil, o el `ci.yml` es el que instalaba el kit | Un agente: `/bowser-ci` |
+| Una parte no tiene [convenciones propias](convenciones-del-proyecto.md) | Un agente: `/bowser-conventions`. Es una recomendación |
+| `equipo/reglas.md` todavía tiene las reglas que traía la constitución anterior | Una persona (el commit pide `APPROVED_CONSTITUTION=1`) |
+| `.gitignore` tiene, debajo del bloque del kit, reglas de tecnología que el kit traía antes | Una persona |
+| `kit.excluir` nombra un archivo que ya no es del kit | Una persona: quitar la línea |
+| Los workflows o `proyecto.mk` usan los [nombres anteriores](comandos.md#nombres-anteriores) de los comandos, opciones o confirmaciones | **Arreglo mecánico** |
+| Usan `make test-backend` o `make test-frontend`, y el perfil tiene esa parte | **Arreglo mecánico**: `make test PART=backend`. Si no hay reemplazo (`make db-migrate`), es un aviso |
+| `scripts/` tiene archivos que no son del kit (los que el kit retiró y el proyecto conservó, como `scripts/cobertura.py`) | **Arreglo mecánico**: pasan a `tools/`, y se corrige quién los nombra (el perfil, `proyecto.mk`, los workflows). Los que el proyecto puso en `kit.excluir` no se tocan |
+
+Los arreglos mecánicos solo se aplican con tu confirmación: `make upgrade` pregunta en la terminal, y `make upgrade YES=1` los aplica sin preguntar. Si cambia el perfil, regenera los agentes y te recuerda que su commit pide `APPROVED_PROFILE=1`. Nunca hace commit.
+
+> [!TIP]
+> En el chat, `/bowser-upgrade` hace lo mismo y además te acompaña en lo que necesita un agente o una persona, en orden: primero los arreglos mecánicos, después el perfil, la integración continua y las convenciones, y al final lo que te toca revisar a ti. `/bowser-upgrade ver` solo muestra la lista.
+
+Cuando no queda nada:
+
+```text
+✓ Nada pendiente: el proyecto aprovecha todo lo que el kit trae.
+```
 
 ## Siguientes pasos
 

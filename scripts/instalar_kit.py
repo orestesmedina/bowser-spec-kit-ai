@@ -67,6 +67,7 @@ sys.path.insert(0, str(KIT / "scripts"))
 from sincronizar import COMANDOS_CODEX as GENERADO_EN_FUENTES, CONSTITUCION, PRINCIPIOS, REGLAS, es_generada  # noqa: E402
 import catalogo  # noqa: E402
 import perfil as perfil_proyecto  # noqa: E402
+import pasar_a_2  # noqa: E402
 sys.path.pop(0)
 # Se copian una sola vez; después pertenecen al proyecto.
 # Ninguna trae tecnología: el entorno local (docker-compose.yml) lo crea el proyecto según su perfil.
@@ -549,6 +550,10 @@ def instalar(forzar: bool) -> int:
                   "Revisa con más cuidado lo que los agentes hagan con ella.")
     if not (a["nuevos"] or a["actualizar"] or a["previos"] or eliminados or semillas or heredadas or a["entregados"] or reglas_entregadas or (forzar and a["conflictos"])):
         print("  Sin cambios: el proyecto ya estaba al día.")
+    # Lo que el proyecto todavía tiene que hacer (perfil, integración continua, reglas heredadas…), en una línea.
+    pendientes = pasar_a_2.resumen(DESTINO)
+    if pendientes:
+        print(f"  ! {pendientes}")
     # El Makefile del kit muestra las novedades al final (--resumen-novedades). Un Makefile anterior no lo hace:
     # en ese caso se muestran aquí.
     if not os.environ.get("NOVEDADES_AL_FINAL"):

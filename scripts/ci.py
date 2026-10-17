@@ -64,6 +64,20 @@ def ejecutados(texto: str, partes: list[str]) -> set[tuple[str, str]]:
     return pares
 
 
+def workflows_del_proyecto(raiz=RAIZ) -> list:
+    carpeta = raiz / CARPETA
+    return sorted(f for f in carpeta.glob("*.y*ml") if f.name not in DEL_KIT) if carpeta.is_dir() else []
+
+
+def sin_ejecutar(perfil: dict, raiz=RAIZ) -> set[tuple[str, str]]:
+    """Los pares (parte, verbo) que el perfil define y ningún workflow del proyecto ejecuta."""
+    definidos = {(p["nombre"], v) for p in perfil["partes"] for v in VERBOS if comando_de(p, v)}
+    nombres = [p["nombre"] for p in perfil["partes"]]
+    for f in workflows_del_proyecto(raiz):
+        definidos -= ejecutados(f.read_text(encoding="utf-8", errors="replace"), nombres)
+    return definidos
+
+
 def main() -> int:
     perfil = perfil_valido()
     if perfil is None:
@@ -75,10 +89,8 @@ def main() -> int:
         return 0
 
     nombres = [p["nombre"] for p in perfil["partes"]]
-    carpeta = RAIZ / CARPETA
-    workflows = sorted(f for f in carpeta.glob("*.y*ml") if f.name not in DEL_KIT) if carpeta.is_dir() else []
     cubiertos: set[tuple[str, str]] = set()
-    for f in workflows:
+    for f in workflows_del_proyecto():
         pares = ejecutados(f.read_text(encoding="utf-8", errors="replace"), nombres) & definidos
         if pares:
             print(f"{CARPETA}/{f.name}")

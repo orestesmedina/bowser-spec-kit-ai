@@ -51,6 +51,7 @@ Los comandos que más usa una persona tienen un equivalente que se escribe en el
 | `/bowser-profile` | `make profile` | Crea o actualiza el [perfil del proyecto](perfil-del-proyecto.md) mirando el código, y lo propone para que lo apruebes |
 | `/bowser-conventions` | — | Redacta las [convenciones propias del proyecto](convenciones-del-proyecto.md) leyendo su código, las compara con el estándar y las propone para que las apruebes |
 | `/bowser-ci` | `make check-ci` | Redacta o actualiza la [integración continua del proyecto](integracion-continua.md#el-workflow-del-proyecto) desde el perfil, y la propone para que la apruebes |
+| `/bowser-upgrade` | `make upgrade` | Qué le falta al proyecto para aprovechar la 2.0 del kit; aplica los arreglos mecánicos con tu "sí" y te acompaña en el resto, paso a paso. Ver [Lo que queda pendiente](actualizacion.md#lo-que-queda-pendiente) |
 
 Cómo se escriben en cada herramienta:
 
@@ -60,7 +61,7 @@ Cómo se escriben en cada herramienta:
 | OpenCode | `/bowser-status` | `/bowser-status todo` |
 | Codex | `$bowser-status` | `$bowser-status` y la opción en la misma frase: "con todo" |
 
-Opciones: `/bowser-status todo` incluye lo terminado; `/bowser-costs todo` resume el proyecto y `/bowser-costs hoy` cotiza a precios actuales; `/bowser-news 1.9.0` muestra desde esa versión; `/bowser-profile ver` solo muestra el perfil, sin proponer cambios; `/bowser-conventions api` redacta solo las de esa parte; `/bowser-ci ver` solo muestra qué verbos ejecuta hoy la integración continua.
+Opciones: `/bowser-status todo` incluye lo terminado; `/bowser-costs todo` resume el proyecto y `/bowser-costs hoy` cotiza a precios actuales; `/bowser-news 1.9.0` muestra desde esa versión; `/bowser-profile ver` solo muestra el perfil, sin proponer cambios; `/bowser-conventions api` redacta solo las de esa parte; `/bowser-ci ver` solo muestra qué verbos ejecuta hoy la integración continua; `/bowser-upgrade ver` solo muestra lo pendiente.
 
 Lo que estos comandos **no** hacen por su cuenta, porque son decisión de una persona: cerrar el costo (`make costs CLOSE=1`), forzar una instalación (`FORCE=1`), cambiar modelos, hacer el commit de una actualización del kit y confirmar un cambio del perfil (`APPROVED_PROFILE=1`). Los proponen y esperan.
 
@@ -210,12 +211,14 @@ Más: [Una fuente, varias herramientas](una-fuente-varias-herramientas.md) y [Mo
 | `make install-kit` | Copia el kit desde el submódulo a la raíz, regenera los agentes y activa los hooks | La primera vez, y después de cambiar de versión del submódulo a mano |
 | `make check-kit` | Comprueba que los archivos del kit en el proyecto coincidan con el submódulo | Cuando el hook dice que no coinciden: muestra cuál |
 | `make news` | El historial de cambios del kit | Para volver a ver qué trajo una versión |
+| `make upgrade` | Lista lo que le falta al proyecto para aprovechar el kit (perfil, integración continua, reglas heredadas…) según quién lo resuelve, y ofrece los arreglos mecánicos. Ver [Lo que queda pendiente](actualizacion.md#lo-que-queda-pendiente) | Cuando `make install-kit` avisa que quedan pendientes, sobre todo al pasar de la 1.x a la 2.0 |
 
 Opciones:
 
 | Opción | En | Efecto |
 |---|---|---|
 | `FORCE=1` | `install-kit` | Pisa los archivos del kit modificados en el proyecto, guardando un respaldo en `.kit-respaldo/`. **Decisión de una persona** |
+| `YES=1` | `upgrade` | Aplica los arreglos mecánicos sin preguntar. Sin `YES=1`, en una terminal pregunta; desde un agente, solo los muestra |
 | `SINCE=1.6.0` | `news` | Muestra solo desde esa versión |
 | `KIT=carpeta` | Todos | Indica otra carpeta para el submódulo, si no es `.bowser-spec-kit-ai/` |
 

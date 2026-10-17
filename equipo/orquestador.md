@@ -121,20 +121,21 @@ Al delegar, das al subagente: la fase, la ruta de la spec/plan/tareas, qué entr
 | `make costs` | Registrar y ver el costo de IA de la tarea (`ALL=1` proyecto completo, `PRICES=today` cotizar, `CLOSE=1` cerrar) |
 | `make doctor` | Verificar el entorno (herramientas, WSL, Docker, kit, hooks) |
 | `make up` / `make down` | Levantar / detener el entorno local del proyecto (sus servicios, con Docker). Si avisa que no hay entorno, crearlo es tarea de `devops` |
-| `make test`, `make lint`, `make security`, `make ci` | Pruebas, linters, auditoría, todo junto. Con perfil ejecutan los verbos que el proyecto declaró (`PART=nombre` para una sola parte), y `make ci` termina con un resumen: lo que dice «sin definir» no lo comprobó nadie, y así se lo dices a la persona |
+| `make test`, `make lint`, `make security`, `make ci` | Pruebas, linters, auditoría, todo junto. Ejecutan los verbos que el perfil declara (`PART=nombre` para una sola parte); sin perfil no ejecutan nada. `make ci` termina con un resumen: lo que dice «sin definir» no lo comprobó nadie, y así se lo dices a la persona |
 | `make check-ci` | Qué verbos del perfil ejecuta la integración continua del proyecto y cuáles no ejecuta nadie. Su workflow es del proyecto y se redacta con `/bowser-ci` (el del kit, `bowser.yml`, no se edita) |
 | `make profile` | Ver y validar el perfil del proyecto, `equipo/perfil.json` (`DETECT=1`: qué tecnologías hay en el proyecto). Se redacta con `/bowser-profile` |
-| `make generate` / `make check-generated` | Regenerar el código generado (sqlc, tipos de la API) / comprobar que está al día |
-| `make coverage` | Cobertura de la capa de servicio del backend (el CI exige 80 %) |
+| `make generate` / `make check-generated` | Regenerar el código generado (el verbo `generar` del perfil) / comprobar que está al día |
+| `make coverage` | Cobertura de pruebas (el verbo `cobertura`; el mínimo lo fijan las reglas del proyecto) |
 | `make sync` / `make models` | Regenerar configuración de agentes / ver modelos por agente |
 | `make update-models` | Adoptar los modelos que recomienda el kit (lo decide un humano: cambia `equipo/config.json`) |
 | `make check-kit` / `make update-kit` | Comprobar / actualizar el kit compartido |
 | `make news` | Qué cambió en el kit (versión instalada e historial) |
+| `make upgrade` | Qué le falta al proyecto para aprovechar el kit (perfil, integración continua, reglas heredadas…). Si `make install-kit` avisa de pendientes, propón `/bowser-upgrade`. Los arreglos mecánicos (`YES=1`) solo con el "sí" de la persona |
 
 **Controles automáticos** (no se desactivan; si fallan, se corrige la causa):
-- *pre-commit:* bloquea secretos (`.env`, llaves), migraciones ya versionadas editadas, código sin formato, cambios a la constitución sin aprobación, archivos del kit editados a mano y configuración de agentes o constitución generada desactualizadas. Bloquea modificar un `costos.json` cerrado. Avisa (sin bloquear) si cambian spec, plan o tareas sin actualizar `estado.md`.
+- *pre-commit:* bloquea secretos (`.env`, llaves), archivos inmutables del perfil ya versionados (como las migraciones) editados, código sin el formato del perfil, cambios a la constitución sin aprobación, archivos del kit editados a mano y configuración de agentes o constitución generada desactualizadas. Bloquea modificar un `costos.json` cerrado. Avisa (sin bloquear) si cambian spec, plan o tareas sin actualizar `estado.md`.
 - *commit-msg:* exige Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`, `ci:`…).
-- *CI:* repite los controles, pruebas con PostgreSQL real, vulnerabilidades y secretos.
+- *CI:* `bowser.yml` (del kit) repite los controles que no dependen de la tecnología: kit y agentes al día, archivos inmutables y secretos. El workflow del proyecto ejecuta sus verbos (`make ci`).
 
 | Mensaje | Qué significa | Qué haces |
 |---|---|---|
