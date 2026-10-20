@@ -84,6 +84,8 @@ NOMBRAN_ARCHIVOS = [perfil_proyecto.RUTA, "proyecto.mk", ".github/workflows/"]
 SIN_SUPUESTO_DESDE = (1, 23, 0)
 # El comando del chat que crea el perfil (/bowser-profile) existe desde esta versión.
 CON_COMANDO_PERFIL_DESDE = (1, 12, 0)
+# Los pasos manuales de las versiones anteriores a esta los reúne la guía de migración (docs/migrar-a-2.md).
+DOS_CERO = (2, 0, 0)
 CARPETAS_SUPUESTAS = ["backend", "frontend"]
 # Las constituciones que el kit instaló alguna vez (sha256 del texto, con saltos de línea de Unix) y el archivo con
 # las reglas que traían y que no son principios: al partirla en dos, esas reglas se le entregan al proyecto.
@@ -295,8 +297,17 @@ def mostrar_novedades(desde: str | None, hasta: str | None, limite_sin_desde: in
                 pasos.append((clave_version(version), len(pasos), f"{linea.strip().lstrip('-').strip()}  ({version})"))
             else:
                 print(f"    {linea.strip()}")
-    if pasos:
+    # Desde antes del paso que dejó de suponer una tecnología, los pasos de la 1.x se contradicen entre sí (unos
+    # piden herramientas que el kit dejó de usar): se reemplazan por la guía de migración, que reúne los vigentes.
+    de_la_1x = [p for p in pasos if p[0] < DOS_CERO] if k_desde and k_desde < SIN_SUPUESTO_DESDE else []
+    pasos = [p for p in pasos if p not in de_la_1x]
+    if pasos or de_la_1x:
         print("\n⚠ PASOS MANUALES AL ACTUALIZAR:")
+        if de_la_1x:
+            versiones = len({p[0] for p in de_la_1x})
+            print(f"  - Vienes de la {desde}, anterior a la 2.0. Los pasos manuales de las {versiones} versiones "
+                  "intermedias no se muestran uno por uno: varios quedaron reemplazados por otros posteriores. Sigue "
+                  f"la guía {RUTA_KIT}/docs/migrar-a-2.md, y make upgrade te dice lo que le falta al proyecto.")
         for _, _, p in sorted(pasos):  # de la versión más antigua a la más nueva, en el orden escrito
             print(f"  - {p}")
     print(f"\nDetalle completo: {RUTA_KIT}/CHANGELOG.md")

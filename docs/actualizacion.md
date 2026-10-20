@@ -75,6 +75,8 @@ Algunas versiones traen una sección **Al actualizar**: cosas que el kit no pued
 
 Hazlos **antes** del commit de la actualización. Suelen ser de tres tipos: un cambio a una semilla que el kit no puede tocar, una herramienta que hay que instalar en cada máquina, o un comando que hay que ejecutar una vez.
 
+Si el proyecto viene de una versión anterior a la 1.23.0, los pasos de la 1.x no se listan uno por uno: un solo aviso apunta a [Migrar a la 2.0](migrar-a-2.md), que reúne los que siguen vigentes.
+
 ## Cuando el kit recomienda otros modelos
 
 Los modelos de cada agente están en `equipo/config.json`, que es del proyecto. Si la versión nueva del kit recomienda una distribución distinta, `make update-kit` lo avisa pero no cambia nada. Para adoptarla:

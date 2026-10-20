@@ -178,6 +178,22 @@ def novedades(e):
     contiene(p.make("news", "SINCE=no-es-version", espera=1).salida, "Versión no válida")
 
 
+@prueba("desde una versión anterior a la 1.23.0, los pasos manuales de la 1.x se resumen en la guía de migración")
+def pasos_de_la_1x(e):
+    p = e.proyecto()
+    # Desde la 1.6.4 (la de un proyecto real): un solo aviso en lugar de los pasos de cada versión intermedia.
+    r = p.make("news", "SINCE=1.6.4")
+    contiene(r.salida, "Vienes de la 1.6.4, anterior a la 2.0.")
+    contiene(r.salida, "docs/migrar-a-2.md")
+    afirmar("Instala sqlc en local" not in r.salida, "muestra un paso de la 1.7.0 que la 2.0 dejó sin efecto")
+    afirmar("Tu proyecto sigue funcionando igual sin perfil" not in r.salida, "muestra un paso de la 1.12.0 que ya es falso")
+    contiene(r.salida, "=== Novedades del kit de 1.6.4", "las novedades se siguen mostrando")
+    # Desde la 1.23.0 en adelante, los pasos se muestran uno por uno, como siempre.
+    r = p.make("news", "SINCE=1.23.0")
+    afirmar("Vienes de la" not in r.salida, "resume los pasos de un proyecto que ya pasó el cambio que rompe")
+    contiene(r.salida, "Ejecuta `make upgrade`", "el paso manual de la 1.24.0")
+
+
 @prueba("un archivo que el kit entrega al proyecto (ci.yml) no se borra al actualizar, aunque tenga cambios locales")
 def entregados(e):
     p = e.proyecto()

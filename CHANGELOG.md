@@ -13,6 +13,16 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [1.24.3] - 2026-10-20
+
+Último ajuste antes de migrar `simiente-santa-webside`, que está en la 1.6.4. Vive en la rama `etapa-2`: se publica con la 2.0.
+
+### Cambiado
+- **Al actualizar desde una versión anterior a la 1.23.0, los pasos manuales de la 1.x se resumen en un solo aviso**, que apunta a `docs/migrar-a-2.md` y a `make upgrade`. Desde la 1.6.4 eran unas 50 líneas, y varias se contradecían con la 2.0 (pedían instalar herramientas que el kit dejó de usar, o decían que el proyecto seguía funcionando sin perfil). Un proyecto que ya está en la 1.23.0 o después sigue viendo los pasos uno por uno. Las novedades de cada versión se muestran como siempre.
+
+### Al actualizar
+- Nada que hacer.
+
 ## [1.24.2] - 2026-10-17
 
 Correcciones que destapó la primera parte del paso D5: actualizar una copia del proyecto real desde la 1.6.4, sin perfil, y las dos copias de validación desde la 1.17.2. Vive en la rama `etapa-2`: se publica con la 2.0.
