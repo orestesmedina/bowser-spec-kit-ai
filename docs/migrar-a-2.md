@@ -11,6 +11,7 @@
     - [4. Completar el perfil](#4-completar-el-perfil)
     - [5. Escribir las convenciones](#5-escribir-las-convenciones)
     - [6. Rehacer la integración continua](#6-rehacer-la-integración-continua)
+        - [Si la rama principal está protegida](#si-la-rama-principal-está-protegida)
     - [7. Revisar las reglas y el .gitignore](#7-revisar-las-reglas-y-el-gitignore)
     - [8. Comprobar y abrir el Pull Request](#8-comprobar-y-abrir-el-pull-request)
 - [Cuando algo falla](#cuando-algo-falla)
@@ -184,8 +185,23 @@ Comprueba que la integración continua ejecute todos los verbos:
 make check-ci
 ```
 
-> [!WARNING]
-> Si la rama principal en GitHub exige comprobaciones por nombre, actualízalas: agrega las de `bowser.yml` ("Kit, agentes y perfil al día", "Archivos inmutables y constitución", "Búsqueda de secretos") y quita las que el `ci.yml` nuevo ya no tenga. Si no, ningún Pull Request se podrá aprobar.
+#### Si la rama principal está protegida
+
+Si la rama principal en GitHub exige que ciertas comprobaciones pasen antes de unir un Pull Request, las exige **por su nombre**. Las del `ci.yml` que instalaba el kit ("Backend (Go)", "Frontend (React)", "Detectar proyectos", "Migraciones y constitución", "Kit y configuración de agentes al día") ya no existen, así que en el Pull Request de la migración se quedan esperando para siempre:
+
+```text
+Backend (Go)   Expected — Waiting for status to be reported   Required
+```
+
+No es que algo falle: GitHub espera una comprobación que nadie va a ejecutar, y el botón de unir queda bloqueado. Se corrige en la configuración del repositorio. Hazlo cuando el Pull Request ya esté abierto, porque GitHub solo ofrece los nombres de las comprobaciones que corrieron al menos una vez:
+
+1. En el repositorio, **Settings → Branches** y edita la regla de la rama principal. Si usas *rulesets*: **Settings → Rules → Rulesets**.
+2. En **Require status checks to pass**, quita los nombres viejos.
+3. Agrega los de `bowser.yml` ("Kit, agentes y perfil al día", "Archivos inmutables y constitución", "Búsqueda de secretos") y los de los trabajos de tu `ci.yml` nuevo.
+4. Guarda. El Pull Request se vuelve a evaluar solo.
+
+> [!NOTE]
+> Cambiar la protección de la rama es configuración de seguridad del repositorio: la hace una persona con permiso de administración, no un agente.
 
 ### 7. Revisar las reglas y el .gitignore
 
@@ -215,7 +231,7 @@ make doctor      # las herramientas que pide el perfil
 make ci          # lo mismo que hará la integración continua
 ```
 
-Si `make upgrade` todavía muestra algo, vuelve al paso que corresponda. Cuando todo pase, sube la rama y abre el Pull Request. En GitHub corren `bowser.yml` y el `ci.yml` nuevo: si alguno falla, el mensaje dice qué corregir.
+Si `make upgrade` todavía muestra algo, vuelve al paso que corresponda. Cuando todo pase, sube la rama y abre el Pull Request. En GitHub corren `bowser.yml` y el `ci.yml` nuevo: si alguno falla, el mensaje dice qué corregir. Si la rama principal está protegida, en este momento cambia las comprobaciones que exige: ver [Si la rama principal está protegida](#si-la-rama-principal-está-protegida).
 
 Después de aprobarlo, cada persona del equipo trae la rama principal, reinicia su herramienta y ejecuta `make doctor`.
 
@@ -231,6 +247,7 @@ Después de aprobarlo, cada persona del equipo trae la rama principal, reinicia 
 | Faltan los comandos de Spec Kit (`/speckit-plan` o `/speckit.plan`) | Los borró una versión entre la 1.11.0 y la 1.17.0 | `specify init --here --force --integration <herramienta>` |
 | El commit se rechaza por formato | El código ya no se formatea solo al editarlo | Ejecuta el formateador de tu proyecto |
 | `make upgrade` sigue diciendo que el `ci.yml` es el que instalaba el kit | Todavía tiene los grupos que ahora ejecuta `bowser.yml` | Haz el paso 6 |
+| En el Pull Request, comprobaciones como "Backend (Go)" dicen `Expected — Waiting for status to be reported` y no dejan unirlo | La protección de la rama principal exige por nombre las comprobaciones del `ci.yml` anterior, que ya no existen | Ver [Si la rama principal está protegida](#si-la-rama-principal-está-protegida) |
 
 Para los demás errores, ver [Problemas comunes](problemas-comunes.md).
 

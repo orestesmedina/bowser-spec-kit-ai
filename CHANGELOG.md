@@ -13,6 +13,14 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [2.0.2] - 2026-10-20
+
+### Cambiado
+- **`docs/migrar-a-2.md` explica qué hacer si la rama principal está protegida.** Las comprobaciones del `ci.yml` que instalaba el kit ("Backend (Go)", "Frontend (React)"…) ya no existen, y en el Pull Request de la migración se quedan en `Expected — Waiting for status to be reported`, sin dejar unirlo. La guía dice cómo cambiarlas en GitHub y cuándo hacerlo. Lo destapó el Pull Request de `simiente-santa-webside`. También está en `docs/problemas-comunes.md`.
+
+### Al actualizar
+- Nada que hacer.
+
 ## [2.0.1] - 2026-10-20
 
 Detalles menores que destapó la migración de `simiente-santa-webside` a la 2.0.
