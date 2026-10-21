@@ -45,6 +45,8 @@ def desde_la_anterior(e):
     afirmar(gitignore.count("\n.env\n") == 1, "pasó al proyecto una regla que el bloque sigue trayendo")
     afirmar(antes == "frontend/dist/\n\n" and despues.endswith("\n# Del proyecto\n*.log\n"),
             "la actualización cambió lo que el proyecto tenía escrito en su .gitignore")
+    p.make("install-kit")       # instalar otra vez no cambia nada, ni una línea en blanco
+    afirmar(p.leer(".gitignore") == gitignore, "instalar otra vez cambió el .gitignore que dejó la actualización")
     # La integración continua que el kit traía pasa a ser del proyecto: no se borra, y deja de estar en el manifiesto.
     if ci_antes is not None:
         contiene(r.salida, ".github/workflows/ci.yml ya no viene del kit")

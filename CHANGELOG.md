@@ -13,6 +13,45 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [2.0.0] - 2026-10-20
+
+El kit deja de estar atado a Go, React y PostgreSQL. Cada proyecto declara su tecnología en su perfil (`equipo/perfil.json`), y el kit trae los agentes, las skills y los comandos para describirlo, revisarlo y trabajarlo. Esta versión reúne la 1.13.0 a la 1.24.4, que se trabajaron en la rama `etapa-2` y no se publicaron por separado: el detalle de cada cambio está en sus entradas, más abajo.
+
+Se validó migrando el proyecto real `simiente-santa-webside` (Go, React y PostgreSQL) desde la 1.6.4, sin perfil, en una rama y siguiendo `docs/migrar-a-2.md` paso a paso: perfil, convenciones de cada parte, integración continua nueva, reglas propias y `make ci` en verde. La migración destapó un error del kit (1.24.4) y dos vulnerabilidades reales del proyecto que su integración continua anterior no revisaba.
+
+### Cambiado
+
+- **El perfil del proyecto** declara sus partes, la carpeta de cada una, los roles y las skills que la trabajan, el comando de cada verbo (`formato`, `revisar`, `probar`, `cobertura`, `auditar`, `generar`), los archivos inmutables y los requisitos de la máquina. Lo redacta `/bowser-profile` y lo confirma una persona (`APPROVED_PROFILE=1`). Sin perfil, el kit no ejecuta ningún control de tecnología.
+- **Los roles describen un oficio, no una tecnología.** Lo propio del proyecto se les escribe al generarlos, desde el perfil. Rol nuevo: `dev-dba`, para la base de datos.
+- **Catálogo de skills:** llegan al proyecto solo las que el perfil nombra (`go-backend`, `react-frontend`, `postgres-db`, `php`, `mysql`, `web-sin-framework`), y traen el estándar oficial de cada tecnología. Lo propio del proyecto lo redacta `/bowser-conventions` leyendo su código.
+- **La integración continua es del proyecto.** El kit trae solo `bowser.yml` (kit, agentes, perfil, inmutables, constitución y secretos); el `ci.yml` lo redacta `/bowser-ci` y ejecuta los verbos del perfil con `make ci PART=<parte>`.
+- **La constitución se parte en dos:** los principios del kit, sin tecnología, y las reglas del proyecto (`equipo/reglas.md`).
+- **`make doctor` revisa lo que el perfil pide.** En Claude Code, los agentes solo ejecutan `make`, `docker compose` y git sin preguntar, y el código ya no se formatea al editarlo: lo revisa el commit.
+- **Los comandos de `make` pasan a inglés** (`make update-kit`, `make coverage PART=api`), igual que sus opciones y las confirmaciones del commit. Los nombres anteriores siguen funcionando hasta una versión posterior a la 2.0.
+- **`make upgrade`** (en el chat, `/bowser-upgrade`): lo que le falta a un proyecto que viene de la 1.x, con los arreglos mecánicos.
+- Retirados: `make test-backend`, `make test-frontend`, `make db-migrate`, `scripts/generar.sh` y `scripts/cobertura.py`.
+
+### Límites
+
+- La migración completa se validó con un solo proyecto, de Go, React y PostgreSQL. p2p Controller (PHP y MySQL) se migra después de esta versión, y las skills `php`, `mysql` y `web-sin-framework` siguen como `redactada`.
+- Los comandos del chat (`/bowser-profile`, `/bowser-conventions`, `/bowser-ci`) se probaron en OpenCode; en Claude Code y Codex, no.
+- La cobertura de pruebas no tiene un comando del kit: cada proyecto la declara en el verbo `cobertura` de su perfil.
+
+### Al actualizar
+- Desde la 1.x, sigue `docs/migrar-a-2.md`: perfil, convenciones, integración continua y reglas del proyecto. `make upgrade` te dice lo que falta.
+- Reinicia tu herramienta (Claude Code, Codex u OpenCode) y ejecuta `make doctor`; cada persona del equipo, también.
+
+## [1.24.4] - 2026-10-20
+
+Corrección que destapó la migración de `simiente-santa-webside` a la 2.0, en una rama del proyecto real. Vive en la rama `etapa-2`: se publica con la 2.0.
+
+### Corregido
+
+- **Instalar el kit dos veces seguidas cambiaba el `.gitignore`.** La primera instalación dejaba una línea en blanco entre el bloque del kit y las reglas que pasaban al proyecto, y la segunda la borraba, así que aparecía un cambio que nadie había hecho. Ahora entre el bloque y lo del proyecto queda siempre una línea en blanco, y una instalación repetida no toca el archivo. Un proyecto que ya actualizó puede ver ese único cambio (una línea en blanco) en la próxima instalación.
+
+### Al actualizar
+- Nada que hacer.
+
 ## [1.24.3] - 2026-10-20
 
 Último ajuste antes de migrar `simiente-santa-webside`, que está en la 1.6.4. Vive en la rama `etapa-2`: se publica con la 2.0.

@@ -50,7 +50,7 @@ Qué llega a los proyectos lo decide `scripts/instalar_kit.py`, en dos listas: l
 4. **Solo biblioteca estándar.** Los scripts usan Python 3.9 o superior sin instalar nada, y bash portable. Tienen que correr en cualquier máquina del equipo.
 5. **Compatibilidad con la versión anterior.** `make update-kit` se ejecuta con el `Makefile` viejo del proyecto; el nuevo recién queda instalado al terminar. Todo comando nuevo debe funcionar bien en ese primer paso.
 6. **Las semillas no se sobrescriben.** Si el kit cambia algo de una semilla, se ofrece un comando explícito que muestre las diferencias y pida confirmación, como `make update-models`.
-7. **Documentos y mensajes en español; nombres de comandos en inglés.** Los comandos actuales de `make` siguen en español hasta la versión 2.0; todo comando nuevo nace en inglés.
+7. **Documentos y mensajes en español; nombres de comandos en inglés.** Los comandos de `make` están en inglés desde la 1.22.0 (los nombres anteriores siguen funcionando hasta una versión posterior a la 2.0); todo comando nuevo nace en inglés.
 8. **Scripts ejecutables.** Un hook o un `.sh` nuevo debe guardarse en git con permiso de ejecución; sin él, git lo ignora sin avisar.
 
 ## Probar un cambio

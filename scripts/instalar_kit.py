@@ -334,8 +334,9 @@ def gitignore_con_bloque(actual: str) -> tuple[str, list[str]]:
         quedan = set(reglas_gitignore(antes + bloque + despues))
         heredadas = [r for r in reglas_gitignore(viejo) if r not in quedan]
         if heredadas:
-            bloque += "\n" + "\n".join([HEREDADAS_GITIGNORE, *heredadas]) + "\n" + ("\n" if despues else "")
-        return antes + bloque + despues, heredadas
+            bloque += "\n" + "\n".join([HEREDADAS_GITIGNORE, *heredadas]) + "\n"
+        # Siempre una línea en blanco entre el bloque y lo del proyecto: si no, instalar dos veces no daría lo mismo.
+        return antes + bloque + ("\n" + despues if despues else ""), heredadas
     separador = "" if not actual or actual.endswith("\n\n") else ("\n" if actual.endswith("\n") else "\n\n")
     return actual + separador + bloque, []
 
