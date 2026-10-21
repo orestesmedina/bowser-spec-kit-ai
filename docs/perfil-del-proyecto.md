@@ -200,8 +200,10 @@ Herramientas del proyecto (según su perfil)
   ✓ php 8.4.1
 ```
 
-Tres cosas a saber:
+Cinco cosas a saber:
 
+- **La versión es el primer número que aparece después del nombre del programa.** Si ninguna línea de la salida nombra al programa, `make doctor` toma el primer número que encuentre. Por eso `govulncheck -version`, que muestra primero la versión de Go (`Go: go1.27.3`) y después la suya (`Scanner: govulncheck@v1.8.0`), se lee bien: 1.8.0.
+- **Un programa que no está en el `PATH` pero sí en una carpeta `bin/` de tu carpeta personal** (`~/go/bin`, `~/.local/bin`, `~/.cargo/bin`, `~/.composer/vendor/bin`…) no aparece como «no instalado». `make doctor` dice dónde lo encontró y cómo agregar esa carpeta al `PATH`. Sigue contando como problema, porque `make` tampoco lo encuentra.
 - **No hace falta repetir lo que el kit revisa siempre:** Git, Python, `make`, `jq`, `uv`, Spec Kit, `gitleaks` y el agente de código.
 - **Docker se revisa solo** cuando el proyecto tiene un archivo de Docker Compose en la raíz. Decláralo en `requisitos` únicamente si el proyecto usa Docker sin ese archivo (por ejemplo, un verbo que corre dentro de un contenedor).
 - **Un perfil sin `requisitos` es válido**, pero `make doctor` avisa: no puede revisar las herramientas de la tecnología del proyecto.

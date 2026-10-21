@@ -105,8 +105,8 @@ def workflows_anteriores(e):
 
 @prueba("si la actualización se detiene, el comando para forzarla es el que entiende el Makefile viejo del proyecto")
 def forzar_con_el_makefile_viejo(e):
-    e.version_anterior()
-    kit = e.kit("anterior")
+    e.version_1x()
+    kit = e.kit("1x")
     p = e.proyecto(kit)
     afirmar("\ninstall-kit:" not in p.leer("Makefile"), "la versión anterior ya traía los nombres en inglés")
     p.agregar("AGENTS.md", "\nLínea agregada a mano en el proyecto.\n")

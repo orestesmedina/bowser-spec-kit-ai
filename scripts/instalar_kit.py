@@ -86,6 +86,8 @@ SIN_SUPUESTO_DESDE = (1, 23, 0)
 CON_COMANDO_PERFIL_DESDE = (1, 12, 0)
 # Los pasos manuales de las versiones anteriores a esta los reúne la guía de migración (docs/migrar-a-2.md).
 DOS_CERO = (2, 0, 0)
+# Lo que una versión escribe en "Al actualizar" cuando no hay pasos: no se lista como paso manual.
+SIN_PASOS = re.compile(r"nada que hacer\.?", re.IGNORECASE)
 CARPETAS_SUPUESTAS = ["backend", "frontend"]
 # Las constituciones que el kit instaló alguna vez (sha256 del texto, con saltos de línea de Unix) y el archivo con
 # las reglas que traían y que no son principios: al partirla en dos, esas reglas se le entregan al proyecto.
@@ -294,6 +296,8 @@ def mostrar_novedades(desde: str | None, hasta: str | None, limite_sin_desde: in
             if not linea.strip():
                 continue
             if seccion.lower() == "al actualizar":
+                if SIN_PASOS.fullmatch(linea.strip().lstrip("-").strip()):  # "Nada que hacer." no es un paso
+                    continue
                 pasos.append((clave_version(version), len(pasos), f"{linea.strip().lstrip('-').strip()}  ({version})"))
             else:
                 print(f"    {linea.strip()}")

@@ -105,6 +105,34 @@ def doctor_segun_el_perfil(e):
     contiene(doctor(p).salida, "corriendo")
 
 
+@prueba("make doctor toma la versión de la línea que nombra al programa, no la de otro que imprima antes")
+def version_de_su_linea(e):
+    p = con_perfil(e)
+    # Como govulncheck -version: primero la versión de Go, después la suya.
+    programa(p, "escaner", 'printf "Go: go1.27.3\\nScanner: escaner@v1.8.0\\n"')
+    programa(p, "sinnombre", 'echo "Version 4.2.0"')
+    escribir_perfil(p, [{"comando": "escaner", "nombre": "Escáner", "minima": "1.5", "version": "escaner -version"},
+                        {"comando": "sinnombre", "nombre": "Sin nombre"}])
+    s = doctor(p).salida
+    afirmar("✓" in linea(s, "Escáner 1.8.0"), f"toma la versión de otro programa:\n{s}")
+    afirmar("✓" in linea(s, "Sin nombre 4.2.0"), "si ninguna línea nombra al programa, no toma el primer número")
+
+
+@prueba("make doctor: un programa instalado en una carpeta bin/ de la carpeta personal que no está en el PATH se dice así, con cómo agregarla")
+def fuera_del_path(e):
+    p = con_perfil(e, ["generador"])
+    p.escribir("casa/go/bin/generador", "#!/bin/sh\necho generador v1.0\n")
+    p.archivo("casa/go/bin/generador").chmod(0o755)
+    extra = {"PATH": f"{p.ruta}/falsos:{os.environ['PATH']}", "HOME": f"{p.ruta}/casa"}
+    s = p.make("doctor", espera=None, extra=extra).salida
+    l = linea(s, "generador está en ~/go/bin, pero esa carpeta no está en el PATH")
+    afirmar("✗" in l, "un programa fuera del PATH no es un problema (make tampoco lo encuentra)")
+    contiene(l, 'export PATH="$HOME/go/bin:$PATH"', "cómo agregar la carpeta al PATH")
+    # Sin el programa en ninguna carpeta, el mensaje de siempre.
+    p.archivo("casa/go/bin/generador").unlink()
+    contiene(p.make("doctor", espera=None, extra=extra).salida, "generador no está instalado")
+
+
 @prueba("requisitos mal escritos se rechazan con un mensaje que dice qué corregir, y make doctor lo marca")
 def requisitos_invalidos(e):
     p = con_perfil(e)

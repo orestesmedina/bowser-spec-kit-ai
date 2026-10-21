@@ -13,6 +13,20 @@ Cada versión puede incluir una sección **Al actualizar** con los pasos manuale
 
 ## [Sin publicar]
 
+## [2.0.1] - 2026-10-20
+
+Detalles menores que destapó la migración de `simiente-santa-webside` a la 2.0.
+
+### Corregido
+- **`make doctor` mostraba la versión de otro programa** cuando la salida traía varias: de `govulncheck` mostraba la de Go, que imprime primero. Ahora toma el primer número que aparece después del nombre del programa y, si ninguna línea lo nombra, el primero que encuentre, como antes.
+- **`make doctor` daba por no instalado un programa que solo estaba fuera del `PATH`**, como `sqlc` en `~/go/bin` después de `go install`. Ahora lo busca en las carpetas `bin/` de la carpeta personal (`~/go/bin`, `~/.local/bin`, `~/.cargo/bin`…) y, si lo encuentra, dice dónde está y cómo agregar esa carpeta al `PATH`. Sigue contando como problema, porque `make` tampoco lo encuentra.
+- **Las novedades mostraban «Nada que hacer.» como paso manual** de cada versión que no tenía ninguno. Ya no se listan.
+- **`make upgrade` no avisaba de otros archivos que nombran un script que mueve a `tools/`**, como un comentario de un archivo OpenAPI. Ahora los lista con el archivo y la línea, para corregirlos a mano; no los cambia solo porque una mención puede ser historia (un `CHANGELOG`).
+- **Pruebas del kit:** desde el tag `v2.0.0`, las que comprueban la actualización de un proyecto de la 1.x fallaban o se omitían, porque instalaban la versión anterior publicada, que ya es la 2.0.0. Ahora instalan el último tag de la 1.x, y una prueba nueva actualiza desde la versión anterior publicada.
+
+### Al actualizar
+- Nada que hacer.
+
 ## [2.0.0] - 2026-10-20
 
 El kit deja de estar atado a Go, React y PostgreSQL. Cada proyecto declara su tecnología en su perfil (`equipo/perfil.json`), y el kit trae los agentes, las skills y los comandos para describirlo, revisarlo y trabajarlo. Esta versión reúne la 1.13.0 a la 1.24.4, que se trabajaron en la rama `etapa-2` y no se publicaron por separado: el detalle de cada cambio está en sus entradas, más abajo.

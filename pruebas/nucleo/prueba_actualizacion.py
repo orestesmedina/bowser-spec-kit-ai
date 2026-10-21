@@ -4,10 +4,28 @@ import json
 from apoyo import SUBMODULO, Omitida, afirmar, contiene, prueba
 
 
-@prueba("actualización desde la versión anterior, con el Makefile viejo del proyecto")
+@prueba("actualización desde la versión anterior publicada")
 def desde_la_anterior(e):
     anterior = e.version_anterior()
     kit = e.kit("anterior")
+    p = e.proyecto(kit)
+    version_vieja = json.loads(p.leer(".kit-manifest.json"))["version"]
+    afirmar(version_vieja != e.version, f"la versión anterior ({anterior}) es la misma que se prueba")
+    p.escribir("proyecto.mk", "e2e: ## Pruebas end-to-end del proyecto\n\t@echo e2e-del-proyecto\n")
+    p.commit("chore: comando propio")
+    e.pasar_kit_a(kit, "actual")
+    r = p.make("update-kit" if "\nupdate-kit:" in p.leer("Makefile") else "actualizar-kit")
+    contiene(r.salida, f"Novedades del kit de {version_vieja} a {e.version}")
+    afirmar(json.loads(p.leer(".kit-manifest.json"))["version"] == e.version, "el manifiesto no quedó en la versión nueva")
+    p.verificar_kit()
+    contiene(p.make("e2e").salida, "e2e-del-proyecto", "el comando propio del proyecto")
+    p.commit("chore: actualiza kit")
+
+
+@prueba("actualización desde la 1.x, con el Makefile viejo del proyecto")
+def desde_la_1x(e):
+    anterior = e.version_1x()
+    kit = e.kit("1x")
     p = e.proyecto(kit)
     version_vieja = json.loads(p.leer(".kit-manifest.json"))["version"]
     afirmar(version_vieja != e.version, f"la versión anterior ({anterior}) es la misma que se prueba")
@@ -80,8 +98,8 @@ def desde_la_anterior(e):
 @prueba("al partir la constitución, la que un proyecto había hecho suya queda completa en sus reglas")
 def constitucion_propia(e):
     constitucion, reglas = ".specify/memory/constitution.md", "equipo/reglas.md"
-    e.version_anterior()
-    kit = e.kit("anterior")
+    e.version_1x()
+    kit = e.kit("1x")
     p = e.proyecto(kit)
     if p.existe("equipo/principios.md"):
         raise Omitida("la versión anterior ya traía la constitución en dos partes")
@@ -194,6 +212,8 @@ def pasos_de_la_1x(e):
     r = p.make("news", "SINCE=1.23.0")
     afirmar("Vienes de la" not in r.salida, "resume los pasos de un proyecto que ya pasó el cambio que rompe")
     contiene(r.salida, "Ejecuta `make upgrade`", "el paso manual de la 1.24.0")
+    pasos = r.salida.split("PASOS MANUALES AL ACTUALIZAR", 1)[-1]
+    afirmar("Nada que hacer" not in pasos, "lista «Nada que hacer» como paso manual (1.24.1 a 1.24.4)")
 
 
 @prueba("un archivo que el kit entrega al proyecto (ci.yml) no se borra al actualizar, aunque tenga cambios locales")
@@ -252,8 +272,8 @@ def retirados_en_uso(e):
 
 @prueba("los scripts retirados que usa el ci.yml que instalaba el kit se entregan: el ci.yml pasa a ser del proyecto en la misma actualización")
 def retirados_en_el_ci_heredado(e):
-    e.version_anterior()
-    kit = e.kit("anterior")
+    e.version_1x()
+    kit = e.kit("1x")
     p = e.proyecto(kit)
     ci = ".github/workflows/ci.yml"
     if ci not in json.loads(p.leer(".kit-manifest.json"))["archivos"]:
@@ -276,9 +296,9 @@ def retirados_en_el_ci_heredado(e):
 
 
 def con_backend_desde_la_anterior(e):
-    """Un proyecto instalado con la versión anterior publicada, sin perfil y con la estructura que esta suponía."""
-    e.version_anterior()
-    kit = e.kit("anterior")
+    """Un proyecto instalado con la última 1.x publicada, sin perfil y con la estructura que esta suponía."""
+    e.version_1x()
+    kit = e.kit("1x")
     p = e.proyecto(kit)
     p.escribir("backend/main.go", "package main\n")
     p.commit("feat: primer código del backend")

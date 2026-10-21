@@ -196,7 +196,7 @@ Lo que revisa:
 | `kit.excluir` nombra un archivo que ya no es del kit | Una persona: quitar la línea |
 | Los workflows o `proyecto.mk` usan los [nombres anteriores](comandos.md#nombres-anteriores) de los comandos, opciones o confirmaciones | **Arreglo mecánico** |
 | Usan `make test-backend` o `make test-frontend`, y el perfil tiene esa parte | **Arreglo mecánico**: `make test PART=backend`. Si no hay reemplazo (`make db-migrate`), es un aviso |
-| `scripts/` tiene archivos que no son del kit (los que el kit retiró y el proyecto conservó, como `scripts/cobertura.py`) | **Arreglo mecánico**: pasan a `tools/`, y se corrige quién los nombra (el perfil, `proyecto.mk`, los workflows). Los que el proyecto puso en `kit.excluir` no se tocan |
+| `scripts/` tiene archivos que no son del kit (los que el kit retiró y el proyecto conservó, como `scripts/cobertura.py`) | **Arreglo mecánico**: pasan a `tools/`, y se corrige quién los nombra (el perfil, `proyecto.mk`, los workflows). Si otro archivo los nombra (un comentario, la documentación), se avisa con el archivo y la línea, pero no se cambia: puede ser historia, como un `CHANGELOG`. El aviso sale solo antes de mover el script. Los que el proyecto puso en `kit.excluir` no se tocan |
 
 Los arreglos mecánicos solo se aplican con tu confirmación: `make upgrade` pregunta en la terminal, y `make upgrade YES=1` los aplica sin preguntar. Si cambia el perfil, regenera los agentes y te recuerda que su commit pide `APPROVED_PROFILE=1`. Nunca hace commit.
 

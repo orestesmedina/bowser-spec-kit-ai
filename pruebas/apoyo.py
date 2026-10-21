@@ -209,6 +209,18 @@ class Entorno:
                 return t
         raise Omitida("no hay un tag de una versión anterior (¿clon sin tags? prueba: git fetch --tags)")
 
+    def version_1x(self) -> str:
+        """El último tag de la 1.x, para las pruebas de lo que trae un proyecto que viene de antes de la 2.0. Es la
+        versión anterior si se pidió una 1.x con --desde."""
+        anterior = self.version_anterior()
+        if re.fullmatch(r"v1\.\d+\.\d+", anterior):
+            return anterior
+        tags = [t for t in self._git_origen("tag", "--list", "v1.*", "--sort=-v:refname").splitlines()
+                if re.fullmatch(r"v1\.\d+\.\d+", t)]
+        if not tags:
+            raise Omitida("no hay un tag de la 1.x (¿clon sin tags? prueba: git fetch --tags)")
+        return tags[0]
+
     def _arbol(self, cual: str) -> str:
         """Identificador de git del contenido a probar. 'actual' es la carpeta de trabajo tal como está,
         con los cambios sin commit, y con los permisos que git tiene registrados."""
@@ -223,7 +235,8 @@ class Entorno:
                 self._git_origen("add", "-A", extra=extra)
                 self._arboles[cual] = self._git_origen("write-tree", extra=extra)
             else:
-                self._arboles[cual] = self._git_origen("rev-parse", f"{self.version_anterior()}^{{tree}}")
+                tag = self.version_1x() if cual == "1x" else self.version_anterior()
+                self._arboles[cual] = self._git_origen("rev-parse", f"{tag}^{{tree}}")
         return self._arboles[cual]
 
     def _extraer(self, cual: str, destino: Path) -> None:
@@ -237,7 +250,7 @@ class Entorno:
     # -- copias del kit
 
     def kit(self, cual: str = "actual") -> Path:
-        """Un repositorio git con el kit ('actual' o 'anterior'). Cada llamada devuelve una copia propia,
+        """Un repositorio git con el kit ('actual', 'anterior' o '1x', el último tag de la 1.x). Cada llamada devuelve una copia propia,
         que la prueba puede modificar o actualizar sin afectar a las demás."""
         if cual not in self._plantillas:
             plantilla = self.tmp / f"plantilla-kit-{cual}"

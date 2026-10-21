@@ -42,6 +42,9 @@ def pendientes(e):
     p.escribir("scripts/cobertura.py", "print('cobertura medida')\n")
     p.escribir(CI, CI_HEREDADO)
     p.escribir("proyecto.mk", PROYECTO_MK)
+    # Otro archivo que nombra el script fuera de una llamada (en simiente-santa-webside, un comentario del OpenAPI).
+    OPENAPI = "servidor/openapi.yaml"
+    p.escribir(OPENAPI, "openapi: 3.1.0\n# Lo une scripts/cobertura.py; no confundir con otros_scripts/cobertura.py\n")
     p.escribir("equipo/reglas.md", "# Constitución: reglas del proyecto\n\nEstas reglas venían en la constitución que el "
                                    "kit instalaba antes (versión 1.0.0).\n\n- El backend DEBE estar en Go.\n")
     p.agregar(".gitignore", "\n# Estas líneas venían en el bloque del kit; desde ahora son del proyecto: edítalas o bórralas.\n"
@@ -50,7 +53,7 @@ def pendientes(e):
     afirmar("pendientes para aprovechar el kit: make upgrade" in p.make("install-kit").salida,
             "make install-kit no avisa de los pendientes")
 
-    antes = {rel: p.leer(rel) for rel in (PERFIL, CI, "proyecto.mk", "scripts/cobertura.py")}
+    antes = {rel: p.leer(rel) for rel in (PERFIL, CI, "proyecto.mk", "scripts/cobertura.py", OPENAPI)}
     s = p.make("upgrade").salida
     for texto in ("Lo resuelve un agente", "El perfil no declara `requisitos`",
                   "ci.yml es el que instalaba el kit: repite lo que ya hace bowser.yml",
@@ -60,6 +63,7 @@ def pendientes(e):
                   "Recomendado: la parte backend no tiene convenciones propias",
                   "ci.yml usa `make db-migrate`, que se retiró en la 1.23.0",
                   "scripts/cobertura.py → tools/cobertura.py",
+                  f"{OPENAPI} (línea 2) nombra scripts/cobertura.py, que pasa a tools/cobertura.py: corrígelo a mano",
                   "+      - run: make coverage PART=backend", "+      - run: make test PART=backend",
                   "+      - run: python3 tools/cobertura.py coverage.out",
                   "+\t$(MAKE) check-generated FORCE=1", "+\t@echo APPROVED_PROFILE",
@@ -81,6 +85,7 @@ def pendientes(e):
     for texto in ("make coverage PART=backend", "make test PART=backend", "make db-migrate", "python3 tools/cobertura.py"):
         contiene(ci, texto, "el ci.yml")
     contiene(p.leer("proyecto.mk"), "$(MAKE) check-generated FORCE=1\n\t@echo APPROVED_PROFILE", "proyecto.mk")
+    afirmar(p.leer(OPENAPI) == antes[OPENAPI], "make upgrade corrigió una mención que solo debía avisar")
     contiene(p.make("coverage").salida, "cobertura medida", "el verbo con el script ya en tools/")
     p.verificar_kit()
     p.correr("python3", "scripts/sincronizar.py", "--verificar")
@@ -89,6 +94,7 @@ def pendientes(e):
     s = p.make("upgrade").salida
     afirmar("Arreglos mecánicos" not in s, f"quedaron arreglos mecánicos después de aplicarlos:\n{s}")
     contiene(s, "equipo/reglas.md todavía tiene las reglas")
+    afirmar("nombra scripts/cobertura.py" not in s, "el aviso de la mención sigue después de mover el script")
 
 
 @prueba("make upgrade: un proyecto sin pendientes lo dice, y make install-kit no avisa de nada")
