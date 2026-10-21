@@ -46,9 +46,9 @@ El informe muestra dos cifras, y es normal que no coincidan:
 ## Ver el costo
 
 ```bash
-make costos              # la funcionalidad de la rama actual
-make costos TODO=1       # todo el proyecto: por funcionalidad, agente y modelo
-make costos PRECIOS=hoy  # cuánto costaría hoy, a precios actuales. No guarda nada
+make costs              # la funcionalidad de la rama actual
+make costs ALL=1       # todo el proyecto: por funcionalidad, agente y modelo
+make costs PRICES=today  # cuánto costaría hoy, a precios actuales. No guarda nada
 ```
 
 El informe de una funcionalidad:
@@ -63,13 +63,13 @@ COSTO DE LA TAREA · 001-estructura-base · abierto
   Según OpenCode (precio del momento de cada respuesta): $6.70
 ```
 
-`make costos PRECIOS=hoy` sirve para cotizar: responde "¿cuánto costaría construir algo parecido hoy?".
+`make costs PRICES=today` sirve para cotizar: responde "¿cuánto costaría construir algo parecido hoy?".
 
-`make estado` también muestra el costo acumulado de la funcionalidad actual.
+`make status` también muestra el costo acumulado de la funcionalidad actual.
 
 ## Cómo se registra
 
-**Se registra solo.** El orquestador ejecuta `make costos` al iniciar y al cerrar cada sesión. El comando lee las sesiones de la herramienta en tu computadora, incluidas las de los subagentes, y agrega lo nuevo a `costos.json`.
+**Se registra solo.** El orquestador ejecuta `make costs` al iniciar y al cerrar cada sesión. El comando lee las sesiones de la herramienta en tu computadora, incluidas las de los subagentes, y agrega lo nuevo a `costos.json`.
 
 Tres reglas sobre a qué funcionalidad se asigna cada cosa:
 
@@ -78,7 +78,7 @@ Tres reglas sobre a qué funcionalidad se asigna cada cosa:
 - Una misma respuesta nunca se cuenta dos veces, aunque ejecutes el comando muchas veces.
 
 > [!NOTE]
-> Si trabajaste en una sesión sin pasar por el orquestador, ejecuta `make costos` en la rama de la funcionalidad **antes de cambiarte de rama**.
+> Si trabajaste en una sesión sin pasar por el orquestador, ejecuta `make costs` en la rama de la funcionalidad **antes de cambiarte de rama**.
 
 El archivo nunca se edita a mano. En Claude Code, el agente ni siquiera puede: un [hook del agente](hooks-del-agente.md) lo bloquea.
 
@@ -115,7 +115,7 @@ En `dias`, 0 es lunes. `"pico": []` la desactiva.
 Cuando apruebas el Pull Request, el orquestador ejecuta:
 
 ```bash
-make costos CERRAR=1
+make costs CLOSE=1
 ```
 
 Registra lo pendiente, marca el costo como `cerrado` y lo guarda en un commit **antes** de integrar. Desde ahí, el costo de esa funcionalidad no cambia: el [hook de git](hooks-de-git.md) bloquea cualquier modificación.
@@ -132,13 +132,13 @@ Cerrar el costo es una decisión que sigue a tu aprobación: ningún agente lo c
 | "OpenCode no devolvió ninguna sesión de este proyecto" | Trabajaste con otra herramienta, o en otra carpeta | Compruébalo con `opencode session list` desde la carpeta del proyecto |
 | "…todas anteriores al inicio de la tarea" | Las sesiones que hay son de antes de crear la rama | Es lo esperado si aún no se trabajó en la rama |
 | "Sin precio para: …" | El modelo no está en models.dev | Agrega su precio en `costos.precios_manuales` |
-| "NO se registró el consumo: no hay precio para ningún modelo usado" | No se pudo consultar los precios y no hay copia local | Vuelve a ejecutar `make costos` cuando haya conexión. No se pierde nada |
+| "NO se registró el consumo: no hay precio para ningún modelo usado" | No se pudo consultar los precios y no hay copia local | Vuelve a ejecutar `make costs` cuando haya conexión. No se pierde nada |
 | "El costo de esta tarea está cerrado" | La funcionalidad ya se entregó | El consumo nuevo va en la funcionalidad actual |
 | "El costo de … ya está cerrado" al hacer commit | Se modificó un `costos.json` cerrado | Revierte el cambio |
 
 ## Límites
 
-- **Hoy solo registra sesiones de OpenCode.** Con Claude Code o Codex, `make costos` no encuentra consumo.
+- **Hoy solo registra sesiones de OpenCode.** Con Claude Code o Codex, `make costs` no encuentra consumo.
 - **El registro es por máquina.** Cada persona registra el consumo de las sesiones de su computadora.
 - **Es un costo equivalente, no una factura.** Ver [Costo equivalente y gasto real](#costo-equivalente-y-gasto-real).
 

@@ -1,9 +1,9 @@
 ---
 nombre: status
-descripcion: Muestra por dónde va el proyecto y cuál es el próximo paso (make estado).
+descripcion: Muestra por dónde va el proyecto y cuál es el próximo paso (make status).
 argumentos: [todo]
 ---
-Ejecuta `make estado` en la raíz del proyecto. Si la persona pidió `todo`, usa `make estado TODO=1` para incluir las funcionalidades ya terminadas.
+Ejecuta `make status` en la raíz del proyecto. Si la persona pidió `todo`, usa `make status ALL=1` para incluir las funcionalidades ya terminadas.
 
 Este comando solo lee: no cambies ningún archivo.
 

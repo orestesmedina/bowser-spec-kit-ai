@@ -30,8 +30,8 @@ Las herramientas buscan sus archivos en la raíz del proyecto: el agente de cód
 Por eso instalar el kit significa **copiar** sus archivos del submódulo a la raíz. El submódulo es el original; la raíz tiene las copias que usan las herramientas.
 
 ```bash
-make instalar-kit      # copia desde el submódulo a la raíz
-make actualizar-kit    # trae la última versión del kit y luego instala
+make install-kit      # copia desde el submódulo a la raíz
+make update-kit    # trae la última versión del kit y luego instala
 ```
 
 ## Archivos gestionados y semillas
@@ -40,7 +40,7 @@ El kit copia dos clases de archivos, y las trata de forma muy distinta:
 
 | | Gestionados | Semillas |
 |---|---|---|
-| Cuáles | `AGENTS.md`, `Makefile`, `.agents/skills/`, `.githooks/`, `.github/workflows/`, la constitución, `equipo/agentes/`, `equipo/adaptadores/`, `equipo/orquestador.md`, `scripts/`, `docs/plantillas/` | `equipo/config.json`, `.github/CODEOWNERS`, `.env.example`, `docker-compose.yml` |
+| Cuáles | `AGENTS.md`, `Makefile`, `.agents/skills/` (con las skills del catálogo que pide el perfil), `.githooks/`, `.github/workflows/bowser.yml`, `equipo/agentes/`, `equipo/comandos/`, `equipo/adaptadores/`, `equipo/orquestador.md`, `equipo/principios.md` (los principios de la constitución), `scripts/`, `docs/plantillas/` | `equipo/config.json`, `equipo/reglas.md` (las reglas del proyecto), `.github/CODEOWNERS`, `.env.example` |
 | Cuándo se copian | En cada instalación y en cada actualización | Una sola vez, si no existen |
 | De quién son | Del kit | Del proyecto, desde que se copian |
 | ¿Se editan en el proyecto? | No | Sí |
@@ -48,7 +48,7 @@ El kit copia dos clases de archivos, y las trata de forma muy distinta:
 La diferencia tiene una razón. Los archivos gestionados son las reglas y los controles: deben ser iguales en todos los proyectos y mejorar con el kit. Las semillas son configuración: cada proyecto tiene sus modelos, sus dueños y sus servicios, y una actualización no debe pisarlos.
 
 > [!NOTE]
-> Como las semillas no se actualizan solas, cuando el kit cambia algo en una de ellas lo indica entre los pasos manuales de la versión, o trae un comando que muestra las diferencias y pide confirmación, como `make actualizar-modelos`.
+> Como las semillas no se actualizan solas, cuando el kit cambia algo en una de ellas lo indica entre los pasos manuales de la versión, o trae un comando que muestra las diferencias y pide confirmación, como `make update-models`.
 
 Hay archivos del kit que **no** llegan al proyecto, porque solo tienen sentido en el repositorio del kit: su `README.md`, su registro de cambios, su licencia y esta documentación, que se lee directamente en `.bowser-spec-kit-ai/docs/`.
 
@@ -84,8 +84,16 @@ Para cada archivo gestionado, la instalación compara tres cosas: la versión nu
 | Existe y **alguien lo modificó** en el proyecto | **Se detiene** y lo muestra. No pisa nada |
 | Existía antes de que el kit lo gestionara | Lo reemplaza y guarda el anterior en `.kit-respaldo/` |
 | El kit ya no lo trae | Lo borra del proyecto |
+| El kit ya no lo trae, pero **el proyecto lo usa** | Lo conserva y se lo entrega: sale del manifiesto y desde ahí es del proyecto |
+| El kit ya no lo trae, y alguien lo modificó | Lo conserva y avisa |
 
-El caso que importa es el tercero: una actualización nunca destruye en silencio un cambio local. Qué hacer cuando se detiene está en la [Guía de actualización](actualizacion.md#cuando-la-actualización-se-detiene).
+"El proyecto lo usa" quiere decir que su ruta aparece en el perfil (`equipo/perfil.json`), en `proyecto.mk` o en un workflow propio de `.github/workflows/`. Por ejemplo, un verbo del perfil que ejecuta `scripts/cobertura.py`: borrarlo rompería ese verbo. La instalación lo avisa:
+
+```text
+  ! scripts/cobertura.py ya no viene del kit, pero equipo/perfil.json lo usa: se conservó tal como estaba y desde ahora es del proyecto (los scripts propios van en tools/: muévelo ahí cuando puedas).
+```
+
+El caso que importa es el de un archivo modificado: una actualización nunca destruye en silencio un cambio local. Qué hacer cuando se detiene está en la [Guía de actualización](actualizacion.md#cuando-la-actualización-se-detiene).
 
 ## Cómo se evita que alguien edite el kit
 
@@ -101,7 +109,7 @@ Editar un archivo gestionado dentro del proyecto es un error fácil de cometer, 
 La comprobación se puede ejecutar a mano:
 
 ```bash
-make verificar-kit
+make check-kit
 ```
 
 Si un proyecto necesita de verdad su propia versión de un archivo, lo declara en `"kit.excluir"`. Ver [Personalizar un proyecto](personalizar.md).
@@ -126,8 +134,8 @@ Si un proyecto no puede usar submódulos, el kit se puede copiar a mano:
 
 ```bash
 cp -r bowser-spec-kit-ai/. .
-make sincronizar
-make instalar-hooks
+make sync
+make install-hooks
 ```
 
 Funciona, pero se pierde lo que da el submódulo: no hay manifiesto, no hay actualización con un comando y no hay detección de archivos del kit modificados. Las mejoras del kit habría que traerlas a mano.

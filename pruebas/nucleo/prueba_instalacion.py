@@ -31,11 +31,54 @@ def solo_del_kit(e):
             "en docs/ del proyecto solo debe estar plantillas/")
     afirmar(p.existe(f"{SUBMODULO}/docs/aprobaciones.md"), "la documentación debe leerse desde el submódulo")
     # Las semillas sí llegan, una sola vez.
-    for rel in ("equipo/config.json", ".github/CODEOWNERS", "docker-compose.yml"):
+    for rel in ("equipo/config.json", "equipo/reglas.md", ".github/CODEOWNERS", ".env.example"):
         afirmar(p.existe(rel), f"falta la semilla {rel}")
+
+
+@prueba("lo que llega a un proyecto nuevo no trae tecnología: ni servicios, ni variables, ni reglas de .gitignore")
+def semillas_sin_tecnologia(e):
+    p = e.proyecto(commit=False)
+    for rel in ("docker-compose.yml", "compose.yaml"):
+        afirmar(not p.existe(rel), f"{rel} llegó al proyecto: el entorno local es del proyecto, no del kit")
+    gitignore = p.leer(".gitignore")
+    for regla in (".env", "secrets/", ".claude/settings.local.json", "__pycache__/", ".kit-respaldo/"):
+        contiene(gitignore, f"\n{regla}\n", "el bloque del kit en .gitignore")
+    for palabra in ("backend", "frontend", "node_modules", "Go", "Node", "React", "*.test"):
+        afirmar(palabra not in gitignore, f"el bloque del kit en .gitignore nombra «{palabra}»")
+    # Sin archivo de Docker Compose, make up lo dice en vez de dejar que Docker falle.
+    for orden in ("up", "down"):
+        contiene(p.make(orden, espera=1).salida, "todavía no tiene entorno local")
+    variables = [l for l in p.leer(".env.example").splitlines() if l.strip() and not l.lstrip().startswith("#")]
+    afirmar(not variables, f".env.example trae variables de una tecnología: {variables}")
     r = p.make("test-kit", espera=1)
     contiene(r.salida, "test-kit", "el error de make")
     afirmar("test-kit" not in p.make("help").salida, "make help ofrece test-kit en un proyecto")
+
+
+@prueba("la plantilla de constitución que deja Spec Kit no se toma por reglas del proyecto; una escrita a mano, sí")
+def constitucion_que_ya_existia(e):
+    constitucion, reglas = ".specify/memory/constitution.md", "equipo/reglas.md"
+    p = e.proyecto_vacio()
+    p.escribir(constitucion, "# [PROJECT_NAME] Constitution\n\n## Core Principles\n\n### [PRINCIPLE_1_NAME]\n[PRINCIPLE_1_DESCRIPTION]\n")
+    p.git("submodule", "add", "-q", str(e.kit()), SUBMODULO)
+    p.instalar_kit()
+    contiene(p.leer(reglas), "todavía no tiene reglas propias", "las reglas de un proyecto nuevo")
+    afirmar("PRINCIPLE_1_NAME" not in p.leer(reglas) + p.leer(constitucion), "la plantilla de Spec Kit quedó en la constitución")
+    afirmar(p.leer(constitucion).startswith("<!-- GENERADO"), "la constitución no se generó sobre la plantilla de Spec Kit")
+    p.commit("chore: instala kit")
+
+    q = e.proyecto_vacio()
+    q.escribir(constitucion, "# Constitución de mi equipo\n\n- Los informes DEBEN salir en PDF.\n")
+    q.git("submodule", "add", "-q", str(e.kit()), SUBMODULO)
+    contiene(q.instalar_kit().salida, f"quedó completa en {reglas}")
+    contiene(q.leer(reglas), "Los informes DEBEN salir en PDF.", "las reglas del proyecto")
+    contiene(q.leer(constitucion), "Los informes DEBEN salir en PDF.", "la constitución generada")
+    contiene(q.leer(constitucion), "principios del kit", "la constitución generada")
+    q.commit("chore: instala kit")
+    # Las reglas ya son del proyecto: instalar de nuevo no las toca.
+    q.agregar(reglas, "\n- Otra regla.\n")
+    q.make("install-kit")
+    contiene(q.leer(reglas), "Otra regla.", "las reglas del proyecto después de instalar otra vez")
 
 
 @prueba("los hooks y los scripts de shell quedan ejecutables, en git y en el proyecto")
@@ -73,7 +116,7 @@ def repara_permisos(e):
 @prueba("instalar por segunda vez no cambia nada")
 def instalar_dos_veces(e):
     p = e.proyecto()
-    r = p.make("instalar-kit")
+    r = p.make("install-kit")
     contiene(r.salida, "Sin cambios: el proyecto ya estaba al día.")
     afirmar(not p.pendientes(), f"la segunda instalación dejó cambios: {p.pendientes()}")
 
@@ -101,7 +144,9 @@ def proyecto_existente(e):
     contiene(r.salida, "reemplazados (existían antes)")
     contiene(r.salida, "Respaldo de lo reemplazado: .kit-respaldo/")
 
-    reemplazados = ("Makefile", "AGENTS.md", ".github/workflows/ci.yml")
+    # La integración continua es del proyecto: su ci.yml no se toca, y el workflow del kit llega con otro nombre.
+    afirmar(p.existe(".github/workflows/bowser.yml"), "no llegó el workflow del kit")
+    reemplazados = ("Makefile", "AGENTS.md")
     respaldos = list(p.archivo(".kit-respaldo").iterdir())
     afirmar(len(respaldos) == 1, "debe haber una sola carpeta de respaldo")
     for rel in reemplazados:

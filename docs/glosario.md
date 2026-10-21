@@ -6,7 +6,7 @@ Los términos que aparecen en esta documentación, en orden alfabético. Cada un
 
 **Aprobación.** El momento en que una persona se hace responsable de lo que sigue. Hay cuatro: especificación, plan, Pull Request y despliegue. Ver [Aprobaciones](aprobaciones.md).
 
-**Archivo generado.** Un archivo que produce un comando a partir de otro, y que nunca se edita a mano. Hay de dos tipos: la configuración de los agentes (`make sincronizar`) y el código generado (`make generar`). Ver [Una fuente, varias herramientas](una-fuente-varias-herramientas.md) y [Cobertura y código generado](cobertura-y-codigo-generado.md).
+**Archivo generado.** Un archivo que produce un comando a partir de otro, y que nunca se edita a mano. Hay de dos tipos: la configuración de los agentes (`make sync`) y el código generado (`make generate`). Ver [Una fuente, varias herramientas](una-fuente-varias-herramientas.md) y [Cobertura y código generado](cobertura-y-codigo-generado.md).
 
 **Archivo gestionado.** Un archivo que viene del kit y se reemplaza en cada actualización. No se edita en el proyecto. Ver [El kit como submódulo](submodulo.md).
 
@@ -14,11 +14,11 @@ Los términos que aparecen en esta documentación, en orden alfabético. Cada un
 
 **Ciclo de corrección.** Una vuelta de "los revisores rechazan, el desarrollador corrige". Tras tres sin éxito, el orquestador se detiene y pide ayuda. Ver [Construir una funcionalidad](funcionalidad.md#paso-7-validación).
 
-**Cobertura.** El porcentaje del código que se ejecuta cuando corren las pruebas. El kit exige 80 % en la capa de servicio. Ver [Cobertura y código generado](cobertura-y-codigo-generado.md).
+**Cobertura.** El porcentaje del código que se ejecuta cuando corren las pruebas. El mínimo lo fijan las reglas del proyecto, y lo mide el verbo `cobertura` del perfil. Ver [Cobertura y código generado](cobertura-y-codigo-generado.md).
 
 **CODEOWNERS.** El archivo que le dice a GitHub quién debe aprobar un cambio según los archivos que toca. Ver [Configuración](configuracion.md#codeowners).
 
-**Constitución.** Las reglas no negociables que todo el código debe cumplir. Ver [La constitución](la-constitucion.md).
+**Constitución.** Las reglas no negociables que todo el código debe cumplir. Tiene dos partes: los principios, que son del kit y valen con cualquier tecnología, y las reglas del proyecto. Ver [La constitución](la-constitucion.md).
 
 **Contrato de la API.** El archivo `openapi.yaml`, que describe qué le ofrece el backend al frontend. Se escribe antes que el código.
 
@@ -68,7 +68,7 @@ Los términos que aparecen en esta documentación, en orden alfabético. Cada un
 
 **Spec Kit.** La herramienta de GitHub que estructura el proceso en fases y aporta las plantillas de los documentos. Ver [Desarrollo guiado por especificaciones](sdd.md#spec-kit).
 
-**Stack.** El conjunto de tecnologías del proyecto: React y TypeScript, Go y PostgreSQL.
+**Stack.** El conjunto de tecnologías del proyecto: su lenguaje, su base de datos, sus bibliotecas. Cada proyecto declara el suyo en su [perfil](perfil-del-proyecto.md); el kit no supone ninguno.
 
 **Subagente.** Un agente especializado en un rol, que el orquestador lanza para una tarea concreta. Ver [El equipo de agentes](equipo-de-agentes.md).
 

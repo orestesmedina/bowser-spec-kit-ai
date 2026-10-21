@@ -2,16 +2,16 @@
 
 - [Introducción](#introducción)
 - [Para qué sirve en este kit](#para-qué-sirve-en-este-kit)
+- [Dos workflows: el del kit y el del proyecto](#dos-workflows-el-del-kit-y-el-del-proyecto)
 - [Cuándo se ejecuta](#cuándo-se-ejecuta)
-- [Qué comprueba](#qué-comprueba)
-    - [Kit y configuración de agentes](#kit-y-configuración-de-agentes)
-    - [Migraciones y constitución](#migraciones-y-constitución)
-    - [Backend](#backend)
-    - [Frontend](#frontend)
-    - [Búsqueda de secretos](#búsqueda-de-secretos)
+- [Qué comprueba el workflow del kit](#qué-comprueba-el-workflow-del-kit)
+- [El workflow del proyecto](#el-workflow-del-proyecto)
+    - [Crearlo con `/bowser-ci`](#crearlo-con-bowser-ci)
+    - [Qué forma tiene](#qué-forma-tiene)
+    - [Comprobar que no falta nada](#comprobar-que-no-falta-nada)
 - [Ejecutar lo mismo en tu máquina](#ejecutar-lo-mismo-en-tu-máquina)
 - [Cuando falla](#cuando-falla)
-- [Cambiar la versión de una herramienta](#cambiar-la-versión-de-una-herramienta)
+- [Si vienes de una versión anterior](#si-vienes-de-una-versión-anterior)
 - [Lo que no hace](#lo-que-no-hace)
 - [Siguientes pasos](#siguientes-pasos)
 
@@ -19,15 +19,27 @@
 
 La integración continua (CI) es un conjunto de comprobaciones que **GitHub ejecuta por su cuenta** cada vez que alguien propone un cambio. Si alguna falla, el Pull Request queda marcado en rojo y no se puede integrar.
 
-En el kit vive en un solo archivo: `.github/workflows/ci.yml`.
-
 ## Para qué sirve en este kit
 
 Es la única capa de control que **no se puede saltar**. Los [hooks de git](hooks-de-git.md) corren en la máquina de quien hace el cambio, y esa persona (o ese agente) puede no tenerlos activos, o evitarlos con `--no-verify`. La integración continua corre en GitHub, fuera de su alcance.
 
-Por eso repite lo que ya revisaron los hooks, y agrega lo que los hooks no hacen por ser lento: ejecutar todas las pruebas contra una base de datos real, medir la cobertura y buscar vulnerabilidades.
+Por eso repite lo que ya revisaron los hooks, y agrega lo que los hooks no hacen por ser lento: ejecutar todas las pruebas, medir la cobertura y buscar vulnerabilidades.
 
 Para que tenga efecto, la rama principal debe estar protegida en GitHub, de modo que nada entre sin pasar por ella. Ver [Configuración](configuracion.md#configuración-en-github).
+
+## Dos workflows: el del kit y el del proyecto
+
+Instalar un lenguaje, levantar una base de datos o correr un linter depende de la tecnología de cada proyecto, y el kit no la dicta. Por eso la integración continua está en dos archivos:
+
+| Archivo | De quién es | Qué trae |
+|---|---|---|
+| `.github/workflows/bowser.yml` | Del kit. Se reemplaza en cada actualización y no se edita | Los controles que valen para cualquier proyecto: archivos del kit, agentes y perfil al día, archivos inmutables, constitución y secretos |
+| `.github/workflows/ci.yml` | Del proyecto. Se edita ahí | Lo que depende de la tecnología: instalar las herramientas de cada parte, levantar sus servicios y ejecutar sus [verbos](perfil-del-proyecto.md#los-verbos) |
+
+El kit no instala ningún `ci.yml`. Lo redacta un agente a partir del [perfil del proyecto](perfil-del-proyecto.md), con el comando `/bowser-ci`, y lo aprueba una persona.
+
+> [!NOTE]
+> El nombre `ci.yml` es una costumbre, no una obligación. Cualquier archivo de `.github/workflows/` que no sea `bowser.yml` es del proyecto.
 
 ## Cuándo se ejecuta
 
@@ -36,61 +48,94 @@ Para que tenga efecto, la rama principal debe estar protegida en GitHub, de modo
 
 Si llega un commit nuevo mientras una ejecución anterior de la misma rama sigue en curso, la anterior se cancela.
 
-## Qué comprueba
+## Qué comprueba el workflow del kit
 
-El trabajo se divide en cinco grupos, que corren en paralelo.
+`bowser.yml` tiene tres grupos, que corren en paralelo.
 
-### Kit y configuración de agentes
+**Kit, agentes y perfil al día**
 
 | Comprobación | Qué detecta |
 |---|---|
 | Los archivos del kit coinciden con su submódulo | Que alguien editó en el proyecto un archivo que viene del kit |
-| La configuración de agentes está al día | Que cambió un rol o una skill y no se ejecutó `make sincronizar` |
+| La configuración de agentes está al día | Que cambió un rol, una skill o el perfil y no se ejecutó `make sync` |
+| El perfil del proyecto es válido | Un `equipo/perfil.json` mal escrito. Solo si el proyecto tiene perfil |
+| La integración continua del proyecto ejecuta los verbos | Que una parte tiene verbos que ningún workflow ejecuta. **Avisa**, no falla |
 
-### Migraciones y constitución
+**Archivos inmutables y constitución**
 
 Solo en Pull Requests, porque compara contra la rama de destino.
 
 | Comprobación | Qué detecta |
 |---|---|
-| Las migraciones existentes no se modifican | Que se editó, renombró o borró una migración ya versionada. **Falla** |
-| Aviso si cambia la constitución | Que el Pull Request toca las reglas. **Avisa**, y la aprobación la exige `CODEOWNERS` |
+| Los archivos inmutables no se modifican | Que se editó, renombró o borró un archivo que el perfil declara en `inmutables` (por ejemplo, un cambio de esquema ya versionado). **Falla**. Sin perfil no hay inmutables: pasa |
+| Aviso si cambia la constitución | Que el Pull Request toca los principios o las reglas del proyecto (`equipo/principios.md`, `equipo/reglas.md`). **Avisa**, y la aprobación la exige `CODEOWNERS` |
 
-### Backend
+**Búsqueda de secretos**
 
-Solo si existe `backend/go.mod`. Levanta un PostgreSQL real para las pruebas.
+Revisa todo el historial del cambio con `gitleaks`, en busca de claves, tokens o contraseñas.
 
-| Paso | Qué detecta |
-|---|---|
-| Formato | Código Go sin formatear |
-| `go vet` | Errores que el compilador no marca |
-| `golangci-lint` | Problemas de calidad |
-| Código generado al día | Que cambió una consulta y no se regeneró el código de sqlc |
-| Migraciones | Que las migraciones no se aplican en una base de datos vacía |
-| Pruebas unitarias y de integración | Pruebas que fallan. Incluye la detección de condiciones de carrera |
-| Cobertura de la capa de servicio | Menos del 80 % que exige la constitución |
-| Vulnerabilidades | Dependencias de Go con fallos de seguridad conocidos |
+## El workflow del proyecto
 
-La versión de Go sale de `backend/go.mod`, así que la integración continua usa la misma que el proyecto.
+### Crearlo con `/bowser-ci`
 
-### Frontend
+En el chat de tu herramienta, con el perfil ya creado:
 
-Solo si existe `frontend/package.json`.
+```text
+/bowser-ci
+```
 
-| Paso | Qué detecta |
-|---|---|
-| Tipos de la API al día | Que cambió el contrato y no se regeneraron los tipos |
-| Lint | Problemas de calidad |
-| Comprobación de tipos | Errores de TypeScript |
-| Pruebas | Pruebas que fallan |
-| Compilación | Que el frontend no compila |
-| Vulnerabilidades | Dependencias con fallos de seguridad de nivel alto o crítico |
+El agente (el rol `devops`, con la skill `ci-proyecto`) lee el perfil, mira qué necesita cada verbo para correr y propone el archivo. Te explica qué se revisa en cada parte, qué se instala y en qué versión, qué servicios se levantan y qué secretos hay que crear en GitHub. Con tu "sí", lo escribe.
 
-Los dos controles de código generado y el de cobertura están explicados en [Cobertura y código generado](cobertura-y-codigo-generado.md).
+`/bowser-ci ver` no cambia nada: solo muestra qué verbos ejecuta hoy la integración continua.
 
-### Búsqueda de secretos
+Vuelve a ejecutarlo cuando el proyecto sume una parte, un verbo o un servicio. Si ya hay un `ci.yml`, lo actualiza sin perder los pasos propios.
 
-Revisa todo el historial del cambio con `gitleaks`, en busca de claves, tokens o contraseñas. Corre siempre, aunque el proyecto no tenga backend ni frontend.
+> [!WARNING]
+> Un workflow solo se prueba de verdad en GitHub. El primer Pull Request después de crearlo dirá si funciona: revísalo.
+
+### Qué forma tiene
+
+La idea central es que el workflow **no repite los comandos de los verbos: los ejecuta**. Cada parte se revisa con una línea, la misma que usa el equipo en su máquina:
+
+```yaml
+- run: make ci PART=api
+```
+
+Todo lo demás del archivo existe para que esa línea pueda correr. Un job típico, para una parte que necesita una base de datos:
+
+```yaml
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    services:
+      # la base de datos que usan las pruebas, en la versión mayor del entorno local
+    steps:
+      - uses: actions/checkout@v7
+      # instalar el lenguaje, en la versión que declara el proyecto
+      # instalar las dependencias y las herramientas que los verbos llaman, en versiones fijas
+      # preparar la base de datos
+      - run: make ci PART=api
+```
+
+Así, cambiar el comando de un verbo en el perfil cambia lo que revisa GitHub sin tocar el workflow, y lo que pasa en tu máquina es lo mismo que pasa allá.
+
+Una parte sin verbos no lleva job: no hay nada que ejecutar. Queda sin revisar, y el agente lo dice al entregar.
+
+### Comprobar que no falta nada
+
+```bash
+make check-ci
+```
+
+```text
+.github/workflows/ci.yml
+  api: formato, revisar, probar, auditar
+⚠ Ningún workflow del proyecto ejecuta estos verbos del perfil (panel: revisar). Lo que no corre en la integración continua nadie lo revisa en un Pull Request. Para redactarla desde el perfil, escribe en el chat: /bowser-ci
+```
+
+Lee los workflows del proyecto y busca dónde se ejecutan los verbos, con `make ci`, `make lint`, `make test`, `make coverage`, `make security` o `make check-generated` (con `PART=nombre` cuenta solo esa parte), o con `scripts/verbos.py`. El mismo aviso aparece en cada Pull Request, dentro de `bowser.yml`.
+
+Es un aviso y no un bloqueo porque un proyecto recién instalado todavía no tiene su workflow. Quien quiera exigirlo puede agregar a su `ci.yml` el paso `python3 scripts/ci.py --verificar`, que sí falla.
 
 ## Ejecutar lo mismo en tu máquina
 
@@ -98,12 +143,12 @@ Revisa todo el historial del cambio con `gitleaks`, en busca de claves, tokens o
 make ci
 ```
 
-Ejecuta los linters, la verificación del código generado, las pruebas, la cobertura y la auditoría de dependencias. Conviene correrlo antes de abrir un Pull Request: es más rápido enterarse en tu máquina que esperar a GitHub.
+Ejecuta los seis verbos en todas las partes y termina con un resumen de lo que se comprobó y lo que no. Conviene correrlo antes de abrir un Pull Request: es más rápido enterarse en tu máquina que esperar a GitHub.
 
-Cada parte también se puede ejecutar por separado. Ver [Comandos](comandos.md#calidad-y-pruebas).
+Cada verbo también se puede ejecutar por separado. Ver [Comandos](comandos.md#calidad-y-pruebas).
 
 > [!NOTE]
-> `make ci` necesita las mismas herramientas que la integración continua, en las mismas versiones. Están en la página de [Instalación](instalacion.md#herramientas-de-go). Con otras versiones, algo puede pasar en tu máquina y fallar en GitHub.
+> `make ci` necesita las mismas herramientas que la integración continua, en las mismas versiones. Con otras, algo puede pasar en tu máquina y fallar en GitHub.
 
 ## Cuando falla
 
@@ -113,46 +158,38 @@ Cada parte también se puede ejecutar por separado. Ver [Comandos](comandos.md#c
 
 | El paso que falló | Comando para reproducirlo | Solución habitual |
 |---|---|---|
-| Archivos del kit | `make verificar-kit` | Revertir el cambio al archivo del kit, o `make instalar-kit` |
-| Configuración de agentes | `make verificar-agentes` | `make sincronizar` |
-| Formato, `go vet`, `golangci-lint`, lint del frontend | `make lint` | Corregir lo que indique |
-| Código generado, tipos de la API | `make verificar-generados` | `make generar` |
-| Pruebas | `make test` | Corregir el código. Nunca la prueba, salvo que la prueba esté mal |
-| Cobertura | `make cobertura` | Agregar pruebas a la capa de servicio |
-| Vulnerabilidades | `make security` | Actualizar la dependencia afectada |
+| Archivos del kit | `make check-kit` | Revertir el cambio al archivo del kit, o `make install-kit` |
+| Configuración de agentes | `make check-agents` | `make sync` |
+| Perfil del proyecto | `make profile` | Corregir lo que indique, o `/bowser-profile` |
+| Archivos inmutables | `python3 scripts/verbos.py --inmutables origin/main` | Deshacer el cambio al archivo y crear uno nuevo |
+| Un verbo de una parte | `make ci PART=nombre` | Corregir el código. Nunca la prueba, salvo que la prueba esté mal |
 | Secretos | `gitleaks detect -v` | Quitar el secreto **y cambiarlo**: ya quedó expuesto |
 | No puede descargar el submódulo | — | La copia del kit es privada: configura `KIT_TOKEN` |
+| Falta un programa en GitHub que en tu máquina sí está | — | El workflow del proyecto no lo instala: `/bowser-ci` |
 
 > [!WARNING]
 > Un secreto que llegó a GitHub está comprometido aunque después se borre del código, porque sigue en el historial. Borrarlo no alcanza: hay que cambiar la contraseña o la clave.
 
-## Cambiar la versión de una herramienta
+## Si vienes de una versión anterior
 
-Las versiones de las herramientas están fijadas en `ci.yml`, para que el resultado sea el mismo hoy y dentro de seis meses. Como ese archivo viene del kit, no se edita en el proyecto.
+Hasta la versión 1.17, el kit traía un `ci.yml` propio, pensado para Go, React y PostgreSQL, y lo reemplazaba en cada actualización. Al actualizar:
 
-Si tu proyecto necesita otra versión antes de que el kit se actualice (el caso típico: adoptas una versión nueva de Go y el linter fijado no la soporta), se cambia con una **variable del repositorio**:
+- **Tu `ci.yml` no se borra.** Queda tal como estaba y pasa a ser del proyecto: `make install-kit` lo dice al terminar. Ya lo puedes editar.
+- Llega `bowser.yml`, que repite tres grupos de tu `ci.yml`: `agentes`, `controles` y `secretos`. Bórralos de `ci.yml` para que no corran dos veces.
+- Las versiones de las herramientas, que antes se cambiaban con variables del repositorio (`GOLANGCI_LINT_VERSION` y las demás), ahora se editan en el archivo.
+- Cuando el proyecto tenga perfil, `/bowser-ci` reescribe los grupos `backend` y `frontend` para que ejecuten los verbos.
 
-1. En GitHub: **Settings → Secrets and variables → Actions → Variables**.
-2. Crea una variable con uno de estos nombres:
-
-| Variable | Qué fija | Valor por defecto |
-|---|---|---|
-| `GOLANGCI_LINT_VERSION` | El linter de Go | `v2.14.0` |
-| `MIGRATE_VERSION` | La herramienta de migraciones | `v4.20.1` |
-| `GOVULNCHECK_VERSION` | El analizador de vulnerabilidades de Go | `v1.8.0` |
-| `SQLC_VERSION` | El generador de consultas | `v1.31.1` |
-| `NODE_VERSION` | Node.js | `24` |
-
-Cuando el kit alcance esa versión, borra la variable para volver a usar la del kit.
+El paso completo de un proyecto 1.x a la 2.0, con la integración continua incluida, está en [Migrar a la 2.0](migrar-a-2.md).
 
 ## Lo que no hace
 
-- **No ejecuta pruebas de punta a punta.** Las pruebas con Playwright que el proyecto tenga se ejecutan en local.
-- **No despliega.** `ci.yml` solo comprueba. El despliegue es un workflow propio de cada proyecto, y siempre lo aprueba una persona.
+- **No despliega.** La integración continua solo comprueba. El despliegue es otro workflow del proyecto, y siempre lo aprueba una persona.
 - **No revisa que el cambio sea lo que el cliente pidió.** Eso lo hacen los agentes revisores y, al final, quien aprueba el Pull Request.
+- **No garantiza que el workflow del proyecto sea bueno.** `make check-ci` ve si los verbos se ejecutan, no si el entorno donde corren se parece al real. Eso lo revisa una persona.
+- **Solo GitHub Actions.** Un proyecto en otra plataforma escribe su propia integración continua, que ejecute `make ci`.
 
 ## Siguientes pasos
 
+- [El perfil del proyecto](perfil-del-proyecto.md): de dónde salen los verbos.
 - [Capas de control](capas-de-control.md): cómo encaja la integración continua con las demás protecciones.
-- [Cobertura y código generado](cobertura-y-codigo-generado.md).
 - [Personalizar un proyecto](personalizar.md#workflows-propios): agregar workflows propios.

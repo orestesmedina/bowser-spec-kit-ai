@@ -9,8 +9,12 @@ El perfil vive en equipo/perfil.json y es del proyecto (el kit no lo instala ni 
         "nombre": "api",                      minúsculas, números y guiones; único
         "carpeta": "backend",                 relativa a la raíz ("." si el proyecto es una sola parte)
         "descripcion": "API REST",            opcional
-        "rol": "dev-backend",                 opcional: el agente de equipo/agentes/ que la trabaja
-        "skills": ["go-backend"],             opcional: skills de .agents/skills/ que aplican
+        "roles": [                            opcional: los agentes de equipo/agentes/ que la trabajan
+          "dev-backend",                        solo el nombre, o
+          {"rol": "dev-frontend", "skills": ["react-frontend"]}     el nombre y las skills que son solo suyas
+        ],
+        "skills": ["go-backend"],             opcional: skills para todos los roles de la parte (del catálogo del
+                                              kit, que `make install-kit` copia, o propias en .agents/skills/)
         "terceros": ["vendor"],               opcional: carpetas con código ajeno (relativas a la parte)
         "inmutables": ["migrations/*.sql"],   opcional: archivos que no se modifican una vez versionados
         "verbos": {                           opcional: comando de cada verbo, ejecutado dentro de la carpeta
@@ -18,15 +22,32 @@ El perfil vive en equipo/perfil.json y es del proyecto (el kit no lo instala ni 
           "cobertura": null                   null o ausente: el proyecto todavía no lo tiene
         }
       }
+    ],
+    "requisitos": [                           opcional: lo que la máquina necesita para trabajar en el proyecto
+      "php",                                    solo el programa, o
+      {"comando": "go", "nombre": "Go", "minima": "1.26", "version": "go version"},
+      {"comando": "golangci-lint", "opcional": true, "instalar": "go install …"}
     ]
   }
 
-Sin perfil, el kit se comporta como antes de tenerlo (Go en backend/ y React en frontend/).
+"rol": "dev-backend" (un solo rol, el formato de la primera versión del perfil) equivale a "roles": ["dev-backend"].
+
+Cada comando recibe dos variables de entorno: PERFIL_RAIZ (ruta absoluta de la raíz del proyecto) y
+PERFIL_TERCEROS (las carpetas de terceros de la parte, una por línea). Los scripts propios del proyecto que
+un verbo necesite van en tools/ (scripts/ es del kit).
+
+"requisitos" es lo que revisa `make doctor`, además de las herramientas que el kit necesita siempre. De cada uno:
+"comando" (el programa que debe estar en el PATH), "nombre" (cómo se muestra), "minima" (versión mínima),
+"version" (el comando que imprime la versión; por defecto, `<comando> --version`), "opcional" (true: si falta es
+un aviso y no un problema) e "instalar" (cómo se instala, para mostrarlo cuando falta).
+
+Sin perfil, el kit no supone nada del proyecto: los comandos que ejecutan verbos piden crearlo (/bowser-profile).
 
 Uso:
   python3 scripts/perfil.py              muestra el perfil y lo valida
   python3 scripts/perfil.py --verificar  solo valida (para hooks y CI)
   python3 scripts/perfil.py --detectar   mira el proyecto y muestra, en JSON, lo que encontró (no escribe nada)
+  python3 scripts/perfil.py --requisitos los requisitos, uno por línea, para scripts/doctor.sh
 
 Solo usa la biblioteca estándar de Python 3.9+.
 """
@@ -39,7 +60,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-RAIZ = Path(__file__).resolve().parent.parent
+import catalogo
+
+RAIZ =Path(__file__).resolve().parent.parent
 RUTA = "equipo/perfil.json"
 
 # Lo único que el núcleo sabe pedir. El comando de cada uno lo declara el proyecto.
@@ -51,8 +74,19 @@ VERBOS = {
     "auditar": "busca vulnerabilidades en las dependencias",
     "generar": "regenera el código generado",
 }
-CAMPOS = {"nombre", "carpeta", "descripcion", "rol", "skills", "terceros", "inmutables", "verbos"}
+# Con qué comando de make se ejecuta cada verbo (el mismo para todos los proyectos).
+MAKE_DE_VERBOS = (
+    (("formato", "revisar"), "lint"),
+    (("probar",), "test"),
+    (("cobertura",), "coverage"),
+    (("generar",), "generate"),
+    (("auditar",), "security"),
+)
+CAMPOS = {"nombre", "carpeta", "descripcion", "rol", "roles", "skills", "terceros", "inmutables", "verbos"}
 NOMBRE = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
+CAMPOS_REQUISITO = {"comando", "nombre", "minima", "version", "opcional", "instalar"}
+PROGRAMA = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+-]*")
+VERSION_MINIMA = re.compile(r"\d+(\.\d+){0,3}")
 
 
 class ErrorPerfil(Exception):
@@ -80,16 +114,67 @@ def ruta_segura(valor) -> bool:
     if not isinstance(valor, str) or not valor.strip():
         return False
     p = valor.replace("\\", "/")
-    return not p.startswith("/") and not re.match(r"^[A-Za-z]:", p) and ".." not in p.split("/")
+    return (not p.startswith("/") and not re.match(r"^[A-Za-z]:", p) and ".." not in p.split("/")
+            and not any(ord(c) < 32 for c in p))
 
 
 def lista_de_textos(valor) -> bool:
     return isinstance(valor, list) and all(isinstance(x, str) and x.strip() for x in valor)
 
 
+def una_linea(valor) -> bool:
+    return isinstance(valor, str) and bool(valor.strip()) and not any(ord(c) < 32 for c in valor)
+
+
+def validar_requisitos(perfil: dict) -> list[str]:
+    requisitos = perfil.get("requisitos", [])
+    if not isinstance(requisitos, list):
+        return ["\"requisitos\" debe ser una lista de programas (ej. [\"php\", {\"comando\": \"go\", \"minima\": \"1.26\"}])"]
+    errores: list[str] = []
+    vistos: set[str] = set()
+    for i, r in enumerate(requisitos, 1):
+        if isinstance(r, str):
+            r = {"comando": r}
+        if not isinstance(r, dict):
+            errores.append(f"el requisito {i} debe ser el nombre de un programa o un objeto con \"comando\"")
+            continue
+        comando = r.get("comando")
+        if not isinstance(comando, str) or not PROGRAMA.fullmatch(comando):
+            errores.append(f"el requisito {i}: \"comando\" debe ser el nombre de un programa, sin espacios ni rutas (ej. go, php)")
+            continue
+        quien = f"el requisito «{comando}»"
+        if comando in vistos:
+            errores.append(f"{quien} está dos veces")
+        vistos.add(comando)
+        for clave in r:
+            if clave not in CAMPOS_REQUISITO and not clave.startswith("_"):
+                errores.append(f"{quien}: campo desconocido «{clave}» (campos: {', '.join(sorted(CAMPOS_REQUISITO))})")
+        if "minima" in r and not (isinstance(r["minima"], str) and VERSION_MINIMA.fullmatch(r["minima"])):
+            errores.append(f"{quien}: \"minima\" debe ser una versión entre comillas (ej. \"1.26\")")
+        for clave in ("nombre", "version", "instalar"):
+            if clave in r and not una_linea(r[clave]):
+                errores.append(f"{quien}: \"{clave}\" debe ser un texto de una sola línea")
+        if not isinstance(r.get("opcional", False), bool):
+            errores.append(f"{quien}: \"opcional\" debe ser true o false")
+    return errores
+
+
+def requisitos_de(perfil: dict) -> list[dict]:
+    """Lo que la máquina necesita para trabajar en el proyecto, con todos sus campos. Para un perfil ya validado."""
+    resultado = []
+    for r in perfil.get("requisitos", []):
+        r = {"comando": r} if isinstance(r, str) else r
+        resultado.append({
+            "comando": r["comando"], "nombre": r.get("nombre") or r["comando"], "minima": r.get("minima", ""),
+            "version": r.get("version") or f"{r['comando']} --version", "opcional": bool(r.get("opcional")),
+            "instalar": r.get("instalar", ""),
+        })
+    return resultado
+
+
 def validar(perfil: dict, raiz: Path = RAIZ) -> tuple[list[str], list[str]]:
     """Devuelve (errores, avisos). Con errores, el perfil no se usa."""
-    errores: list[str] = []
+    errores: list[str] = validar_requisitos(perfil)
     avisos: list[str] = []
     partes = perfil.get("partes")
     if not isinstance(partes, list) or not partes:
@@ -97,6 +182,7 @@ def validar(perfil: dict, raiz: Path = RAIZ) -> tuple[list[str], list[str]]:
 
     nombres: set[str] = set()
     carpetas: set[str] = set()
+    en_catalogo, _ = catalogo.leer(catalogo.carpeta(raiz))
     for i, parte in enumerate(partes, 1):
         if not isinstance(parte, dict):
             errores.append(f"la parte {i} debe ser un objeto")
@@ -126,18 +212,46 @@ def validar(perfil: dict, raiz: Path = RAIZ) -> tuple[list[str], list[str]]:
                 errores.append(f"{quien}: la carpeta «{carpeta}» ya pertenece a otra parte")
             carpetas.add(normal)
 
-        rol = parte.get("rol")
-        if rol is not None:
-            if not isinstance(rol, str) or not (raiz / "equipo/agentes" / f"{rol}.md").exists():
-                errores.append(f"{quien}: el rol «{rol}» no existe en equipo/agentes/")
-
         skills = parte.get("skills", [])
         if not lista_de_textos(skills):
             errores.append(f"{quien}: \"skills\" debe ser una lista de nombres de skills")
-        else:
-            for s in skills:
-                if not (raiz / ".agents/skills" / s / "SKILL.md").exists():
-                    avisos.append(f"{quien}: la skill «{s}» no está en .agents/skills/ (el agente trabajará sin ella)")
+            skills = []
+        nombradas = list(skills)
+
+        if "rol" in parte and "roles" in parte:
+            errores.append(f"{quien}: usa \"roles\" (lista) o \"rol\" (uno solo), no los dos")
+        roles = parte["roles"] if "roles" in parte else [parte["rol"]] if "rol" in parte else []
+        if not isinstance(roles, list):
+            errores.append(f"{quien}: \"roles\" debe ser una lista de roles (ej. [\"dev-backend\"])")
+            roles = []
+        vistos: set[str] = set()
+        for r in roles:
+            propias = []
+            if isinstance(r, dict):
+                sobran = sorted(k for k in r if k not in ("rol", "skills") and not k.startswith("_"))
+                if sobran:
+                    errores.append(f"{quien}: un rol solo admite \"rol\" y \"skills\" (sobra «{sobran[0]}»)")
+                r, propias = r.get("rol"), r.get("skills", [])
+            if not isinstance(r, str) or not (raiz / "equipo/agentes" / f"{r}.md").exists():
+                errores.append(f"{quien}: el rol «{r}» no existe en equipo/agentes/")
+                continue
+            if r in vistos:
+                errores.append(f"{quien}: el rol «{r}» está dos veces")
+            vistos.add(r)
+            if not lista_de_textos(propias):
+                errores.append(f"{quien}: las \"skills\" del rol «{r}» deben ser una lista de nombres de skills")
+            else:
+                nombradas += propias
+
+        for s in dict.fromkeys(nombradas):
+            if (raiz / catalogo.INSTALADAS / s / "SKILL.md").exists():
+                continue
+            if s in en_catalogo:
+                avisos.append(f"{quien}: la skill «{s}» está en el catálogo del kit pero todavía no en el proyecto "
+                              "(ejecuta: make install-kit)")
+            else:
+                avisos.append(f"{quien}: la skill «{s}» no está en .agents/skills/ ni en el catálogo del kit "
+                              "(el agente trabajará sin ella)")
 
         terceros = parte.get("terceros", [])
         if not lista_de_textos(terceros) or not all(ruta_segura(t) for t in terceros):
@@ -170,6 +284,37 @@ def comando_de(parte: dict, verbo: str) -> str | None:
     return comando if isinstance(comando, str) and comando.strip() else None
 
 
+def roles_de(parte: dict) -> list[dict]:
+    """Los roles que trabajan la parte, cada uno con sus skills: las de la parte más las que son solo suyas.
+    Para un perfil ya validado."""
+    comunes = parte.get("skills", [])
+    roles = parte["roles"] if "roles" in parte else [parte["rol"]] if "rol" in parte else []
+    resultado = []
+    for r in roles:
+        nombre, propias = (r["rol"], r.get("skills", [])) if isinstance(r, dict) else (r, [])
+        skills = list(dict.fromkeys([*comunes, *propias]))
+        # Primero el estándar y después lo propio del proyecto, las nombre donde las nombre el perfil.
+        skills.sort(key=lambda s: s.startswith(CONVENCIONES))
+        resultado.append({"rol": nombre, "skills": skills})
+    return resultado
+
+
+def skills_nombradas(perfil) -> list[str]:
+    """Todas las skills que el perfil nombra, en las partes y en sus roles, sin repetir.
+    No exige un perfil validado: lo que no tenga la forma esperada se salta."""
+    nombres: list[str] = []
+    partes = perfil.get("partes") if isinstance(perfil, dict) else None
+    for parte in partes if isinstance(partes, list) else []:
+        if not isinstance(parte, dict):
+            continue
+        listas = [parte.get("skills")]
+        roles = parte.get("roles")
+        listas += [r.get("skills") for r in (roles if isinstance(roles, list) else []) if isinstance(r, dict)]
+        for lista in listas:
+            nombres += [s for s in (lista if isinstance(lista, list) else []) if isinstance(s, str) and s.strip()]
+    return list(dict.fromkeys(nombres))
+
+
 def perfil_valido(raiz: Path = RAIZ) -> dict | None:
     """El perfil ya validado, o None si no hay. Termina con error (código 1) si está mal escrito."""
     try:
@@ -190,18 +335,23 @@ def perfil_valido(raiz: Path = RAIZ) -> dict | None:
 
 # ---------------------------------------------------------------- mostrar
 
+# Prefijo de la skill con las convenciones propias de una parte (la redacta el comando bowser-conventions).
+CONVENCIONES = "convenciones-de-"
+
+
 def mostrar(perfil: dict) -> None:
     partes = perfil["partes"]
     print(f"Perfil del proyecto ({RUTA}): {len(partes)} parte{'s' if len(partes) != 1 else ''}\n")
     for parte in partes:
-        linea = f"  {parte['nombre']}  ·  carpeta {parte['carpeta']}"
-        if parte.get("rol"):
-            linea += f"  ·  {parte['rol']}"
-        if parte.get("skills"):
-            linea += f"  ·  skills: {', '.join(parte['skills'])}"
-        print(linea)
+        print(f"  {parte['nombre']}  ·  carpeta {parte['carpeta']}")
         if parte.get("descripcion"):
             print(f"    {parte['descripcion']}")
+        roles = roles_de(parte)
+        if roles:
+            print("    roles:      " + "  ·  ".join(
+                r["rol"] + (f" ({', '.join(r['skills'])})" if r["skills"] else "") for r in roles))
+        elif parte.get("skills"):
+            print(f"    skills:     {', '.join(parte['skills'])} (ningún rol las recibe: la parte no tiene roles)")
         for verbo in VERBOS:
             print(f"    {verbo:<10} {comando_de(parte, verbo) or '— sin definir'}")
         if parte.get("terceros"):
@@ -209,6 +359,19 @@ def mostrar(perfil: dict) -> None:
         if parte.get("inmutables"):
             print(f"    inmutables: {', '.join(parte['inmutables'])}")
         print()
+    sin_convenciones = [p["nombre"] for p in partes
+                        if roles_de(p) and CONVENCIONES + p["nombre"] not in {s for r in roles_de(p) for s in r["skills"]}]
+    if sin_convenciones:
+        print(f"Sin convenciones propias: {', '.join(sin_convenciones)}. Las skills del catálogo dicen el estándar de cada "
+              "tecnología; lo propio del proyecto se redacta con /bowser-conventions.")
+    requisitos = requisitos_de(perfil)
+    if requisitos:
+        print("Requisitos de la máquina (los revisa make doctor): " + "  ·  ".join(
+            r["nombre"] + (f" {r['minima']} o superior" if r["minima"] else "") + (" (recomendado)" if r["opcional"] else "")
+            for r in requisitos))
+    else:
+        print("Sin requisitos: make doctor no revisa las herramientas de la tecnología del proyecto. "
+              "Se declaran en \"requisitos\" (/bowser-profile).")
 
 
 # ---------------------------------------------------------------- detección
@@ -372,6 +535,9 @@ def detectar(raiz: Path = RAIZ) -> dict:
         dato["lenguajes"] = dict(sorted(dato["lenguajes"].items(), key=lambda kv: -kv[1]))
         dato["subcarpetas"] = sorted(dato["subcarpetas"])[:40]
 
+    en_catalogo, _ = catalogo.leer(catalogo.carpeta(raiz))
+    propias = {p.parent.name for p in (raiz / catalogo.INSTALADAS).glob("*/SKILL.md")
+               if not p.parent.name.startswith(("bowser-", "equipo-", "perfil-"))}
     return {
         "repositorio_git": es_git,
         "perfil_actual": RUTA if (raiz / RUTA).exists() else None,
@@ -384,8 +550,9 @@ def detectar(raiz: Path = RAIZ) -> dict:
             {"carpeta": c, "archivos": n} for c, n in sorted(dudosas.items(), key=lambda kv: -kv[1])[:30]],
         "archivos_sql": sql,
         "roles_disponibles": sorted(p.stem for p in (raiz / "equipo/agentes").glob("*.md")),
-        "skills_disponibles": sorted(p.parent.name for p in (raiz / ".agents/skills").glob("*/SKILL.md")
-                                     if not p.parent.name.startswith(("bowser-", "equipo-", "perfil-"))),
+        # Las del catálogo del kit (make install-kit copia las que el perfil nombre) y las propias del proyecto.
+        "skills_disponibles": sorted(propias | set(en_catalogo)),
+        "madurez_de_las_skills_del_catalogo": {n: s["madurez"] for n, s in en_catalogo.items()},
         "verbos": VERBOS,
         "nota": "Son hechos, no decisiones. Lo que no aparece aquí (cómo se prueba, cómo se levanta, qué versión se usa) "
                 "se le pregunta a la persona: no se inventa.",
@@ -405,12 +572,22 @@ def main() -> int:
     except ErrorPerfil as e:
         print(f"✗ {e}", file=sys.stderr)
         return 1
+    if "--requisitos" in args:
+        # Para scripts/doctor.sh: un requisito por línea, con los campos separados por el carácter 0x1F.
+        if perfil is None:
+            return 0
+        if validar(perfil)[0]:
+            return 1
+        for r in requisitos_de(perfil):
+            print("\x1f".join([r["comando"], r["nombre"], r["minima"], r["version"], "1" if r["opcional"] else "", r["instalar"]]))
+        return 0
     if perfil is None:
         if "--verificar" in args:
             print("Sin perfil: no hay nada que verificar.")
             return 0
         print(f"Este proyecto no tiene perfil ({RUTA}).")
-        print("Sin perfil, el kit usa los comandos de siempre: Go en backend/ y React en frontend/.")
+        print("Sin perfil, el kit no sabe qué partes tiene el proyecto ni cómo se prueban: make test, make lint, "
+              "make ci y los demás verbos no funcionan, y los agentes no reciben skills de tecnología.")
         print("Para crearlo, escribe en el chat: /bowser-profile")
         return 0
 

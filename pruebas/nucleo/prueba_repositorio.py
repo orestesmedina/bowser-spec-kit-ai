@@ -11,7 +11,7 @@ def generados_al_dia(e):
     correr(["python3", "scripts/sincronizar.py", "--verificar"], kit, e.entorno)
     correr(["python3", "scripts/sincronizar.py"], kit, e.entorno)
     pendientes = correr(["git", "status", "--short"], kit, e.entorno).salida.strip()
-    afirmar(not pendientes, f"make sincronizar cambia archivos que deberían estar ya generados:\n{pendientes}")
+    afirmar(not pendientes, f"make sync cambia archivos que deberían estar ya generados:\n{pendientes}")
 
 
 @prueba("VERSION tiene su entrada en el CHANGELOG y es la más reciente")

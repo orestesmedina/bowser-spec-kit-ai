@@ -22,13 +22,16 @@ La idea central: **lo que tú agregas es tuyo, y el kit nunca lo toca**. Solo ha
 | Quieres… | Dónde | ¿Lo afecta una actualización? |
 |---|---|---|
 | Comandos `make` propios | `proyecto.mk` | No |
+| Scripts propios para probar, revisar o formatear | La carpeta `tools/`. Ver [Scripts propios del proyecto](perfil-del-proyecto.md#scripts-propios-del-proyecto) | No |
 | Un rol adicional | Un archivo nuevo en `equipo/agentes/` | No |
 | Una skill adicional | Una carpeta nueva en `.agents/skills/` | No |
 | Un comando del chat adicional | Un archivo nuevo en `equipo/comandos/` | No |
 | Otro workflow de GitHub | Un archivo nuevo en `.github/workflows/` | No |
 | Modelos, herramientas, temperaturas | `equipo/config.json` | No: es una semilla |
-| Servicios locales adicionales | `docker-compose.yml` | No: es una semilla |
+| Servicios locales (base de datos, colas…) | El archivo de Docker Compose de la raíz | No: es del proyecto, el kit no trae ninguno |
+| Qué ignora git | `.gitignore`, fuera del bloque del kit | No |
 | Quién aprueba los cambios a las reglas | `.github/CODEOWNERS` | No: es una semilla |
+| Las reglas no negociables propias del proyecto | `equipo/reglas.md` (ver [La constitución](la-constitucion.md)) | No: es una semilla |
 | Versiones de las herramientas en la integración continua | Variables del repositorio en GitHub | No |
 
 ## Comandos propios
@@ -53,23 +56,23 @@ El comentario que empieza con `##` es la descripción que muestra `make help`.
 
 ## Roles, skills y comandos propios
 
-Un archivo nuevo en `equipo/agentes/` o en `equipo/comandos/`, o una carpeta nueva en `.agents/skills/`, es del proyecto desde que se crea. Después, `make sincronizar`.
+Un archivo nuevo en `equipo/agentes/` o en `equipo/comandos/`, o una carpeta nueva en `.agents/skills/`, es del proyecto desde que se crea. Después, `make sync`.
 
 - Cómo escribir un rol: [Roles](roles.md#agregar-un-rol).
 - Cómo escribir una skill: [Skills](skills.md#agregar-una-skill-propia).
-- Cómo escribir un comando: [Una fuente, varias herramientas](una-fuente-varias-herramientas.md#cómo-se-traduce-un-comando). Un archivo `equipo/comandos/deploy-demo.md` queda como `/bowser-deploy-demo`. No uses el nombre de un comando del kit, ni una carpeta que empiece con `bowser-` en `.agents/skills/`: esas las genera y las borra `make sincronizar`.
+- Cómo escribir un comando: [Una fuente, varias herramientas](una-fuente-varias-herramientas.md#cómo-se-traduce-un-comando). Un archivo `equipo/comandos/deploy-demo.md` queda como `/bowser-deploy-demo`. No uses el nombre de un comando del kit, ni una carpeta que empiece con `bowser-` en `.agents/skills/`: esas las genera y las borra `make sync`.
 
 Lo más frecuente es una skill con las convenciones de algo propio del proyecto: una pasarela de pagos, un sistema externo, las reglas de un dominio de negocio.
 
 ## Workflows propios
 
-El kit gestiona un solo archivo de `.github/workflows/`: `ci.yml`. Cualquier otro workflow en esa carpeta es del proyecto, por ejemplo uno de despliegue.
+El kit gestiona un solo archivo de `.github/workflows/`: `bowser.yml`, con los controles que no dependen de la tecnología. Cualquier otro workflow en esa carpeta es del proyecto: el de su integración continua (`ci.yml`, que redacta `/bowser-ci`), uno de despliegue o los que hagan falta.
 
-Para cambiar la versión de una herramienta dentro de `ci.yml` no hace falta tocar el archivo: se hace con variables del repositorio. Ver [Integración continua](integracion-continua.md#cambiar-la-versión-de-una-herramienta).
+Para cambiar la versión de una herramienta o agregar un paso a la integración continua del proyecto, edita su `ci.yml` o pídeselo a `/bowser-ci`. Ver [Integración continua](integracion-continua.md#el-workflow-del-proyecto).
 
 ## Tu propia versión de un archivo del kit
 
-A veces el proyecto necesita que un archivo del kit sea distinto: un paso extra en el hook, una convención diferente en una skill, una constitución con otras reglas.
+A veces el proyecto necesita que un archivo del kit sea distinto: un paso extra en el hook, una convención diferente en una skill. (Las reglas propias de la constitución no necesitan esto: van en `equipo/reglas.md`, que ya es del proyecto.)
 
 Editarlo sin más no funciona: el [hook de git](hooks-de-git.md) rechaza el commit, y la siguiente actualización se detiene al encontrarlo modificado. La forma correcta es declararlo.
 
@@ -89,7 +92,7 @@ En `equipo/config.json`:
 Una carpeta termina en `/`. Después:
 
 ```bash
-make instalar-kit    # actualiza el manifiesto: esos archivos ya no figuran como del kit
+make install-kit    # actualiza el manifiesto: esos archivos ya no figuran como del kit
 ```
 
 Desde ese momento el archivo es del proyecto: lo editas con libertad, el hook deja de vigilarlo y las actualizaciones no lo tocan.

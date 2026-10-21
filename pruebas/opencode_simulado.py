@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""OpenCode simulado para probar make costos sin gastar ni depender de una sesión real.
+"""OpenCode simulado para probar make costs sin gastar ni depender de una sesión real.
 
 Las pruebas lo copian a una carpeta del PATH con el nombre `opencode`. Imita lo que el kit usa de OpenCode
 (formatos verificados el 2026-10-03, ver MANTENER-KIT.md):

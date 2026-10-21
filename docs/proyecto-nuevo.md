@@ -7,13 +7,14 @@
     - [2. Agregar el kit](#2-agregar-el-kit)
     - [3. Preparar el entorno local](#3-preparar-el-entorno-local)
     - [4. Guardar](#4-guardar)
+    - [5. Describir el proyecto](#5-describir-el-proyecto)
 - [Qué hizo la instalación](#qué-hizo-la-instalación)
 - [Lo que debes ajustar](#lo-que-debes-ajustar)
 - [Siguientes pasos](#siguientes-pasos)
 
 ## Introducción
 
-Esta página crea un proyecto desde cero con el kit instalado. Al terminar tendrás un repositorio con las instrucciones de los agentes, los controles activos y PostgreSQL corriendo, listo para escribir la idea del producto.
+Esta página crea un proyecto desde cero con el kit instalado. Al terminar tendrás un repositorio con las instrucciones de los agentes, los controles activos y el perfil que describe con qué se va a construir, listo para escribir la idea del producto.
 
 Si el proyecto ya existe y tiene código, usa [Integrar el kit en un proyecto existente](proyecto-existente.md).
 
@@ -36,7 +37,7 @@ git add . && git commit -m "chore: inicializa spec kit"
 Ejecuta `specify init` una vez por cada herramienta que vaya a usar el equipo. Los nombres disponibles se ven con `specify integration list`.
 
 > [!NOTE]
-> Spec Kit se inicializa **antes** de instalar el kit. El kit reemplaza la plantilla de constitución que trae Spec Kit por la suya, y deja un respaldo en `.kit-respaldo/`.
+> Spec Kit se inicializa **antes** de instalar el kit. El kit escribe la constitución sobre la plantilla vacía que trae Spec Kit.
 
 ### 2. Agregar el kit
 
@@ -44,7 +45,7 @@ El kit se agrega como submódulo de git en la carpeta `.bowser-spec-kit-ai/` y s
 
 ```bash
 git submodule add https://github.com/orestesmedina/bowser-spec-kit-ai.git .bowser-spec-kit-ai
-make -f .bowser-spec-kit-ai/Makefile instalar-kit
+make -f .bowser-spec-kit-ai/Makefile install-kit
 ```
 
 Si tu equipo mantiene su propia copia del kit, usa la dirección de ese repositorio. La primera vez se usa `make -f …` porque el proyecto todavía no tiene `Makefile`; después de instalar, basta con `make`.
@@ -52,13 +53,12 @@ Si tu equipo mantiene su propia copia del kit, usa la dirección de ese reposito
 ### 3. Preparar el entorno local
 
 ```bash
-cp .env.example .env      # completa los valores
-make up                   # levanta PostgreSQL con Docker
+cp .env.example .env      # todavía sin variables: se agregan cuando el proyecto las necesite
 make doctor               # verifica que todo esté listo
 ```
 
-> [!WARNING]
-> Ajusta la contraseña en `.env` **antes** del primer `make up`. PostgreSQL solo la toma al crear la base de datos; si la cambias después, hay que recrearla con `docker compose down -v && make up`, que borra los datos locales.
+> [!NOTE]
+> El kit no trae base de datos ni ningún otro servicio: cuáles usa el proyecto y en qué versión es decisión suya. En un proyecto recién instalado, `make up` responde "Este proyecto todavía no tiene entorno local". El archivo que `make up` levanta (`compose.yaml` o `docker-compose.yml`, en la raíz) lo crea el rol `devops` durante la primera funcionalidad, según el [perfil del proyecto](perfil-del-proyecto.md). Lo mismo con `.env.example` y con las reglas de `.gitignore` de cada tecnología, que propone `/bowser-profile`.
 
 ### 4. Guardar
 
@@ -68,13 +68,39 @@ git add . && git commit -m "chore: instala kit de desarrollo"
 
 Este commit ya pasa por los [hooks de git](hooks-de-git.md). Si alguno lo bloquea, el mensaje indica qué corregir.
 
+### 5. Describir el proyecto
+
+El kit no supone ninguna tecnología: con qué se construye el proyecto lo declara su [perfil](perfil-del-proyecto.md). Sin perfil, `make test` y los demás verbos piden crearlo, y el orquestador no reparte tareas de implementación porque no sabe qué partes hay ni quién las trabaja.
+
+En un proyecto sin código, el perfil sale de una conversación sobre qué se va a construir: qué partes tendrá (una API, un panel web, una aplicación móvil), con qué lenguaje y base de datos, y cómo se probará cada una. En el chat:
+
+```text
+/bowser-profile
+```
+
+El agente te pregunta lo que necesita, te muestra la propuesta en lenguaje simple y, con tu "sí", escribe el perfil y trae las skills de las tecnologías elegidas. Revísalo y guárdalo:
+
+```bash
+make profile
+git add . && APPROVED_PROFILE=1 git commit -m "chore: agrega el perfil del proyecto"
+```
+
+Si todavía no decidiste la tecnología, puedes dejarlo para después de [escribir el roadmap](idea-al-roadmap.md): el `arquitecto` la propone en el plan de la primera funcionalidad, y el perfil se crea con esa decisión antes de implementar.
+
+Hay dos comandos que vienen después, cuando ya tienen sentido:
+
+| Comando | Cuándo |
+|---|---|
+| `/bowser-ci` | Cuando exista el perfil: redacta la integración continua para que ejecute sus verbos. Ver [Integración continua](integracion-continua.md) |
+| `/bowser-conventions <parte>` | Cuando una parte ya tenga código: escribe cómo hace las cosas este proyecto, para que los agentes lo sigan. Ver [Convenciones del proyecto](convenciones-del-proyecto.md) |
+
 ## Qué hizo la instalación
 
-Las herramientas leen sus archivos en la raíz del proyecto, no dentro del submódulo. Por eso `make instalar-kit`:
+Las herramientas leen sus archivos en la raíz del proyecto, no dentro del submódulo. Por eso `make install-kit`:
 
-1. **Copió a la raíz los archivos del kit:** las instrucciones de los agentes, los roles, las skills, los hooks, la integración continua, la constitución, los scripts y el `Makefile`. Quedan registrados en `.kit-manifest.json`.
-2. **Copió las semillas:** `equipo/config.json`, `.github/CODEOWNERS`, `.env.example` y `docker-compose.yml`. Son un punto de partida; desde ahora son del proyecto.
-3. **Agregó un bloque del kit a `.gitignore`.**
+1. **Copió a la raíz los archivos del kit:** las instrucciones de los agentes, los roles, las skills, los hooks, los controles de la integración continua que no dependen de la tecnología (`bowser.yml`), los principios de la constitución, los scripts y el `Makefile`. Quedan registrados en `.kit-manifest.json`.
+2. **Copió las semillas:** `equipo/config.json`, `equipo/reglas.md` (las reglas del proyecto, sin ninguna todavía), `.github/CODEOWNERS` y `.env.example` (vacío). Son un punto de partida; desde ahora son del proyecto.
+3. **Agregó un bloque del kit a `.gitignore`**, solo con lo que no depende de la tecnología: secretos, editores y archivos del propio kit.
 4. **Generó la configuración de cada herramienta** (`CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`).
 5. **Activó los hooks de git.**
 
@@ -88,9 +114,9 @@ La instalación deja valores genéricos en tres lugares:
 |---|---|
 | `equipo/config.json` | Deja en `"herramientas"` solo las que use tu equipo y revisa los modelos de cada agente. Ver [Configuración](configuracion.md) |
 | `.github/CODEOWNERS` | Reemplaza `@tu-org/direccion-tecnica` por el usuario o equipo de GitHub que debe aprobar los cambios a las reglas |
-| `.specify/memory/constitution.md` | Son las reglas del kit. Si tu equipo necesita otras, lee [La constitución](la-constitucion.md) antes de cambiarlas |
+| `equipo/reglas.md` | Llega vacío. Ahí van las reglas propias del proyecto (arquitectura, mínimos de prueba), y cambiarlo pide la aprobación de dirección técnica. Lee [La constitución](la-constitucion.md) |
 
-Después de cambiar `equipo/config.json`, ejecuta `make sincronizar`.
+Después de cambiar `equipo/config.json`, ejecuta `make sync`.
 
 ## Siguientes pasos
 

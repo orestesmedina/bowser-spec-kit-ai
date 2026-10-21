@@ -1,4 +1,4 @@
-"""make costos con un OpenCode simulado, en los formatos 1.x y 2.x."""
+"""make costs con un OpenCode simulado, en los formatos 1.x y 2.x."""
 import json
 import os
 import shutil
@@ -39,7 +39,7 @@ def preparar(e, version: str):
 
 def registrar(e, version: str) -> dict:
     p, extra = preparar(e, version)
-    r = p.make("costos", extra=extra)
+    r = p.make("costs", extra=extra)
     contiene(r.salida, "Registradas 2 sesión(es) nuevas o continuadas")
     costos = json.loads(p.leer(f"specs/{RAMA}/costos.json"))
     t = costos["totales"]
@@ -51,41 +51,41 @@ def registrar(e, version: str) -> dict:
     afirmar(t["costo"] and t["costo"] > 0, f"el costo equivalente no se calculó: {t['costo']}")
 
     antes = p.leer(f"specs/{RAMA}/costos.json")
-    r = p.make("costos", extra=extra)
+    r = p.make("costs", extra=extra)
     afirmar("Registradas" not in r.salida, "la segunda ejecución volvió a registrar el mismo consumo")
     afirmar(p.leer(f"specs/{RAMA}/costos.json") == antes, "la segunda ejecución modificó costos.json")
     return {"tokens": t["tokens"], "costo": t["costo"], "agentes": sorted(f["agente"] for s in costos["sesiones"] for f in s["consumo"])}
 
 
-@prueba("make costos con OpenCode 1.x y 2.x: mismos totales, subagente enlazado y sin duplicar al repetir")
+@prueba("make costs con OpenCode 1.x y 2.x: mismos totales, subagente enlazado y sin duplicar al repetir")
 def dos_versiones(e):
     uno, dos = registrar(e, "1"), registrar(e, "2")
     afirmar(uno == dos, f"los totales cambian según la versión de OpenCode:\n  1.x: {uno}\n  2.x: {dos}")
     afirmar(uno["agentes"] == ["orquestador", "seguridad"], f"agentes inesperados: {uno['agentes']}")
 
 
-@prueba("make costos avisa cuando OpenCode no devuelve sesiones y cuando se está en la rama principal")
+@prueba("make costs avisa cuando OpenCode no devuelve sesiones y cuando se está en la rama principal")
 def avisos(e):
     for version in ("1", "2"):
         p, extra = preparar(e, version)
-        r = p.make("costos", extra=dict(extra, FALSO_SIN_SESIONES="1"))
+        r = p.make("costs", extra=dict(extra, FALSO_SIN_SESIONES="1"))
         contiene(r.salida, "OpenCode no devolvió ninguna sesión de este proyecto")
         afirmar(not p.existe(f"specs/{RAMA}/costos.json"), "se creó costos.json sin consumo que registrar")
     p.git("checkout", "-q", "main")
-    contiene(p.make("costos", extra=extra).salida, "Estás en la rama principal")
+    contiene(p.make("costs", extra=extra).salida, "Estás en la rama principal")
 
 
 @prueba("un costo cerrado no se vuelve a registrar ni se puede modificar sin aprobación")
 def cerrado(e):
     p, extra = preparar(e, "2")
-    contiene(p.make("costos", "CERRAR=1", extra=extra).salida, "Costo de la tarea CERRADO")
+    contiene(p.make("costs", "CLOSE=1", extra=extra).salida, "Costo de la tarea CERRADO")
     p.commit("docs: cierra el costo de la tarea")
-    contiene(p.make("costos", extra=extra).salida, "El costo de esta tarea está cerrado")
-    afirmar(not p.pendientes(), "make costos modificó un costo cerrado")
+    contiene(p.make("costs", extra=extra).salida, "El costo de esta tarea está cerrado")
+    afirmar(not p.pendientes(), "make costs modificó un costo cerrado")
 
     ruta = f"specs/{RAMA}/costos.json"
     costos = json.loads(p.leer(ruta))
     costos["totales"]["costo"] = 0
     p.escribir(ruta, json.dumps(costos, indent=2, ensure_ascii=False) + "\n")
     contiene(p.commit("fix: ajusta el costo", espera=1).salida, "ya está cerrado y no se modifica")
-    p.commit("fix: ajusta el costo", extra={"APROBADO_COSTOS": "1"})
+    p.commit("fix: ajusta el costo", extra={"APPROVED_COSTS": "1"})

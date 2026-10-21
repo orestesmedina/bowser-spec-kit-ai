@@ -33,8 +33,8 @@ Por eso se puede cambiar de herramienta a mitad de una funcionalidad: la nueva l
 2. **Completa los modelos de esa herramienta** en `"modelos"`. Un valor vacío significa "usa el modelo de la sesión". Ver [Modelos por agente](modelos.md).
 3. **Regenera y guarda:**
    ```bash
-   make sincronizar
-   make modelos
+   make sync
+   make models
    git add . && git commit -m "chore: cambia la herramienta a codex"
    ```
 4. **Inicializa Spec Kit para la herramienta nueva,** si no lo habías hecho:
@@ -45,7 +45,7 @@ Por eso se puede cambiar de herramienta a mitad de una funcionalidad: la nueva l
 
 ## Usar varias herramientas a la vez
 
-Un equipo puede tener a una persona con Claude Code y a otra con OpenCode sobre el mismo proyecto. Basta con dejar las dos en `"herramientas"`: `make sincronizar` genera la configuración de ambas.
+Un equipo puede tener a una persona con Claude Code y a otra con OpenCode sobre el mismo proyecto. Basta con dejar las dos en `"herramientas"`: `make sync` genera la configuración de ambas.
 
 Lo que comparten es todo lo importante: el proceso, las reglas, el estado y los controles de git.
 

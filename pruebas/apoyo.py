@@ -64,7 +64,9 @@ def recortar(texto: str, lineas: int = 25) -> str:
 def entorno_base(datos: Path) -> dict[str, str]:
     """Variables para que git y los scripts se comporten igual en cualquier máquina."""
     e = dict(os.environ)
-    for sobra in ("APROBADO_CONSTITUCION", "APROBADO_COSTOS", "APROBADO_PERFIL", "NOVEDADES_AL_FINAL", "KIT", "FORZAR", "PARTE", "DETECTAR",
+    for sobra in ("APPROVED_CONSTITUTION", "APPROVED_COSTS", "APPROVED_PROFILE", "APROBADO_CONSTITUCION", "APROBADO_COSTOS",
+                  "APROBADO_PERFIL", "NOVEDADES_AL_FINAL", "KIT", "FORCE", "SINCE", "ALL", "CLOSE", "PRICES", "YES", "DETECT",
+                  "PART", "FORZAR", "DESDE", "TODO", "CERRAR", "PRECIOS", "SI", "DETECTAR", "PARTE",
                   "MAKEFLAGS", "MAKELEVEL", "MFLAGS", "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
         e.pop(sobra, None)
     e.update({
@@ -77,7 +79,7 @@ def entorno_base(datos: Path) -> dict[str, str]:
         "GIT_CONFIG_KEY_2": "init.defaultBranch", "GIT_CONFIG_VALUE_2": "main",
         "GIT_AUTHOR_NAME": "prueba", "GIT_AUTHOR_EMAIL": "prueba@example.com",
         "GIT_COMMITTER_NAME": "prueba", "GIT_COMMITTER_EMAIL": "prueba@example.com",
-        "XDG_DATA_HOME": str(datos),   # el registro local de make costos no toca el de la persona
+        "XDG_DATA_HOME": str(datos),   # el registro local de make costs no toca el de la persona
         "LC_ALL": "C.UTF-8", "PYTHONIOENCODING": "utf-8", "PYTHONDONTWRITEBYTECODE": "1",
     })
     return e
@@ -156,8 +158,11 @@ class Proyecto:
         self.escribir(rel, self.leer(rel) + texto)
 
     def instalar_kit(self, **kw) -> Resultado:
-        """La instalación de la primera vez: con el Makefile del submódulo."""
-        return self.make("-f", f"{SUBMODULO}/Makefile", "instalar-kit", **kw)
+        """La instalación de la primera vez: con el Makefile del submódulo. Si el kit es de una versión anterior
+        a la 1.22.0, su Makefile solo conoce el nombre viejo del comando."""
+        makefile = f"{SUBMODULO}/Makefile"
+        nuevo = "\ninstall-kit:" in self.leer(makefile)
+        return self.make("-f", makefile, "install-kit" if nuevo else "instalar-kit", **kw)
 
     def verificar_kit(self, espera: int | None = 0) -> Resultado:
         return self.correr("python3", f"{SUBMODULO}/scripts/instalar_kit.py", "--verificar", espera=espera)

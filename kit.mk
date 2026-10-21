@@ -3,5 +3,10 @@
 
 .PHONY: test-kit
 
-test-kit: ## Pruebas automáticas del kit (SOLO=texto filtra, DESDE=v1.7.0 elige la versión anterior, ESTRICTO=1 para CI)
-	@python3 pruebas/ejecutar.py $(if $(SOLO),--solo "$(SOLO)",) $(if $(DESDE),--desde $(DESDE),) $(if $(ESTRICTO),--estricto,) $(if $(CONSERVAR),--conservar,)
+# Los nombres anteriores de las opciones (en español) se siguen aceptando.
+ONLY ?= $(SOLO)
+STRICT ?= $(ESTRICTO)
+KEEP ?= $(CONSERVAR)
+
+test-kit: ## Pruebas automáticas del kit (ONLY=texto filtra, SINCE=v1.7.0 elige la versión anterior, STRICT=1 para CI, KEEP=1 conserva la carpeta temporal)
+	@python3 pruebas/ejecutar.py $(if $(ONLY),--solo "$(ONLY)",) $(if $(SINCE),--desde $(SINCE),) $(if $(STRICT),--estricto,) $(if $(KEEP),--conservar,)

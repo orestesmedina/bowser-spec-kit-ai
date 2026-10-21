@@ -23,22 +23,26 @@ Un proyecto con el kit instalado tiene bastantes archivos que no son código del
 ```
 mi-proyecto/
 ├── AGENTS.md                        # Instrucciones del orquestador
-├── .specify/memory/constitution.md  # Reglas no negociables del código
+├── .specify/memory/constitution.md  # Reglas no negociables del código (generado)
 ├── equipo/
 │   ├── orquestador.md               # Manual de trabajo del orquestador
-│   ├── agentes/*.md                 # Los 10 roles
+│   ├── agentes/*.md                 # Los 11 roles, sin tecnología
 │   ├── comandos/*.md                # Comandos del chat (/bowser-status…)
 │   ├── config.json                  # Herramientas activas y modelo de cada agente
-│   ├── perfil.json                  # Partes del proyecto y comando de cada verbo (opcional)
+│   ├── principios.md                # Principios de la constitución (del kit)
+│   ├── reglas.md                    # Reglas propias del proyecto
+│   ├── perfil.json                  # Partes del proyecto, tecnología y comando de cada verbo (lo crea /bowser-profile)
 │   └── adaptadores/claude/          # Permisos y hooks propios de Claude Code
-├── .agents/skills/                  # Skills: convenciones del stack y flujos del equipo
+├── .agents/skills/                  # Skills: flujos del equipo y las de tecnología que pide el perfil
 ├── .githooks/                       # Controles en cada commit
 ├── .github/
-│   ├── workflows/ci.yml             # Integración continua
+│   ├── workflows/bowser.yml         # Integración continua: los controles del kit
+│   ├── workflows/ci.yml             # Integración continua del proyecto (la crea /bowser-ci)
 │   └── CODEOWNERS                   # Quién aprueba los cambios a las reglas
 ├── scripts/                         # Los programas detrás de los comandos make
 ├── Makefile                         # Comandos del kit
 ├── proyecto.mk                      # Comandos propios del proyecto (opcional)
+├── tools/                           # Scripts propios del proyecto para los verbos del perfil (opcional)
 │
 ├── docs/
 │   ├── producto/idea.md             # La idea del producto
@@ -46,9 +50,8 @@ mi-proyecto/
 │   └── plantillas/                  # Plantillas de idea, roadmap y estado
 ├── specs/<NNN-funcionalidad>/       # Una carpeta por funcionalidad
 │
-├── backend/                         # Go
-├── frontend/                        # React + TypeScript
-├── docker-compose.yml               # PostgreSQL local
+├── <carpetas de cada parte>/        # El código, donde el proyecto quiera (las nombra el perfil)
+├── docker-compose.yml               # Servicios locales del proyecto (lo crea el proyecto)
 ├── .env.example                     # Variables de entorno, sin valores reales
 │
 ├── .bowser-spec-kit-ai/             # El kit (submódulo de git)
@@ -63,9 +66,9 @@ Todo archivo que no es código del producto pertenece a una de estas clases. Sab
 
 | Clase | Qué son | Quién los cambia |
 |---|---|---|
-| **Del kit** | Vienen del submódulo y están listados en `.kit-manifest.json` | Nadie en el proyecto. Se actualizan con `make actualizar-kit` |
+| **Del kit** | Vienen del submódulo y están listados en `.kit-manifest.json` | Nadie en el proyecto. Se actualizan con `make update-kit` |
 | **Semillas** | El kit los copia una sola vez; después son del proyecto | El equipo del proyecto |
-| **Generados** | Los produce `make sincronizar` a partir de otros archivos | Nadie a mano. Se cambia la fuente y se regeneran |
+| **Generados** | Los produce `make sync` a partir de otros archivos | Nadie a mano. Se cambia la fuente y se regeneran |
 | **Del proyecto** | Todo lo demás: especificaciones, documentos, código | El equipo y los agentes |
 
 ## Carpeta por carpeta
@@ -76,14 +79,16 @@ Todo archivo que no es código del producto pertenece a una de estas clases. Sab
 |---|---|---|
 | `AGENTS.md` | Lo primero que lee el agente al abrir el proyecto: su papel, el stack, el proceso y las reglas de coordinación. Ver [El orquestador](el-orquestador.md) | Del kit |
 | `equipo/orquestador.md` | El manual de trabajo completo del orquestador | Del kit |
-| `.specify/memory/constitution.md` | Las reglas que todo el código debe cumplir. Ver [La constitución](la-constitucion.md) | Del kit |
+| `.specify/memory/constitution.md` | Las reglas que todo el código debe cumplir: los principios y, debajo, las reglas del proyecto. Ver [La constitución](la-constitucion.md) | Generado |
+| `equipo/principios.md` | La parte de la constitución que vale para cualquier proyecto | Del kit |
+| `equipo/reglas.md` | La parte de la constitución que es de este proyecto: arquitectura, mínimos de prueba, bibliotecas | Semilla |
 
 ### El equipo
 
 | Archivo | Qué es | Clase |
 |---|---|---|
 | `equipo/agentes/*.md` | Un archivo por rol: qué hace, qué puede tocar y qué entrega. Ver [Roles](roles.md) | Del kit |
-| `.agents/skills/` | Conocimiento reutilizable: cómo escribir código en este stack y cómo ejecutar cada flujo. Ver [Skills](skills.md). Las carpetas `bowser-*` son generadas (comandos para Codex) | Del kit |
+| `.agents/skills/` | Conocimiento reutilizable: cómo ejecutar cada flujo y cómo escribir código en las tecnologías del proyecto. Las de tecnología llegan del catálogo del kit según el perfil. Ver [Skills](skills.md). Las carpetas `bowser-*` son generadas (comandos para Codex) | Del kit |
 | `equipo/comandos/*.md` | Un archivo por comando del chat. Ver [Comandos](comandos.md#dentro-de-la-herramienta) | Del kit |
 | `equipo/config.json` | Qué herramientas usa el equipo y qué modelo usa cada agente. Ver [Configuración](configuracion.md) | Semilla |
 | `equipo/adaptadores/claude/` | Permisos y [hooks del agente](hooks-del-agente.md) para Claude Code | Del kit |
@@ -93,7 +98,8 @@ Todo archivo que no es código del producto pertenece a una de estas clases. Sab
 | Archivo | Qué es | Clase |
 |---|---|---|
 | `.githooks/` | Revisan cada commit. Ver [Hooks de git](hooks-de-git.md) | Del kit |
-| `.github/workflows/ci.yml` | Lo que GitHub revisa en cada Pull Request. Ver [Integración continua](integracion-continua.md) | Del kit |
+| `.github/workflows/bowser.yml` | Lo que GitHub revisa en cada Pull Request y no depende de la tecnología. Ver [Integración continua](integracion-continua.md) | Del kit |
+| `.github/workflows/ci.yml` | Las pruebas, el análisis y la auditoría de cada parte, en GitHub. Lo redacta `/bowser-ci` desde el perfil | Tuyo |
 | `.github/CODEOWNERS` | Quién debe aprobar los cambios a las reglas y a los agentes | Semilla |
 | `scripts/` | Los programas que ejecutan los comandos `make` | Del kit |
 | `Makefile` | La lista de [comandos](comandos.md) del kit | Del kit |
@@ -111,19 +117,16 @@ Todo archivo que no es código del producto pertenece a una de estas clases. Sab
 | `specs/<NNN-nombre>/tasks.md` | La lista de tareas | El arquitecto |
 | `specs/<NNN-nombre>/revision-<fecha>.md` | Los reportes de validación | QA, revisor y seguridad |
 | `specs/<NNN-nombre>/estado.md` | Fase, aprobaciones, hallazgos y próximo paso | El orquestador |
-| `specs/<NNN-nombre>/costos.json` | Tokens y costo de IA por agente y modelo | Solo `make costos`. Nunca a mano |
+| `specs/<NNN-nombre>/costos.json` | Tokens y costo de IA por agente y modelo | Solo `make costs`. Nunca a mano |
 | `docs/plantillas/` | Plantillas de idea, roadmap y estado | Del kit |
 
 ### El código
 
 | Carpeta | Qué contiene |
 |---|---|
-| `backend/` | Go. Su organización interna está en la skill `go-backend` |
-| `backend/migrations/` | Los cambios de esquema de la base de datos, numerados |
-| `backend/api/openapi.yaml` | El contrato de la API |
-| `frontend/` | React + TypeScript. Su organización interna está en la skill `react-frontend` |
-| `docker-compose.yml` | PostgreSQL para desarrollo local (semilla) |
-| `.env.example` | Las variables de entorno que necesita el proyecto, sin valores reales (semilla) |
+| Las carpetas de cada parte | El código. El kit no fija sus nombres ni su organización: el [perfil](perfil-del-proyecto.md) dice qué parte vive en qué carpeta, con qué tecnología, y qué archivos no se modifican una vez versionados (por ejemplo, las migraciones de la base de datos). Su organización interna está en las [convenciones del proyecto](convenciones-del-proyecto.md) |
+| `docker-compose.yml` (o `compose.yaml`) | Los servicios locales que levanta `make up`. Es del proyecto: el kit no trae ninguno y lo crea el rol `devops` |
+| `.env.example` | Las variables de entorno que necesita el proyecto, sin valores reales (semilla: llega vacía) |
 | `.env` | Los valores reales. Nunca se sube a git |
 
 ### El kit
@@ -138,17 +141,18 @@ Cómo funciona esto por dentro está en [El kit como submódulo](submodulo.md).
 
 ### Archivos generados
 
-`CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/` y `opencode.json` son la traducción de los roles y las skills al formato que lee cada herramienta. Los produce `make sincronizar`. Ver [Una fuente, varias herramientas](una-fuente-varias-herramientas.md).
+`CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/` y `opencode.json` son la traducción de los roles y las skills al formato que lee cada herramienta. Los produce `make sync`. Ver [Una fuente, varias herramientas](una-fuente-varias-herramientas.md).
 
 ## Qué puedes editar
 
 | Archivo | ¿Lo editas? |
 |---|---|
-| `specs/`, `docs/producto/`, `backend/`, `frontend/`, `proyecto.mk` | Sí. Es el trabajo de todos los días |
-| `equipo/config.json`, `.github/CODEOWNERS`, `docker-compose.yml`, `.env.example` | Sí, con el acuerdo de quien lidera el proyecto |
+| `specs/`, `docs/producto/`, el código de cada parte, `proyecto.mk` | Sí. Es el trabajo de todos los días |
+| `equipo/config.json`, `.github/CODEOWNERS`, `.env.example` | Sí, con el acuerdo de quien lidera el proyecto |
+| `equipo/reglas.md` | Sí, con la aprobación de dirección técnica (`APPROVED_CONSTITUTION=1`) |
 | Archivos del kit | No. El cambio se propone en el repositorio del kit, o el archivo se marca como propio. Ver [Personalizar un proyecto](personalizar.md) |
-| Archivos generados | Nunca. Cambia la fuente y ejecuta `make sincronizar` |
-| `specs/**/costos.json` | Nunca. Lo escribe `make costos` |
+| Archivos generados | Nunca. Cambia la fuente y ejecuta `make sync` |
+| `specs/**/costos.json` | Nunca. Lo escribe `make costs` |
 | `.env` | Solo en tu máquina. Nunca se sube |
 
 Estas reglas no dependen de la memoria de nadie: las hacen cumplir los [hooks de git](hooks-de-git.md) y la [integración continua](integracion-continua.md).

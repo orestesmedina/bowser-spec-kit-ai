@@ -17,7 +17,7 @@ Varias están respaldadas por un control automático. Las demás dependen de ti,
 1. **Nunca apruebes lo que no leíste.** Tu aprobación es tu firma.
 2. **Nunca uses `git commit --no-verify`,** ni permitas que el agente lo haga.
 3. **Nunca pegues secretos** (contraseñas, claves, datos de clientes) en el chat del agente ni en archivos del repositorio.
-4. **Nunca edites archivos generados** (`CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`). Cambia la fuente y ejecuta `make sincronizar`.
+4. **Nunca edites archivos generados** (`CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`). Cambia la fuente y ejecuta `make sync`.
 5. **Nunca modifiques una migración ya aplicada.** Se crea una nueva.
 6. **No aceptes pruebas desactivadas o debilitadas** para que "pase el CI".
 7. **Ante la duda, pregunta:** al cliente si es de negocio, a alguien con más experiencia si es técnica.
@@ -31,7 +31,7 @@ Varias están respaldadas por un control automático. Las demás dependen de ti,
 | 1. No aprobar sin leer | Todo el proceso descansa en que las aprobaciones significan algo. Una aprobación sin leer convierte las suposiciones del agente en decisiones tuyas | No. Depende de ti |
 | 2. No usar `--no-verify` | Se saltan los controles locales, y el problema reaparece en GitHub, más tarde y a la vista de todos | La integración continua repite las comprobaciones |
 | 3. No pegar secretos | Lo que se escribe en un chat puede quedar en registros; lo que entra a git queda en el historial para siempre | Los hooks y la búsqueda de secretos detectan los archivos. **El chat no lo vigila nadie** |
-| 4. No editar generados | El siguiente `make sincronizar` borra el cambio, y mientras tanto los agentes trabajan con instrucciones inconsistentes | El hook de git y la integración continua |
+| 4. No editar generados | El siguiente `make sync` borra el cambio, y mientras tanto los agentes trabajan con instrucciones inconsistentes | El hook de git y la integración continua |
 | 5. No modificar migraciones | Las bases de datos donde ya se aplicó quedan distintas al código, sin forma automática de arreglarlo | Los hooks del agente, el hook de git y la integración continua |
 | 6. No debilitar pruebas | La prueba detectaba un problema real. Desactivarla esconde el problema, no lo resuelve | No del todo. El revisor lo busca, pero la decisión final es tuya al aprobar |
 | 7. Preguntar ante la duda | Una duda de negocio sin resolver se convierte en una regla inventada. Una duda técnica, en un plan aprobado sin entenderlo | No |

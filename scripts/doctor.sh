@@ -12,12 +12,17 @@ version_minima() { # $1 actual, $2 mínima
   [ "$(printf '%s\n%s\n' "$2" "$1" | sort -V | head -n1)" = "$2" ]
 }
 
-requerido() { # nombre comando versión_mínima comando_versión
-  local nombre=$1 cmd=$2 minima=$3 vcmd=$4
-  if ! command -v "$cmd" >/dev/null 2>&1; then rojo "$nombre no está instalado"; return; fi
-  local v; v=$(eval "$vcmd" 2>/dev/null | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -n1)
+requerido() { # nombre comando versión_mínima comando_versión [opcional: 1] [cómo se instala]
+  local nombre=$1 cmd=$2 minima=$3 vcmd=$4 opcional=${5:-} instalar=${6:-}
+  local falla=rojo pista=""
+  [ -n "$opcional" ] && falla=ambar
+  [ -n "$instalar" ] && pista=". Se instala con: $instalar"
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    $falla "$nombre no está instalado${opcional:+ (recomendado)}$pista"; return
+  fi
+  local v; v=$(eval "$vcmd" </dev/null 2>/dev/null | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -n1)
   if [ -n "$minima" ] && [ -n "$v" ] && ! version_minima "$v" "$minima"; then
-    rojo "$nombre $v (se requiere $minima o superior)"
+    $falla "$nombre $v (se requiere $minima o superior)$pista"
   else
     verde "$nombre ${v:-instalado}"
   fi
@@ -27,23 +32,51 @@ opcional() { # nombre comando
   command -v "$2" >/dev/null 2>&1 && verde "$1" || ambar "$1 no está instalado (recomendado)"
 }
 
+# Lo que el proyecto necesita lo dice su perfil ("requisitos"). Sin perfil, no se sabe: solo las herramientas base.
+SEP=$'\x1f'
+PERFIL=sin; REQUISITOS=""
+if [ -f equipo/perfil.json ]; then
+  if REQUISITOS=$(python3 scripts/perfil.py --requisitos 2>/dev/null); then PERFIL=bien; else PERFIL=mal; REQUISITOS=""; fi
+fi
+DEL_PROYECTO=""
+while IFS=$SEP read -r cmd _; do
+  [ -n "$cmd" ] && DEL_PROYECTO="$DEL_PROYECTO $cmd"
+done <<< "$REQUISITOS"
+# Docker hace falta si el proyecto tiene entorno local (make up) o si su perfil lo pide.
+COMPOSE=""
+for f in compose.yaml compose.yml docker-compose.yaml docker-compose.yml; do [ -f "$f" ] && COMPOSE=$f && break; done
+CON_DOCKER=$COMPOSE
+case " $DEL_PROYECTO " in *" docker "*) CON_DOCKER=perfil ;; esac
+
 echo "Herramientas base"
 requerido "Git"            git     "2.30" "git --version"
-requerido "Docker"         docker  "24.0" "docker --version"
-requerido "Go"             go      "1.26" "go version"
-requerido "Node.js"        node    "24.0" "node --version"
 requerido "Python"         python3 "3.11" "python3 --version"
 requerido "uv"             uv      ""     "uv --version"
 requerido "jq"             jq      ""     "jq --version"
 requerido "make"           make    ""     "make --version"
 requerido "Spec Kit (specify)" specify "" "specify --version"
-
-echo "Herramientas de calidad y seguridad"
-opcional "golangci-lint"          golangci-lint
-opcional "govulncheck"            govulncheck
-opcional "golang-migrate"         migrate
-opcional "sqlc"                   sqlc
+[ -n "$COMPOSE" ] && [ "$CON_DOCKER" != perfil ] && requerido "Docker" docker "24.0" "docker --version"
 opcional "gitleaks"               gitleaks
+
+case $PERFIL in
+  sin)
+    echo "Herramientas del proyecto"
+    ambar "El proyecto no tiene perfil: no se sabe qué tecnología usa ni qué herramientas necesita (en el chat: /bowser-profile)"
+    ;;
+  bien)
+    echo "Herramientas del proyecto (según su perfil)"
+    if [ -z "$REQUISITOS" ]; then
+      ambar "El perfil no declara requisitos: no se revisan las herramientas de su tecnología (en el chat: /bowser-profile)"
+    fi
+    while IFS=$SEP read -r cmd nombre minima vcmd opc instalar; do
+      [ -n "$cmd" ] && requerido "$nombre" "$cmd" "$minima" "$vcmd" "$opc" "$instalar"
+    done <<< "$REQUISITOS"
+    ;;
+  mal)
+    echo "Herramientas del proyecto"
+    rojo "El perfil tiene errores: no se sabe qué necesita el proyecto (detalle: make profile)"
+    ;;
+esac
 
 echo "Agente de código (al menos uno)"
 AGENTES=0
@@ -62,7 +95,7 @@ done
 if grep -qi microsoft /proc/version 2>/dev/null; then
   echo "WSL"
   DE_WINDOWS=""
-  for c in git go node npm python3 make jq docker uv specify; do
+  for c in git python3 make jq uv specify ${CON_DOCKER:+docker} $DEL_PROYECTO; do
     ruta=$(command -v "$c" 2>/dev/null) || continue
     [[ "$ruta" == /mnt/* ]] && DE_WINDOWS="$DE_WINDOWS $c"
   done
@@ -78,19 +111,24 @@ if grep -qi microsoft /proc/version 2>/dev/null; then
 fi
 
 echo "Proyecto"
-if docker info >/dev/null 2>&1; then verde "Docker está corriendo"; else rojo "Docker no está corriendo"; fi
-if [ "$(git config core.hooksPath 2>/dev/null)" != ".githooks" ]; then rojo "Hooks de git inactivos (ejecuta: make instalar-hooks)"
-elif [ ! -x .githooks/pre-commit ] || [ ! -x .githooks/commit-msg ]; then rojo "Hooks de git sin permiso de ejecución: git los ignora (ejecuta: make instalar-hooks)"
+if [ -n "$CON_DOCKER" ]; then
+  if docker info >/dev/null 2>&1; then verde "Docker está corriendo"; else rojo "Docker no está corriendo"; fi
+fi
+if [ "$(git config core.hooksPath 2>/dev/null)" != ".githooks" ]; then rojo "Hooks de git inactivos (ejecuta: make install-hooks)"
+elif [ ! -x .githooks/pre-commit ] || [ ! -x .githooks/commit-msg ]; then rojo "Hooks de git sin permiso de ejecución: git los ignora (ejecuta: make install-hooks)"
 else verde "Hooks de git activos"; fi
-[ -f .env ] && verde "Archivo .env existe" || rojo "Falta .env (ejecuta: cp .env.example .env y completa valores)"
-if python3 scripts/sincronizar.py --verificar >/dev/null 2>&1; then verde "Configuración de agentes al día"; else rojo "Configuración de agentes desactualizada (ejecuta: make sincronizar)"; fi
+# .env solo hace falta si el proyecto declara alguna variable en .env.example.
+if [ -f .env ]; then verde "Archivo .env existe"
+elif grep -qE '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*=' .env.example 2>/dev/null; then rojo "Falta .env (ejecuta: cp .env.example .env y completa valores)"
+fi
+if python3 scripts/sincronizar.py --verificar >/dev/null 2>&1; then verde "Configuración de agentes al día"; else rojo "Configuración de agentes desactualizada (ejecuta: make sync)"; fi
 RUTA_KIT=$(bash scripts/ruta-kit.sh)
 if [ -f .kit-manifest.json ]; then
   if [ ! -f "$RUTA_KIT/scripts/instalar_kit.py" ]; then rojo "Submódulo $RUTA_KIT/ sin inicializar (ejecuta: git submodule update --init)"
   elif python3 "$RUTA_KIT/scripts/instalar_kit.py" --verificar >/dev/null 2>&1; then verde "Kit instalado y al día ($(jq -r .version .kit-manifest.json 2>/dev/null), en $RUTA_KIT/)"
-  else rojo "Kit desactualizado o modificado (detalle: make verificar-kit)"; fi
+  else rojo "Kit desactualizado o modificado (detalle: make check-kit)"; fi
 elif [ -f "$RUTA_KIT/scripts/instalar_kit.py" ]; then
-  rojo "Submódulo $RUTA_KIT/ agregado pero el kit no está instalado (ejecuta: make -f $RUTA_KIT/Makefile instalar-kit)"
+  rojo "Submódulo $RUTA_KIT/ agregado pero el kit no está instalado (ejecuta: make -f $RUTA_KIT/Makefile install-kit)"
 fi
 [ -d .specify/templates ] && verde "Spec Kit inicializado" || rojo "Spec Kit no inicializado (ejecuta: specify init --here --integration <herramienta>)"
 command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1 && verde "GitHub CLI autenticado" || ambar "GitHub CLI no autenticado (necesario para que los agentes abran PRs: gh auth login)"

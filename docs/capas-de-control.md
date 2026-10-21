@@ -36,8 +36,8 @@ Cuanto antes se detiene un error, menos cuesta corregirlo. Cuanto más tarde est
 |---|---|---|---|---|
 | **Instrucciones** | `AGENTS.md`, roles, skills, constitución | Mientras el agente piensa | Errores de criterio | Sí: el agente puede equivocarse |
 | **[Hooks del agente](hooks-del-agente.md)** | `equipo/adaptadores/claude/hooks/` | Cuando el agente intenta editar un archivo | Ediciones a archivos protegidos | Solo existen en Claude Code |
-| **[Hooks de git](hooks-de-git.md)** | `.githooks/` | En cada commit | Secretos, migraciones editadas, formato, mensajes mal escritos, archivos del kit modificados | Con `--no-verify`, o si no están activos |
-| **[Integración continua](integracion-continua.md)** | `.github/workflows/ci.yml` | En cada Pull Request | Todo lo anterior, más pruebas, cobertura, código generado y vulnerabilidades | No |
+| **[Hooks de git](hooks-de-git.md)** | `.githooks/` | En cada commit | Secretos, archivos inmutables editados (como las migraciones), formato, mensajes mal escritos, archivos del kit modificados | Con `--no-verify`, o si no están activos |
+| **[Integración continua](integracion-continua.md)** | `.github/workflows/` (`bowser.yml`, del kit, y el workflow del proyecto) | En cada Pull Request | Todo lo anterior, más pruebas, cobertura, código generado y vulnerabilidades | No |
 | **CODEOWNERS** | `.github/CODEOWNERS` | Al aprobar un Pull Request | Cambios a las reglas y a los agentes sin la aprobación de quien decide | No, si la rama está protegida |
 | **[Aprobación de una persona](aprobaciones.md)** | El chat y GitHub | En las cuatro puertas | Que se construya algo que nadie pidió | No |
 
@@ -50,15 +50,15 @@ Las reglas más importantes están protegidas en varias capas a la vez:
 | Regla | Instrucciones | Hook del agente | Hook de git | Integración continua |
 |---|:-:|:-:|:-:|:-:|
 | No subir secretos | ✓ | ✓ | ✓ | ✓ |
-| No modificar una migración aplicada | ✓ | ✓ | ✓ | ✓ |
-| No editar la constitución | ✓ | ✓ | ✓ | Avisa |
+| No modificar un archivo inmutable (una migración aplicada) | ✓ | ✓ | ✓ | ✓ |
+| No editar la constitución (principios y reglas del proyecto) | ✓ | ✓ | ✓ | Avisa |
 | No editar archivos del kit | ✓ | ✓ | ✓ | ✓ |
 | No editar `costos.json` a mano | ✓ | ✓ | Si está cerrado | |
 | Configuración de agentes al día | ✓ | | ✓ | ✓ |
-| Código formateado | ✓ | Lo formatea | ✓ | ✓ |
+| Código formateado | ✓ | | ✓ | ✓ |
 | Mensajes de commit con formato | ✓ | | ✓ | |
 | Pruebas pasando | ✓ | | | ✓ |
-| Cobertura mínima de la capa de servicio | ✓ | | | ✓ |
+| Cobertura mínima (la que fijen las reglas del proyecto) | ✓ | | | ✓ |
 | Código generado al día | ✓ | | | ✓ |
 | Sin vulnerabilidades conocidas | ✓ | | | ✓ |
 
@@ -82,7 +82,7 @@ La regla es la misma en todas las capas: **se corrige la causa, no el control**.
 | `git commit --no-verify` | La integración continua repite la comprobación. Solo se pospone el rechazo |
 | Desactivar o debilitar una prueba | La prueba estaba diciendo algo. Ahora nadie lo va a oír |
 | Editar un archivo generado para que coincida | La próxima generación lo borra |
-| Quitar un paso de la integración continua | `ci.yml` viene del kit: el hook lo detecta |
+| Quitar un paso de la integración continua | Los controles de `bowser.yml` vienen del kit: el hook lo detecta. Los del workflow del proyecto los cuida `CODEOWNERS`, y `make check-ci` avisa si un verbo dejó de ejecutarse |
 | Pedirle al agente que "lo resuelva como sea" | Va a encontrar la forma de que el control pase, que no es lo mismo que resolver el problema |
 
 Si un control está mal (rechaza algo que debería aceptar), eso es un error del kit: se reporta y se corrige en el kit. Ver [Cómo contribuir](contribuir.md).

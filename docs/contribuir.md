@@ -19,9 +19,9 @@ El repositorio tiene dos clases de archivos:
 
 | Clase | Archivos | Regla |
 |---|---|---|
-| **Fuentes** | `AGENTS.md`, `equipo/orquestador.md`, `equipo/agentes/`, `equipo/comandos/`, `equipo/config.json`, `.agents/skills/`, `.specify/memory/constitution.md`, `scripts/`, `.githooks/`, `.github/`, `Makefile`, `docs/` | Se editan a mano |
+| **Fuentes** | `AGENTS.md`, `equipo/orquestador.md`, `equipo/agentes/`, `equipo/comandos/`, `equipo/config.json`, `.agents/skills/`, `catalogo/skills/`, `equipo/principios.md`, `scripts/`, `.githooks/`, `.github/`, `Makefile`, `docs/` | Se editan a mano |
 | **Solo del kit** | `pruebas/`, `kit.mk`, `.github/workflows/kit.yml` | Se editan a mano. No llegan a los proyectos |
-| **Generados** | `CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json` | Nunca se editan. Se regeneran con `make sincronizar` |
+| **Generados** | `CLAUDE.md`, `.claude/`, `.codex/`, `.opencode/`, `opencode.json` | Nunca se editan. Se regeneran con `make sync` |
 
 Qué llega a los proyectos lo decide `scripts/instalar_kit.py`, en dos listas: los archivos **gestionados** (se reemplazan en cada actualización) y las **semillas** (se copian una sola vez). Un archivo nuevo que deba llegar a los proyectos tiene que estar en una de las dos. La explicación completa está en [El kit como submódulo](submodulo.md).
 
@@ -29,14 +29,15 @@ Qué llega a los proyectos lo decide `scripts/instalar_kit.py`, en dos listas: l
 
 | Quieres… | Cambia |
 |---|---|
-| Que los agentes dejen de repetir un error de código | La skill del stack correspondiente, en `.agents/skills/` |
+| Que los agentes dejen de repetir un error de código | La skill de esa tecnología, en `catalogo/skills/` |
 | Cambiar cómo se ejecuta un flujo (funcionalidad, bug, revisión) | La skill `equipo-*` correspondiente |
 | Cambiar qué hace o qué puede tocar un rol | `equipo/agentes/<rol>.md` |
+| Agregar la skill de una tecnología | Una carpeta nueva en `catalogo/skills/`, con `metadata: madurez` en su `SKILL.md` (`redactada` hasta que se use en un proyecto real). Ver [Skills](skills.md#el-catálogo-de-skills-de-tecnología) |
 | Agregar un rol | Un archivo nuevo en `equipo/agentes/` |
 | Agregar o cambiar un comando del chat (`/bowser-…`) | `equipo/comandos/<nombre>.md`, y su fila en `docs/comandos.md` |
 | Cambiar cómo coordina el orquestador | `equipo/orquestador.md` y `AGENTS.md` |
-| Que algo no pueda pasar nunca | `.githooks/pre-commit` **y** `.github/workflows/ci.yml` |
-| Cambiar una regla del código | La constitución. Es la decisión más pesada: afecta a todos los proyectos |
+| Que algo no pueda pasar nunca | `.githooks/pre-commit` **y** `.github/workflows/bowser.yml`. Solo si no depende de ninguna tecnología |
+| Cambiar una regla del código | Los principios de la constitución (`equipo/principios.md`). Es la decisión más pesada: afecta a todos los proyectos, y no puede nombrar ninguna tecnología |
 | Soportar otro agente de código | Una función `generar_<herramienta>` en `scripts/sincronizar.py` |
 | Agregar un comando | El `Makefile` y, si hace falta, un script en `scripts/` |
 | Agregar un comando que solo sirve para mantener el kit | `kit.mk`, que no se copia a los proyectos |
@@ -45,11 +46,11 @@ Qué llega a los proyectos lo decide `scripts/instalar_kit.py`, en dos listas: l
 
 1. **Registro de cambios y versión, siempre.** Cada cambio agrega una entrada en `CHANGELOG.md` (Agregado, Cambiado o Corregido) y sube el número en `VERSION`. Si un proyecto debe hacer algo a mano, va en una sección **Al actualizar**.
 2. **Documentación al día.** Si cambia cómo se usa algo, cambia su página en `docs/`.
-3. **Regenerar.** Después de tocar una fuente: `make sincronizar`. El comando `python3 scripts/sincronizar.py --verificar` debe dar OK.
+3. **Regenerar.** Después de tocar una fuente: `make sync`. El comando `python3 scripts/sincronizar.py --verificar` debe dar OK.
 4. **Solo biblioteca estándar.** Los scripts usan Python 3.9 o superior sin instalar nada, y bash portable. Tienen que correr en cualquier máquina del equipo.
-5. **Compatibilidad con la versión anterior.** `make actualizar-kit` se ejecuta con el `Makefile` viejo del proyecto; el nuevo recién queda instalado al terminar. Todo comando nuevo debe funcionar bien en ese primer paso.
-6. **Las semillas no se sobrescriben.** Si el kit cambia algo de una semilla, se ofrece un comando explícito que muestre las diferencias y pida confirmación, como `make actualizar-modelos`.
-7. **Documentos y mensajes en español; nombres de comandos en inglés.** Los comandos actuales de `make` siguen en español hasta la versión 2.0; todo comando nuevo nace en inglés.
+5. **Compatibilidad con la versión anterior.** `make update-kit` se ejecuta con el `Makefile` viejo del proyecto; el nuevo recién queda instalado al terminar. Todo comando nuevo debe funcionar bien en ese primer paso.
+6. **Las semillas no se sobrescriben.** Si el kit cambia algo de una semilla, se ofrece un comando explícito que muestre las diferencias y pida confirmación, como `make update-models`.
+7. **Documentos y mensajes en español; nombres de comandos en inglés.** Los comandos de `make` están en inglés desde la 1.22.0 (los nombres anteriores siguen funcionando hasta una versión posterior a la 2.0); todo comando nuevo nace en inglés.
 8. **Scripts ejecutables.** Un hook o un `.sh` nuevo debe guardarse en git con permiso de ejecución; sin él, git lo ignora sin avisar.
 
 ## Probar un cambio
@@ -63,19 +64,20 @@ make test-kit
 Instalan el kit en proyectos temporales, lo actualizan desde la versión anterior publicada y comprueban que los controles sigan bloqueando lo que deben bloquear. Prueban la carpeta de trabajo tal como está: no hace falta hacer commit antes. Tardan cerca de un minuto.
 
 ```text
-Pruebas del kit 1.10.0 · actualización desde v1.9.0
+Pruebas del kit 1.24.0 · actualización desde v1.12.2
 
 nucleo/repositorio
   ✓ los archivos generados del kit (CLAUDE.md, .claude/, .codex/, .opencode/) están al día  (0.2 s)
   ✓ VERSION tiene su entrada en el CHANGELOG y es la más reciente  (0.0 s)
   …
 nucleo/costos
-  ✓ make costos con OpenCode 1.x y 2.x: mismos totales, subagente enlazado y sin duplicar al repetir  (2.4 s)
+  ✓ make costs con OpenCode 1.x y 2.x: mismos totales, subagente enlazado y sin duplicar al repetir  (2.4 s)
   …
-go/cobertura
-  ✓ make cobertura con Go real: falla con pruebas insuficientes y pasa al completarlas  (12.7 s)
+nucleo/perfil
+  ✓ make ci con perfil ejecuta todos los verbos aunque uno falle y termina con un resumen de lo comprobado y lo que no  (2.4 s)
+  …
 
-Resultado: 32 pasaron, 0 fallaron, 0 omitidas · 58 s
+Resultado: 67 pasaron, 0 fallaron, 0 omitidas · 168 s
 ✓ Todo pasó.
 ```
 
@@ -87,24 +89,19 @@ Cuando una prueba falla, muestra qué esperaba y qué obtuvo:
       [main 5b98bf6] mensaje malo
 ```
 
-Para repetir solo esa prueba, `make test-kit SOLO=Conventional`. Con `CONSERVAR=1` la carpeta temporal no se borra y se puede entrar a mirar el proyecto.
+Para repetir solo esa prueba, `make test-kit ONLY=Conventional`. Con `KEEP=1` la carpeta temporal no se borra y se puede entrar a mirar el proyecto.
 
 Si tu cambio agrega o cambia un comportamiento, agrega su prueba. Las opciones, la lista de lo que se comprueba y cómo escribir una prueba están en [`pruebas/README.md`](../pruebas/README.md).
 
-Las pruebas de código generado y de cobertura necesitan `go`, `sqlc`, `node` y `npm`. Si falta alguno, esas pruebas se omiten y el resultado lo dice:
-
-```text
-  – make cobertura con Go real: falla con pruebas insuficientes y pasa al completarlas
-      omitida: falta go en esta máquina
-```
+Algunas pruebas necesitan un programa además de los del kit (por ejemplo, `jq`). Si falta, esas pruebas se omiten y el resultado lo dice con la palabra `omitida`.
 
 En GitHub las mismas pruebas corren solas en cada Pull Request y en cada push a `main` (workflow `kit.yml`), con todo instalado y sin permitir pruebas omitidas.
 
 > [!WARNING]
-> Las pruebas no lo cubren todo. `make doctor`, `make estado` y `make actualizar-modelos` todavía se prueban a mano, y `make costos` se prueba contra un OpenCode simulado.
+> Las pruebas no lo cubren todo. `make status` y `make update-models` todavía se prueban a mano, igual que la parte de `make doctor` que no son herramientas (WSL, hooks, kit), y `make costs` se prueba contra un OpenCode simulado.
 
 > [!NOTE]
-> Lo que cambia en `.github/workflows/ci.yml` solo se prueba de verdad en GitHub. Valida el cambio en un proyecto real antes de darlo por bueno.
+> Lo que cambia en `.github/workflows/bowser.yml` solo se prueba de verdad en GitHub. Valida el cambio en un proyecto real antes de darlo por bueno.
 
 ## Publicar una versión
 
@@ -117,7 +114,7 @@ git push origin main --tags
 > [!WARNING]
 > `git push --follow-tags` no sirve aquí: solo sube los tags anotados (`git tag -a`), y `git tag v1.8.0` crea uno simple. Sin los tags en GitHub, las pruebas del kit fallan ahí, porque la prueba de actualización parte del último tag publicado. Para comprobar que subieron: `git ls-remote --tags origin`.
 
-Los proyectos reciben la versión cuando ejecutan `make actualizar-kit`, y ven en ese momento las novedades y los pasos manuales.
+Los proyectos reciben la versión cuando ejecutan `make update-kit`, y ven en ese momento las novedades y los pasos manuales.
 
 ## Usar tu propia copia del kit
 

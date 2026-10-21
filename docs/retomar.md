@@ -29,12 +29,12 @@ El kit lo resuelve guardando el estado del trabajo en **archivos dentro de git**
 ## Ver por dónde va el proyecto
 
 ```bash
-make estado
+make status
 ```
 
 Muestra el roadmap, la funcionalidad de la rama actual con su fase y sus aprobaciones, las tareas hechas sobre el total, los hallazgos abiertos, el costo de IA acumulado y el próximo paso. No modifica nada.
 
-Con `make estado TODO=1` incluye también las funcionalidades ya terminadas.
+Con `make status ALL=1` incluye también las funcionalidades ya terminadas.
 
 Desde la rama principal, además lista el **trabajo en otras ramas**: el roadmap de la rama principal solo se actualiza cuando una funcionalidad se integra, así que es la forma de ver lo que está en curso.
 
@@ -43,7 +43,7 @@ Desde la rama principal, además lista el **trabajo en otras ramas**: el roadmap
 1. Cámbiate a la rama de la funcionalidad y mira el estado:
    ```bash
    git checkout 003-registro-usuarios
-   make estado
+   make status
    ```
 2. Abre el agente. El orquestador te dice dónde quedaron y pregunta si sigue. También puedes pedírselo:
    > ¿Por dónde quedamos?
@@ -94,7 +94,7 @@ La regla: **mandan los archivos y git**. El orquestador compara el estado con la
 
 Hay una excepción importante: **las aprobaciones nunca se deducen**. Que exista `plan.md` prueba que alguien lo escribió, no que alguien lo aprobó. Si una aprobación no consta, el orquestador pregunta.
 
-`make estado` avisa de estas situaciones:
+`make status` avisa de estas situaciones:
 
 | Aviso | Qué significa |
 |---|---|
@@ -118,4 +118,4 @@ Reconstruye el `estado.md` a partir de los archivos y de git, marca como `pendie
 
 - [Construir una funcionalidad](funcionalidad.md): las fases a las que se refiere el estado.
 - [Costos de IA](costos.md): el otro archivo que el orquestador mantiene en cada funcionalidad.
-- [Comandos](comandos.md): `make estado` y el resto.
+- [Comandos](comandos.md): `make status` y el resto.

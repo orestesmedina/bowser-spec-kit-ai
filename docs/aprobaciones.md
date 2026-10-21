@@ -101,7 +101,7 @@ El orquestador anota cada aprobación en `specs/<funcionalidad>/estado.md`, con 
 | Spec | aprobado | Ana | 2026-10-04 | "Apruebo la spec" |
 | Plan | pendiente | | | |
 
-Como el archivo va en git, cualquiera puede ver después qué se aprobó y quién lo hizo. `make estado` muestra las aprobaciones de la funcionalidad actual, y avisa si el trabajo avanzó a una fase que requería una aprobación que no consta.
+Como el archivo va en git, cualquiera puede ver después qué se aprobó y quién lo hizo. `make status` muestra las aprobaciones de la funcionalidad actual, y avisa si el trabajo avanzó a una fase que requería una aprobación que no consta.
 
 ## Cuando no estás seguro
 

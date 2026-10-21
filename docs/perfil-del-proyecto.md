@@ -3,10 +3,15 @@
 - [Introducción](#introducción)
 - [Para qué sirve](#para-qué-sirve)
 - [Qué contiene](#qué-contiene)
+- [Varios roles en una parte](#varios-roles-en-una-parte)
 - [Los verbos](#los-verbos)
+- [Lo que recibe cada comando](#lo-que-recibe-cada-comando)
+- [Scripts propios del proyecto](#scripts-propios-del-proyecto)
+- [Los requisitos de la máquina](#los-requisitos-de-la-máquina)
 - [Crear el perfil](#crear-el-perfil)
 - [Ver y validar el perfil](#ver-y-validar-el-perfil)
-- [Qué cambia cuando hay perfil](#qué-cambia-cuando-hay-perfil)
+- [El resumen de make ci](#el-resumen-de-make-ci)
+- [Sin perfil](#sin-perfil)
 - [Aprobar un cambio en el perfil](#aprobar-un-cambio-en-el-perfil)
 - [Cuando algo falla](#cuando-algo-falla)
 - [Límites](#límites)
@@ -14,22 +19,20 @@
 
 ## Introducción
 
-El perfil es un archivo, `equipo/perfil.json`, en el que el proyecto se describe a sí mismo: qué partes tiene, en qué carpeta está cada una, con qué tecnología está hecha y qué comando hay que ejecutar para probarla, revisarla o formatearla.
+El perfil es un archivo, `equipo/perfil.json`, en el que el proyecto se describe a sí mismo: qué partes tiene, en qué carpeta está cada una, con qué tecnología está hecha, qué comando hay que ejecutar para probarla, revisarla o formatearla, y qué programas necesita una máquina para trabajar en él.
 
 Es del proyecto, no del kit: el kit no lo instala ni lo reemplaza al actualizarse. Lo redacta un agente mirando el código y lo aprueba una persona.
 
 > [!NOTE]
-> El perfil es opcional por ahora. Un proyecto sin perfil funciona como siempre: el kit supone Go en `backend/` y React en `frontend/`. En la versión 2.0 del kit, el perfil pasará a ser la única forma (ver la [hoja de ruta](../HOJA-DE-RUTA.md)).
+> El kit necesita el perfil para todo lo que depende de la tecnología: sin él, no sabe cómo se prueba ni quién trabaja cada parte (ver [Sin perfil](#sin-perfil)). Si tu proyecto viene de una versión anterior a la 1.23.0 y no tiene perfil, lee [Si el proyecto no tiene perfil](actualizacion.md#si-el-proyecto-no-tiene-perfil) antes de actualizar.
 
 ## Para qué sirve
 
-Sin perfil, el kit trae escrito cómo es tu proyecto. `make test`, por ejemplo, ejecuta `go test` dentro de `backend/`. Eso sirve si el proyecto es exactamente así, y no sirve si la carpeta se llama distinto, si está en PHP o si todavía no tiene pruebas.
-
-Con perfil, el kit deja de suponer. Cuando alguien escribe `make test`, busca en el perfil qué significa "probar" en cada parte del proyecto y ejecuta eso. El mismo kit funciona entonces en un proyecto de Go, en uno de PHP o en uno con tres servicios distintos.
+El kit no sabe cómo es tu proyecto: en qué carpeta está cada cosa, en qué lenguaje, si tiene pruebas o cómo se ejecutan. El perfil se lo dice. Cuando alguien escribe `make test`, el kit busca en el perfil qué significa "probar" en cada parte del proyecto y ejecuta eso. El mismo kit funciona así en un proyecto de Go, en uno de PHP o en uno con tres servicios distintos.
 
 ## Qué contiene
 
-Una lista de **partes**. Una parte es algo que se construye, se prueba o se despliega por separado: una API, un panel web, una aplicación móvil. Un proyecto pequeño puede tener una sola.
+Una lista de **partes** y, aparte, los [requisitos de la máquina](#los-requisitos-de-la-máquina). Una parte es algo que se construye, se prueba o se despliega por separado: una API, un panel web, una aplicación móvil. Un proyecto pequeño puede tener una sola.
 
 ```json
 {
@@ -38,8 +41,10 @@ Una lista de **partes**. Una parte es algo que se construye, se prueba o se desp
       "nombre": "api",
       "carpeta": "servidor",
       "descripcion": "API del inventario",
-      "rol": "dev-backend",
-      "skills": ["go-backend", "postgres-db"],
+      "roles": [
+        { "rol": "dev-backend", "skills": ["go-backend"] },
+        { "rol": "dev-dba", "skills": ["postgres-db"] }
+      ],
       "terceros": ["vendor"],
       "inmutables": ["migrations/*.sql"],
       "verbos": {
@@ -54,25 +59,58 @@ Una lista de **partes**. Una parte es algo que se construye, se prueba o se desp
     {
       "nombre": "panel",
       "carpeta": "web/panel",
-      "rol": "dev-frontend",
+      "roles": ["dev-frontend"],
+      "terceros": ["libraries"],
       "verbos": {
-        "revisar": "find . -name '*.php' -not -path './libraries/*' -print0 | xargs -0 -n1 php -l > /dev/null"
+        "revisar": "bash \"$PERFIL_RAIZ/tools/sintaxis-php.sh\""
       }
     }
+  ],
+  "requisitos": [
+    { "comando": "go", "nombre": "Go", "minima": "1.26", "version": "go version" },
+    { "comando": "govulncheck", "opcional": true, "instalar": "go install golang.org/x/vuln/cmd/govulncheck@v1.8.0" },
+    "php"
   ]
 }
 ```
+
+De cada parte:
 
 | Campo | Qué es | Obligatorio |
 |---|---|---|
 | `nombre` | Cómo se llama la parte. Minúsculas, números y guiones; no se repite | Sí |
 | `carpeta` | Dónde está, relativa a la raíz del proyecto. `"."` si el proyecto entero es una sola parte | Sí |
 | `descripcion` | Una línea para quien lo lea | No |
-| `rol` | El agente de `equipo/agentes/` que trabaja esa parte | No |
-| `skills` | Las [skills](skills.md) con las convenciones de su tecnología | No |
-| `terceros` | Carpetas con código ajeno copiado dentro de la parte. No se les revisa el formato | No |
+| `roles` | Los agentes de `equipo/agentes/` que trabajan esa parte. Ver [Varios roles en una parte](#varios-roles-en-una-parte) | No |
+| `skills` | Las [skills](skills.md) con las convenciones de su tecnología. Las reciben todos los roles de la parte. Las del [catálogo del kit](skills.md#el-catálogo-de-skills-de-tecnología) que nombres aquí son las que `make install-kit` copia al proyecto | No |
+| `terceros` | Carpetas con código ajeno copiado dentro de la parte. No se les revisa el formato, y cada comando las recibe en `PERFIL_TERCEROS` | No |
 | `inmutables` | Archivos que no se modifican una vez guardados en git, como las migraciones. Son patrones relativos a la parte | No |
 | `verbos` | El comando de cada verbo | No |
+
+## Varios roles en una parte
+
+Hay partes que no son de un solo oficio. Un panel hecho en PHP que además lleva sus hojas de estilo y su JavaScript lo trabajan dos especialistas, y cada uno necesita convenciones distintas. Para eso `roles` es una lista, y cada rol puede traer skills que son solo suyas:
+
+```json
+{
+  "nombre": "panel",
+  "carpeta": "web/panel",
+  "skills": ["convenciones-del-panel"],
+  "roles": [
+    { "rol": "dev-backend", "skills": ["php"] },
+    { "rol": "dev-frontend", "skills": ["web-sin-framework"] },
+    "qa-tester"
+  ]
+}
+```
+
+Cada elemento de `roles` es el nombre de un rol, o un objeto con `rol` y sus `skills`. Un rol recibe las `skills` de la parte más las suyas: en el ejemplo, `dev-backend` trabaja con `convenciones-del-panel` y `php`; `qa-tester`, solo con `convenciones-del-panel`.
+
+El caso más común es la base de datos. El esquema y las migraciones suelen vivir dentro de la carpeta del servidor, pero son otro oficio: la parte declara `dev-backend` con la skill del lenguaje y `dev-dba` con la del motor. Si la base de datos tiene su propia carpeta, es una parte aparte con `dev-dba` como único rol.
+
+Una parte sin `roles` no tiene quién la trabaje: el orquestador no delega sus tareas y te pide completar el perfil.
+
+`"rol": "dev-backend"`, el formato de la primera versión del perfil, sigue valiendo y significa lo mismo que `"roles": ["dev-backend"]`. Una parte usa uno de los dos, no ambos.
 
 ## Los verbos
 
@@ -83,9 +121,9 @@ Un verbo es una acción que el kit necesita pedir en cualquier proyecto. Son sei
 | `formato` | Comprobar que el código esté formateado, sin cambiar archivos. Tiene que ser rápido | Cada commit que toca la parte, y `make lint` |
 | `revisar` | Análisis del código sin ejecutarlo: linters, tipos, sintaxis | `make lint` |
 | `probar` | Ejecutar las pruebas | `make test` |
-| `cobertura` | Medir cuánto código cubren las pruebas y fallar bajo el mínimo del proyecto | `make cobertura` |
+| `cobertura` | Medir cuánto código cubren las pruebas y fallar bajo el mínimo del proyecto | `make coverage` |
 | `auditar` | Buscar vulnerabilidades conocidas en las dependencias | `make security` |
-| `generar` | Regenerar el código que sale de otra fuente | `make generar`, `make verificar-generados` |
+| `generar` | Regenerar el código que sale de otra fuente | `make generate`, `make check-generated` |
 
 Tres reglas:
 
@@ -95,6 +133,81 @@ Tres reglas:
 
 > [!WARNING]
 > No rellenes un verbo con un comando que siempre pasa (`"probar": "true"`) para quitar el aviso. El aviso es información: dice que esa parte no tiene pruebas. Un comando falso lo esconde.
+
+## Lo que recibe cada comando
+
+El kit le pasa dos variables de entorno a cada comando, para que no tenga que repetir lo que el perfil ya dice:
+
+| Variable | Qué trae | Para qué |
+|---|---|---|
+| `PERFIL_RAIZ` | La ruta completa de la raíz del proyecto | Llamar a un script del proyecto sin contar `../` desde la carpeta de la parte |
+| `PERFIL_TERCEROS` | Las carpetas de `terceros` de esa parte, una por línea y relativas a ella. Vacía si no hay | Excluir el código ajeno sin escribir la lista otra vez en el comando |
+
+Van una por línea, y no separadas por espacios, porque una carpeta puede tener espacios en el nombre.
+
+## Scripts propios del proyecto
+
+Un proyecto sin herramientas instaladas (sin linter ni formateador) suele necesitar un script propio para un verbo. Esos scripts van en la carpeta **`tools/`**, en la raíz del proyecto. No en `scripts/`: esa carpeta es del kit y se reemplaza en cada actualización.
+
+```bash
+# tools/sintaxis-php.sh: revisa la sintaxis de todo el PHP propio de la parte
+excluir=()
+while IFS= read -r carpeta; do
+  [ -n "$carpeta" ] && excluir+=(-not -path "./$carpeta/*")
+done <<< "$PERFIL_TERCEROS"
+find . -name '*.php' "${excluir[@]}" -print0 | xargs -0 -n1 php -l > /dev/null
+```
+
+Y en el perfil, el verbo lo llama desde la raíz:
+
+```json
+"revisar": "bash \"$PERFIL_RAIZ/tools/sintaxis-php.sh\""
+```
+
+El script corre dentro de la carpeta de la parte, así que el mismo sirve para varias partes: cada una le pasa sus propios terceros. `tools/` es del proyecto: el kit no la crea ni la toca.
+
+## Los requisitos de la máquina
+
+`requisitos` es la lista de programas que una máquina necesita para trabajar en el proyecto. Va fuera de `partes`, porque es del proyecto entero: Docker o Node suelen servir a más de una parte.
+
+Sirve para que [`make doctor`](comandos.md#make-doctor) revise lo que **este** proyecto usa, y no una lista fija. Quien se une al equipo ejecuta `make doctor` y ve qué le falta, en qué versión y cómo se instala.
+
+```json
+"requisitos": [
+  { "comando": "go", "nombre": "Go", "minima": "1.26", "version": "go version" },
+  { "comando": "govulncheck", "opcional": true, "instalar": "go install golang.org/x/vuln/cmd/govulncheck@v1.8.0" },
+  "php"
+]
+```
+
+| Campo | Qué es | Obligatorio |
+|---|---|---|
+| `comando` | El programa, como se escribe en la terminal. Sin espacios ni rutas | Sí |
+| `nombre` | Cómo lo muestra `make doctor`. Si falta, usa el del comando | No |
+| `minima` | La versión mínima, entre comillas: `"1.26"` | No |
+| `version` | El comando que imprime la versión, cuando no es `<comando> --version`. Por ejemplo, `go version` | No |
+| `opcional` | `true`: si falta es un aviso (`!`) y no un problema (`✗`) | No |
+| `instalar` | Cómo se instala, en una línea. Se muestra cuando falta | No |
+
+Un elemento puede ser solo el nombre del programa: `"php"` es lo mismo que `{ "comando": "php" }`.
+
+Con ese perfil, en una máquina sin `govulncheck` y con un Go antiguo:
+
+```text
+Herramientas del proyecto (según su perfil)
+  ✗ Go 1.24.2 (se requiere 1.26 o superior)
+  ! govulncheck no está instalado (recomendado). Se instala con: go install golang.org/x/vuln/cmd/govulncheck@v1.8.0
+  ✓ php 8.4.1
+```
+
+Tres cosas a saber:
+
+- **No hace falta repetir lo que el kit revisa siempre:** Git, Python, `make`, `jq`, `uv`, Spec Kit, `gitleaks` y el agente de código.
+- **Docker se revisa solo** cuando el proyecto tiene un archivo de Docker Compose en la raíz. Decláralo en `requisitos` únicamente si el proyecto usa Docker sin ese archivo (por ejemplo, un verbo que corre dentro de un contenedor).
+- **Un perfil sin `requisitos` es válido**, pero `make doctor` avisa: no puede revisar las herramientas de la tecnología del proyecto.
+
+> [!WARNING]
+> El comando de `version` se ejecuta en la máquina de cada persona, igual que los de los verbos. Es una de las razones por las que un cambio en el perfil [lo confirma una persona](#aprobar-un-cambio-en-el-perfil).
 
 ## Crear el perfil
 
@@ -106,15 +219,20 @@ En el chat de tu herramienta:
 
 (En Codex, `$bowser-profile`.) El agente hace esto:
 
-1. Ejecuta `make profile DETECTAR=1`, que mira el proyecto y lista lo que encuentra: carpetas con código y en qué lenguaje, archivos que delatan una tecnología (`go.mod`, `composer.json`, `package.json`), archivos de SQL con su motor probable, y carpetas que parecen de terceros. Si uno de esos archivos está dentro de una carpeta dudosa (por ejemplo `libraries/PHPMailer/composer.json`), lo marca con `dentro_de_carpeta_a_confirmar`: suele ser de una biblioteca copiada, no la tecnología del proyecto. Solo lee.
+1. Ejecuta `make profile DETECT=1`, que mira el proyecto y lista lo que encuentra: carpetas con código y en qué lenguaje, archivos que delatan una tecnología (`go.mod`, `composer.json`, `package.json`), archivos de SQL con su motor probable, y carpetas que parecen de terceros. Si uno de esos archivos está dentro de una carpeta dudosa (por ejemplo `libraries/PHPMailer/composer.json`), lo marca con `dentro_de_carpeta_a_confirmar`: suele ser de una biblioteca copiada, no la tecnología del proyecto. Solo lee.
 2. Le pasa esos hechos al `arquitecto`, que redacta el perfil.
-3. Te pregunta lo que no puede saber mirando el código: cómo se prueba, qué versión se usa, si una carpeta dudosa es de terceros.
+3. Te pregunta lo que no puede saber mirando el código: cómo se prueba, qué versión se usa, si una carpeta dudosa es de terceros. Los `requisitos` los saca de los comandos de los verbos y de los archivos de versión del proyecto.
 4. Te muestra la propuesta en lenguaje simple y espera tu aprobación.
 5. Con tu "sí", escribe `equipo/perfil.json` y lo valida.
+6. Ejecuta `make install-kit`, que trae del catálogo las skills que el perfil nombra y retira las que no.
+7. Te propone lo que el kit no trae porque depende de la tecnología: las reglas de `.gitignore` (cada skill del catálogo dice qué no va en git; quedan fuera del bloque del kit, con la carpeta de cada parte delante, por ejemplo `web/node_modules/`) y, si el proyecto no tiene entorno local, lo deja anotado como pendiente para el rol `devops`.
 
 En un proyecto recién creado, sin código todavía, el paso 1 no encuentra nada y el perfil sale de la conversación sobre qué se va a construir.
 
-Si prefieres escribirlo a mano, es un archivo de texto: créalo con el formato de arriba y valídalo con `make profile`.
+Si prefieres escribirlo a mano, es un archivo de texto: créalo con el formato de arriba, valídalo con `make profile` y ejecuta `make install-kit` para que las skills del proyecto sean las que el perfil nombra.
+
+> [!NOTE]
+> Un proyecto que viene de una versión anterior a la 1.23.0 tiene las tres skills que el kit instalaba sin perfil (`go-backend`, `postgres-db`, `react-frontend`). Al crear el perfil, `make install-kit` retira las que no nombres: es lo esperado, y esos archivos borrados van en el mismo commit que el perfil.
 
 ## Ver y validar el perfil
 
@@ -125,8 +243,9 @@ make profile
 ```text
 Perfil del proyecto (equipo/perfil.json): 2 partes
 
-  api  ·  carpeta servidor  ·  dev-backend  ·  skills: go-backend, postgres-db
+  api  ·  carpeta servidor
     API del inventario
+    roles:      dev-backend (go-backend)  ·  dev-dba (postgres-db)
     formato    test -z "$(gofmt -l .)"
     revisar    go vet ./...
     probar     go test ./...
@@ -136,14 +255,17 @@ Perfil del proyecto (equipo/perfil.json): 2 partes
     terceros:   vendor
     inmutables: migrations/*.sql
 
-  panel  ·  carpeta web/panel  ·  dev-frontend
+  panel  ·  carpeta web/panel
+    roles:      dev-frontend
     formato    — sin definir
-    revisar    find . -name '*.php' -not -path './libraries/*' -print0 | xargs -0 -n1 php -l > /dev/null
+    revisar    bash "$PERFIL_RAIZ/tools/sintaxis-php.sh"
     probar     — sin definir
     cobertura  — sin definir
     auditar    — sin definir
     generar    — sin definir
+    terceros:   libraries
 
+Requisitos de la máquina (los revisa make doctor): Go 1.26 o superior  ·  govulncheck (recomendado)  ·  php
 OK: perfil válido (2 partes).
 ```
 
@@ -152,31 +274,59 @@ Dentro del chat, `/bowser-profile ver` hace lo mismo y lo explica.
 Para ejecutar un verbo en una sola parte:
 
 ```bash
-make test PARTE=api
+make test PART=api
 ```
 
-## Qué cambia cuando hay perfil
+## El resumen de make ci
+
+Un verbo sin definir no falla, y eso tiene una trampa: en un proyecto que solo define `revisar`, `make ci` termina bien habiendo comprobado muy poco. Por eso, con perfil, `make ci` cierra con un resumen de qué se comprobó y qué no:
+
+```text
+Resumen de lo comprobado
+  formato    bien: api  ·  sin definir: panel
+  revisar    bien: api, panel
+  generar    sin definir en ninguna parte
+  probar     bien: api  ·  sin definir: panel
+  cobertura  sin definir en ninguna parte
+  auditar    bien: api  ·  sin definir: panel
+⚠ Pasó lo que se comprobó: 5 de 12 comprobaciones. Las otras 7 no existen todavía en este proyecto (arriba, «sin definir»): nadie las revisó.
+```
+
+Una "comprobación" es un verbo en una parte. Cuando algo falla, la línea del verbo lo dice (`FALLÓ: api`) y `make ci` termina con error. Cuando todo está definido y pasa, la última línea es `✓ Todo comprobado y sin fallos`.
+
+`make ci` ejecuta todos los verbos aunque uno falle, para que el resumen esté completo.
+
+## Sin perfil
+
+Un proyecto recién instalado todavía no tiene perfil: el kit se instala antes de que exista. Mientras falte, el kit no supone nada sobre la tecnología:
 
 | Comando o control | Sin perfil | Con perfil |
 |---|---|---|
-| `make test` | `go test` en `backend/` y `npm test` en `frontend/` | El verbo `probar` de cada parte |
-| `make lint` | `gofmt`, `go vet`, `golangci-lint`; lint y tipos del frontend | Los verbos `formato` y `revisar` |
-| `make cobertura` | Cobertura de la capa de servicio de Go, mínimo 80 % | El verbo `cobertura` |
-| `make security` | `govulncheck` y `npm audit` | El verbo `auditar` |
-| `make generar`, `make verificar-generados` | sqlc y los tipos de la API | El verbo `generar` |
-| Commit: formato | `gofmt` y `prettier` | El verbo `formato`, solo en las partes que el commit toca |
-| Commit: archivos que no se modifican | `backend/migrations/*.sql` | Los `inmutables` de cada parte |
+| `make test`, `lint`, `coverage`, `security`, `generate`, `check-generated` y `ci` | No ejecutan nada: terminan con error y piden crearlo | El verbo de cada parte |
+| `make doctor` | Solo las herramientas base, con un aviso | También los [requisitos](#los-requisitos-de-la-máquina) del perfil |
+| Commit: formato | No se revisa | El verbo `formato`, solo en las partes que el commit toca |
+| Commit, integración continua y [hook de Claude Code](hooks-del-agente.md#los-archivos-inmutables-del-proyecto): archivos que no se modifican | Ninguno | Los `inmutables` de cada parte |
+| Skills de tecnología | Ninguna | Las que el perfil nombra |
+| Lo que cada agente sabe del proyecto | Que no hay perfil: no debe suponer carpetas, tecnologías ni comandos, y avisa antes de trabajar | Las partes, skills y comandos que el perfil asigna a cada rol. Ver [Lo que cada rol recibe del proyecto](roles.md#lo-que-cada-rol-recibe-del-proyecto) |
+| Las marcas de las tareas | El orquestador no delega tareas de implementación | El nombre de cada parte (`[api]`), o `[infra]` |
 
-Lo demás no cambia: estado, costos, instalación del kit, secretos, mensajes de commit y aprobaciones no dependen de la tecnología.
+El mensaje de los comandos de los verbos:
 
-`make test-backend` y `make test-frontend` siguen existiendo, pero son los comandos de siempre: no leen el perfil.
+```text
+✗ Este proyecto no tiene perfil (equipo/perfil.json). Para crearlo, escribe en el chat: /bowser-profile
+```
+
+Lo demás funciona igual con o sin perfil: estado, costos, instalación del kit, secretos, mensajes de commit, constitución y aprobaciones no dependen de la tecnología.
+
+> [!NOTE]
+> Hasta la versión 1.22.0, sin perfil el kit suponía Go y PostgreSQL en `backend/` y React en `frontend/`, y existían `make test-backend`, `make test-frontend` y `make db-migrate`. Si tu proyecto los usa, defínelos en su `proyecto.mk` (ver [Comandos propios](personalizar.md#comandos-propios)).
 
 ## Aprobar un cambio en el perfil
 
 Los comandos del perfil se ejecutan en la máquina de cada persona del equipo y en la integración continua. Por eso un commit que crea, cambia o elimina `equipo/perfil.json` necesita que una persona lo confirme:
 
 ```bash
-APROBADO_PERFIL=1 git commit -m "chore: perfil del proyecto"
+APPROVED_PROFILE=1 git commit -m "chore: perfil del proyecto"
 ```
 
 Antes de confirmarlo, lee los comandos con `make profile`. Un agente nunca usa esa variable por su cuenta: te deja el cambio listo y te dice que lo confirmes.
@@ -185,14 +335,23 @@ Antes de confirmarlo, lee los comandos con `make profile`. Un agente nunca usa e
 
 | Mensaje | Qué significa | Qué hacer |
 |---|---|---|
-| `El perfil del proyecto (equipo/perfil.json) cambió` | El commit toca el perfil y nadie lo confirmó | Revísalo con `make profile` y repite el commit con `APROBADO_PERFIL=1` |
+| `El perfil del proyecto (equipo/perfil.json) cambió` | El commit toca el perfil y nadie lo confirmó | Revísalo con `make profile` y repite el commit con `APPROVED_PROFILE=1` |
 | `equipo/perfil.json no es un JSON válido` | Falta una coma, una comilla o una llave | Corrige el archivo; el mensaje indica la línea |
 | `la carpeta «x» no existe` | La parte apunta a una carpeta que no está, o se renombró | Corrige `carpeta` |
 | `verbo desconocido «x»` | Solo existen los seis verbos de la tabla | Usa uno de ellos. Un comando propio del proyecto va en `proyecto.mk` |
 | `el rol «x» no existe en equipo/agentes/` | El nombre del rol está mal escrito | Mira los disponibles en `equipo/agentes/` |
-| `la skill «x» no está en .agents/skills/` | Es un aviso: el agente trabajará sin esa skill | Quítala del perfil o agrega la skill al proyecto |
+| `el requisito N: "comando" debe ser el nombre de un programa` | El `comando` de un requisito falta, o trae espacios o una ruta | Deja solo el programa (`go`); el comando que imprime la versión va en `version` |
+| `el requisito «x»: "minima" debe ser una versión entre comillas` | Se escribió como número (`1.26`) | `"minima": "1.26"` |
+| `El perfil no declara requisitos` (en `make doctor`) | Es un aviso: el perfil no tiene `requisitos` | `/bowser-profile`, o escríbelos a mano |
+| `El perfil tiene errores: no se sabe qué necesita el proyecto` (en `make doctor`) | El perfil no pasa la validación | `make profile` dice qué corregir |
+| `usa "roles" (lista) o "rol" (uno solo), no los dos` | La parte tiene los dos campos | Deja solo `roles` |
+| `el rol «x» está dos veces` | El mismo rol aparece repetido en los `roles` de una parte | Déjalo una vez, con todas sus skills |
+| `la skill «x» no está en .agents/skills/ ni en el catálogo del kit` | Es un aviso: el agente trabajará sin esa skill | Corrige el nombre (`make skills` lista las del catálogo), quítala del perfil o agrega la skill al proyecto |
+| `la skill «x» está en el catálogo del kit pero todavía no en el proyecto` | Es un aviso: el perfil la nombra y falta copiarla | `make install-kit` |
+| `Los archivos del kit no coinciden` al hacer el commit del perfil | Cambiaron las `skills` del perfil y no se instaló | `make install-kit` y repite el commit. Ver [Skills](skills.md#cuando-algo-falla) |
 | `La parte «x» no define el verbo «y»: se omite` | Es un aviso: esa parte todavía no tiene eso | Nada, si es cierto. Si ya lo tiene, agrega el comando al perfil |
 | `Ninguna parte define «y»` | Es un aviso: el comando no ejecutó nada | Lo mismo |
+| `Pasó lo que se comprobó: N de M comprobaciones` | Es un aviso de `make ci`: no hubo fallos, pero hay verbos sin definir | Lee el resumen: lo que dice «sin definir» no lo revisó nadie |
 | `y falló en la parte «x» (código N)` | El comando del verbo terminó con error | El error real está justo encima: es la salida del comando |
 | `Estos archivos de la parte «x» no se modifican una vez versionados` | El commit cambia, renombra o borra un archivo `inmutable` | Deja el archivo como estaba y crea uno nuevo |
 | `La parte «x» no pasa la revisión de formato` | El verbo `formato` falló en una parte que el commit toca | Formatea el código de esa parte y repite el commit |
@@ -201,12 +360,14 @@ Con un perfil inválido el kit no ejecuta ningún verbo y bloquea los commits ha
 
 ## Límites
 
-- **La integración continua todavía no lee el perfil.** El `ci.yml` que trae el kit sigue buscando `backend/go.mod` y `frontend/package.json`. Un proyecto con otra forma necesita por ahora su propio workflow. Se resuelve en una entrega posterior.
-- **Los roles y `make doctor` todavía hablan de Go, React y PostgreSQL.** El campo `skills` del perfil se valida y se muestra, pero los roles siguen llevando las suyas escritas. También es de una entrega posterior.
-- **El hook de Claude Code sigue protegiendo `backend/migrations/`**, no los `inmutables` del perfil. El control del commit sí usa el perfil, y es el que vale para las tres herramientas.
-- **`make verificar-generados` revisa toda la carpeta de la parte.** Si tienes otros cambios sin commit en ella, los toma por código generado desactualizado.
+- **La integración continua no se actualiza sola.** El workflow del proyecto ejecuta los verbos, así que cambiar el comando de un verbo no exige tocarlo. Pero una parte nueva, o un verbo que necesita una herramienta que el workflow no instala, sí: `make check-ci` avisa de lo que nadie ejecuta y `/bowser-ci` lo corrige. Ver [Integración continua](integracion-continua.md#el-workflow-del-proyecto).
+- **`make doctor` no comprueba que `requisitos` esté completo.** Revisa lo que el perfil declara; si un verbo llama a un programa que nadie anotó, lo descubre quien no lo tiene, al ejecutar ese verbo.
+- **Sin perfil, el kit no sirve para trabajar en el código.** Se instala, guarda el estado y los costos y protege los secretos, pero no sabe probar, revisar ni formatear nada, y los agentes no tienen skills de tecnología. Es lo primero que hay que crear en un proyecto nuevo.
+- **Cambiar el perfil obliga a regenerar los roles.** Lo que cada agente sabe del proyecto queda escrito en sus instrucciones al generarlas, así que un perfil nuevo sin `make install-kit` (o `make sync`, si las skills no cambiaron) deja el commit bloqueado con `La configuración de agentes está desactualizada`.
+- **Los `inmutables` solo se adelantan al agente en Claude Code**, que es la única herramienta con [hooks del agente](hooks-del-agente.md). En Codex y OpenCode el agente se entera en el commit, que es el control que vale para las tres.
+- **`make check-generated` revisa toda la carpeta de la parte.** Si tienes otros cambios sin commit en ella, los toma por código generado desactualizado.
 - **La detección describe, no decide.** Reconoce las tecnologías más comunes por sus archivos; una que no conozca aparece solo como carpetas con archivos. Y no sabe cómo se prueba ni cómo se levanta el proyecto: eso se pregunta.
-- **La confirmación con `APROBADO_PERFIL=1` depende de que el agente respete la instrucción de no usarla.** Es la misma garantía que tiene la constitución.
+- **La confirmación con `APPROVED_PROFILE=1` depende de que el agente respete la instrucción de no usarla.** Es la misma garantía que tiene la constitución.
 
 ## Siguientes pasos
 

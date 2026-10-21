@@ -1,8 +1,10 @@
 # bowser-spec-kit-ai
 
-Un kit para que un equipo de agentes de IA construya software con **React + TypeScript, Go y PostgreSQL**, siguiendo **Spec-Driven Development** con [Spec Kit](https://github.com/github/spec-kit): todo empieza por escrito, y las personas aprueban en los puntos clave.
+Un kit para que un equipo de agentes de IA construya software **con cualquier tecnología**, siguiendo **Spec-Driven Development** con [Spec Kit](https://github.com/github/spec-kit): todo empieza por escrito, y las personas aprueban en los puntos clave.
 
 **Funciona con Claude Code, Codex y OpenCode.** El proceso, las reglas y los roles se definen una sola vez; un script genera el formato que necesita cada herramienta.
+
+**No impone una tecnología.** Cada proyecto declara en su perfil sus partes, su lenguaje, su base de datos y cómo se prueba cada cosa, y un agente lo redacta leyendo el código o conversando sobre lo que se va a construir. El kit trae skills con el estándar oficial de varias tecnologías (Go, React, PostgreSQL, PHP, MySQL, web sin framework) y el proyecto puede sumar las suyas.
 
 > **[Documentación completa →](docs/README.md)**
 
@@ -11,7 +13,7 @@ Un kit para que un equipo de agentes de IA construya software con **React + Type
 La IA escribe casi todo el código, pero una persona es responsable del resultado. Para que eso sea seguro, el kit aporta tres cosas:
 
 - **Un proceso.** Antes del código se escribe qué se construye (la especificación) y cómo (el plan). Una persona aprueba cada uno.
-- **Un equipo.** Un orquestador coordina a diez especialistas: analista, arquitecto, diseñador, dos desarrolladores, QA, revisor, seguridad, DevOps y documentador. Quien escribe el código nunca lo aprueba.
+- **Un equipo.** Un orquestador coordina a once especialistas: analista, arquitecto, diseñador, tres desarrolladores (servidor, interfaz y base de datos), QA, revisor, seguridad, DevOps y documentador. Quien escribe el código nunca lo aprueba.
 - **Controles automáticos.** Hooks de git e integración continua que revisan cada cambio, sin depender de que alguien se acuerde ni de que el agente obedezca.
 
 ```
@@ -24,7 +26,7 @@ Idea
 
 ## Empezar
 
-Requisitos: Git, `make`, `jq`, Docker, Go 1.26+, Node 24, Python 3.11+, [uv](https://docs.astral.sh/uv/) y al menos un agente de código. El detalle está en [Instalación](docs/instalacion.md); en Windows, lee antes [Windows y WSL](docs/windows-wsl.md).
+Requisitos: Git, `make`, `jq`, Python 3.11+, [uv](https://docs.astral.sh/uv/) y al menos un agente de código. Las herramientas de tu tecnología las declara el proyecto y `make doctor` te dice cuáles faltan. El detalle está en [Instalación](docs/instalacion.md); en Windows, lee antes [Windows y WSL](docs/windows-wsl.md).
 
 ```bash
 # 1. Spec Kit, una vez por máquina
@@ -37,20 +39,21 @@ git add . && git commit -m "chore: inicializa spec kit"
 
 # 3. El kit, como submódulo
 git submodule add https://github.com/orestesmedina/bowser-spec-kit-ai.git .bowser-spec-kit-ai
-make -f .bowser-spec-kit-ai/Makefile instalar-kit
+make -f .bowser-spec-kit-ai/Makefile install-kit
 
 # 4. El entorno local
-cp .env.example .env      # completa los valores
-make up && make doctor
+cp .env.example .env      # las variables las agrega el proyecto
+make doctor
 ```
 
-Después abre tu agente en la carpeta del proyecto y pídele lo que necesitas.
+Después abre tu agente en la carpeta del proyecto y escribe `/bowser-profile`: un agente describe el proyecto (sus partes y su tecnología) y, con tu aprobación, el kit queda listo para trabajar con ella.
 
 | Tu situación | Empieza por |
 |---|---|
 | Proyecto desde cero | [Crear un proyecto nuevo](docs/proyecto-nuevo.md) |
 | Ya tienes un proyecto con código | [Integrar el kit en un proyecto existente](docs/proyecto-existente.md) |
 | Te unes a un proyecto que ya usa el kit | [Unirse a un proyecto](docs/unirse-a-un-proyecto.md) |
+| Tu proyecto usa una versión 1.x del kit | [Migrar a la 2.0](docs/migrar-a-2.md) |
 | Quieres entender la idea primero | [Desarrollo guiado por especificaciones](docs/sdd.md) |
 
 ## Uso diario
@@ -59,11 +62,11 @@ Después abre tu agente en la carpeta del proyecto y pídele lo que necesitas.
 |---|---|
 | Construir una funcionalidad | Le pido al agente: "Construyamos esta funcionalidad: los clientes pueden registrarse con correo…" |
 | Corregir un error | "Al editar un pedido se pierde la dirección" |
-| Saber por dónde íbamos | `make estado`, o "¿por dónde quedamos?" |
+| Saber por dónde íbamos | `make status`, o "¿por dónde quedamos?" |
 | Comprobar mi entorno | `make doctor` |
 | Saber si un cambio va a pasar en GitHub | `make ci` |
-| Saber cuánto costó en IA | `make costos` |
-| Actualizar el kit | `make actualizar-kit` |
+| Saber cuánto costó en IA | `make costs` |
+| Actualizar el kit | `make update-kit` |
 
 Todos los comandos están en [Comandos](docs/comandos.md), y los errores frecuentes en [Problemas comunes](docs/problemas-comunes.md).
 
@@ -74,13 +77,13 @@ Todos los comandos están en [Comandos](docs/comandos.md), y los errores frecuen
 | [Primeros pasos](docs/README.md#primeros-pasos) | Instalación, proyectos nuevos y existentes, estructura y configuración |
 | [Conceptos](docs/README.md#conceptos) | El proceso, el equipo de agentes, la constitución y cómo funciona el kit por dentro |
 | [El flujo de trabajo](docs/README.md#el-flujo-de-trabajo) | De la idea al roadmap, funcionalidades, aprobaciones, bugs y cómo retomar |
-| [Profundizando](docs/README.md#profundizando) | Roles, skills, modelos, costos y personalización |
+| [Profundizando](docs/README.md#profundizando) | Roles, skills, perfil y convenciones del proyecto, modelos, costos y personalización |
 | [Controles](docs/README.md#controles) | Hooks de git, hooks del agente, integración continua, cobertura |
 | [Referencia](docs/README.md#referencia) | Comandos, problemas comunes, reglas de oro y glosario |
 
 ## Contribuir
 
-Los cambios al kit se hacen en este repositorio y llegan a los proyectos con `make actualizar-kit`. Cada cambio se registra en [`CHANGELOG.md`](CHANGELOG.md). Cómo está organizado, cómo probar un cambio y cómo mantener tu propia copia: [Cómo contribuir](docs/contribuir.md).
+Los cambios al kit se hacen en este repositorio y llegan a los proyectos con `make update-kit`. Cada cambio se registra en [`CHANGELOG.md`](CHANGELOG.md). Cómo está organizado, cómo probar un cambio y cómo mantener tu propia copia: [Cómo contribuir](docs/contribuir.md).
 
 Hacia dónde va el kit (cualquier tecnología, proyectos existentes, catálogo de skills abierto a contribuciones): [Hoja de ruta](HOJA-DE-RUTA.md).
 

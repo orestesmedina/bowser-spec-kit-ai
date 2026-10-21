@@ -4,15 +4,19 @@
 Fuente única (lo que el equipo edita):
   AGENTS.md                 instrucciones del proyecto
   equipo/agentes/*.md       definición neutral de cada subagente
+  equipo/perfil.json        perfil del proyecto: de ahí salen la sección «Este proyecto» de cada rol y sus skills
   equipo/comandos/*.md      comandos que la persona escribe dentro de la herramienta (/bowser-status)
-  .agents/skills/           skills compartidas (estándar SKILL.md)
+  .agents/skills/           skills compartidas (estándar SKILL.md); las de tecnología llegan del catálogo del kit
   equipo/config.json        herramientas activas y modelos (por nivel, por agente y del orquestador)
   equipo/adaptadores/       archivos propios de cada herramienta (ej. permisos y hooks de Claude Code)
+  equipo/principios.md      la parte de la constitución que es del kit (igual en todos los proyectos)
+  equipo/reglas.md          la parte de la constitución que es del proyecto
 
 Salida (generada, no editar a mano):
   Claude Code  -> CLAUDE.md, .claude/agents/, .claude/skills/ (skills y comandos), .claude/settings.json
   Codex        -> .codex/agents/*.toml, .agents/skills/bowser-*/ (comandos; lee AGENTS.md y .agents/skills/ directamente)
   OpenCode     -> .opencode/agents/*.md, .opencode/commands/*.md, opencode.json (si hay modelo de orquestador o adaptador)
+  Spec Kit     -> .specify/memory/constitution.md (los principios y, debajo, las reglas del proyecto)
 
 Uso:
   python3 scripts/sincronizar.py              genera los archivos
@@ -30,8 +34,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+import perfil as perfil_proyecto
+
 RAIZ = Path(__file__).resolve().parent.parent
-AVISO = "GENERADO por scripts/sincronizar.py desde {fuente}. No editar: cambia la fuente y ejecuta `make sincronizar`."
+AVISO = "GENERADO por scripts/sincronizar.py desde {fuente}. No editar: cambia la fuente y ejecuta `make sync`."
 
 # Prefijo de los comandos dentro de la herramienta (/bowser-status). Si el kit cambia de nombre, se cambia solo aquí.
 PREFIJO_COMANDOS = "bowser-"
@@ -51,6 +57,12 @@ GESTIONADOS = {
 # no se borra, no se copia de una herramienta a otra y no cuenta al verificar.
 DE_SPEC_KIT = "speckit"
 PREFIJOS = {"claude": (".claude", "CLAUDE"), "codex": (".codex", COMANDOS_CODEX), "opencode": (".opencode", "opencode.json")}
+
+# La constitución que leen Spec Kit y los agentes se genera con dos fuentes: los principios, que son del kit, y las
+# reglas, que son del proyecto. No depende de la herramienta: se genera siempre.
+PRINCIPIOS = "equipo/principios.md"
+REGLAS = "equipo/reglas.md"
+CONSTITUCION = ".specify/memory/constitution.md"
 
 ACCESOS = {"lectura", "documentos", "completo"}
 NIVELES = {"alto", "medio", "bajo"}
@@ -90,8 +102,15 @@ def leer_agente(ruta: Path) -> dict:
             raise ValueError(f"{ruta_txt}: temperatura debe estar entre 0 y 2")
 
     datos["web"] = datos.get("web", "no") == "si"
-    datos["skills"] = [s.strip() for s in datos.get("skills", "").split(",") if s.strip()]
+    # Skills fijas del rol, para los roles propios de un proyecto. Las de tecnología no van aquí: las asigna el
+    # perfil a cada parte (aplicar_perfil). Solo cuentan las que el proyecto tiene.
+    datos["skills"] = [s.strip() for s in datos.get("skills", "").split(",")
+                       if s.strip() and (RAIZ / ".agents/skills" / s.strip() / "SKILL.md").exists()]
     datos["fuente"] = ruta.relative_to(RAIZ).as_posix()
+    datos["proyecto"] = datos.get("proyecto", "")
+    if datos["proyecto"] not in VISTAS_DEL_PROYECTO:
+        raise ValueError(f"{ruta_txt}: proyecto debe ser 'partes' (trabaja las partes que el perfil le asigna), "
+                         "'mapa' (ve todas las partes) o no estar")
 
     instrucciones = cuerpo.strip()
     if datos["skills"]:
@@ -99,6 +118,123 @@ def leer_agente(ruta: Path) -> dict:
         instrucciones += f"\n\n## Skills que debes aplicar\n{lista} (en `.agents/skills/`)."
     datos["instrucciones"] = instrucciones
     return datos
+
+
+# ---------------------------------------------------------------- el proyecto, según su perfil
+
+VISTAS_DEL_PROYECTO = {"", "partes", "mapa"}
+
+
+def leer_perfil() -> tuple[dict | None, list[str]]:
+    """(perfil, errores). Sin perfil o con errores, el perfil es None."""
+    try:
+        perfil = perfil_proyecto.cargar(RAIZ)
+    except perfil_proyecto.ErrorPerfil as e:
+        return None, [str(e)]
+    if perfil is None:
+        return None, []
+    errores, _ = perfil_proyecto.validar(perfil, RAIZ)
+    return (None, [f"{perfil_proyecto.RUTA}: {e}" for e in errores]) if errores else (perfil, [])
+
+
+def instaladas(skills: list[str]) -> list[str]:
+    """De esas skills, las que el proyecto tiene: el perfil puede nombrar una que todavía no existe.
+    Primero el estándar y después las convenciones del proyecto."""
+    hay = [s for s in dict.fromkeys(skills) if (RAIZ / ".agents/skills" / s / "SKILL.md").exists()]
+    return sorted(hay, key=lambda s: s.startswith(perfil_proyecto.CONVENCIONES))
+
+
+def en_codigo(valores: list[str]) -> str:
+    return ", ".join(f"`{v}`" for v in valores)
+
+
+def dentro_de(parte: dict, rutas: list[str]) -> list[str]:
+    """Rutas de la parte, vistas desde la raíz del proyecto."""
+    carpeta = parte["carpeta"].replace("\\", "/").strip("/")
+    return [r if carpeta in ("", ".") else f"{carpeta}/{r}" for r in rutas]
+
+
+def aplicar_perfil(agente: dict, perfil: dict | None, con_errores: bool) -> None:
+    """Agrega a las instrucciones del rol la sección «Este proyecto» y le da las skills de sus partes.
+
+    Un rol con `proyecto: partes` ve las partes que el perfil le asigna; uno con `proyecto: mapa`, todas.
+    Así el rol no nombra carpetas, tecnologías ni comandos: salen del perfil al generar.
+    """
+    asignado = any(agente["nombre"] == r["rol"] for p in (perfil or {}).get("partes", []) for r in perfil_proyecto.roles_de(p))
+    if not agente["proyecto"] and not asignado:
+        return
+    lineas = ["## Este proyecto"]
+    if perfil is None:
+        if con_errores:
+            lineas.append(f"El perfil del proyecto (`{perfil_proyecto.RUTA}`) tiene errores y no se pudo leer. "
+                          "No supongas carpetas, tecnologías ni comandos: avisa al orquestador antes de trabajar.")
+        else:
+            lineas.append(f"El proyecto todavía no tiene perfil (`{perfil_proyecto.RUTA}`): no se sabe qué partes "
+                          "tiene, con qué tecnología ni cómo se prueba. No supongas carpetas, tecnologías ni comandos: "
+                          "avisa al orquestador antes de trabajar. El perfil se crea con el comando `bowser-profile`.")
+        agente["instrucciones"] += "\n\n" + "\n".join(lineas)
+        return
+
+    origen = f"Sale del perfil del proyecto (`{perfil_proyecto.RUTA}`), que no editas tú."
+    propias: list[str] = []
+    ajenas: list[str] = []
+    detalle: list[str] = []
+    for parte in perfil["partes"]:
+        roles = perfil_proyecto.roles_de(parte)
+        mio = next((r for r in roles if r["rol"] == agente["nombre"]), None)
+        otros = [r["rol"] for r in roles if r["rol"] != agente["nombre"]]
+        if mio is None and agente["proyecto"] != "mapa":
+            quien = f", de {en_codigo(otros)}" if otros else ""
+            ajenas.append(f"`{parte['nombre']}` (`{parte['carpeta']}`{quien})")
+            continue
+
+        titulo = f"- **{parte['nombre']}**, en `{parte['carpeta']}`"
+        if mio is not None and agente["proyecto"] == "mapa":
+            titulo += " (la trabajas tú)"
+        detalle.append(titulo + (f": {parte['descripcion']}" if parte.get("descripcion") else "."))
+        if mio is not None:
+            skills = instaladas(mio["skills"])
+            propias += skills
+            if skills:
+                detalle.append(f"  - Skills que debes aplicar: {en_codigo(skills)} (en `.agents/skills/`).")
+            if otros:
+                detalle.append(f"  - También la trabajan: {en_codigo(otros)}.")
+        else:
+            if roles:
+                detalle.append(f"  - La trabajan: {en_codigo([r['rol'] for r in roles])}.")
+            skills = instaladas([s for r in roles for s in r["skills"]] + parte.get("skills", []))
+            if skills:
+                detalle.append(f"  - Sus convenciones están en las skills {en_codigo(skills)} (en `.agents/skills/`).")
+
+        definidos, faltan = [], []
+        for verbos, orden in perfil_proyecto.MAKE_DE_VERBOS:
+            con_comando = [v for v in verbos if perfil_proyecto.comando_de(parte, v)]
+            if con_comando:
+                definidos.append(f"make {orden} PART={parte['nombre']}")
+            faltan += [v for v in verbos if v not in con_comando]
+        if definidos:
+            detalle.append(f"  - Comandos: {en_codigo(definidos)}.")
+        if faltan:
+            detalle.append(f"  - El proyecto todavía no tiene cómo: {', '.join(faltan)}. No inventes un comando: dilo en tu entrega.")
+        if parte.get("terceros"):
+            detalle.append(f"  - Código de terceros, que no se toca: {en_codigo(dentro_de(parte, parte['terceros']))}.")
+        if parte.get("inmutables"):
+            detalle.append("  - No se modifican una vez versionados (se crea un archivo nuevo): "
+                           f"{en_codigo(dentro_de(parte, parte['inmutables']))}.")
+
+    if agente["proyecto"] == "mapa":
+        lineas.append(f"{origen} Sus partes:")
+        lineas += ["", *detalle]
+    elif detalle:
+        lineas.append(f"{origen} Tus partes:")
+        lineas += ["", *detalle]
+        if ajenas:
+            lineas += ["", f"Las demás partes no son tuyas: {', '.join(ajenas)}."]
+    else:
+        lineas.append(f"{origen} Hoy no te asigna ninguna parte. Si te delegan una tarea, no supongas carpetas ni "
+                      "tecnologías: avisa al orquestador.")
+    agente["skills"] = list(dict.fromkeys(agente["skills"] + propias))
+    agente["instrucciones"] += "\n\n" + "\n".join(lineas)
 
 
 NOMBRE_COMANDO = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
@@ -237,6 +373,20 @@ def json_bytes(datos: dict) -> bytes:
 
 
 # ---------------------------------------------------------------- generadores
+
+def es_generada(constitucion: str) -> bool:
+    """True si ese texto de la constitución lo escribió este script (y no una persona ni Spec Kit)."""
+    return constitucion.startswith("<!-- GENERADO")
+
+
+def generar_constitucion() -> dict[str, bytes]:
+    """Los principios del kit y, debajo, las reglas del proyecto. Sin principios no se genera nada."""
+    if not (RAIZ / PRINCIPIOS).exists():
+        return {}
+    partes = [(RAIZ / f).read_text(encoding="utf-8").strip() for f in (PRINCIPIOS, REGLAS) if (RAIZ / f).exists()]
+    aviso = AVISO.format(fuente=f"{PRINCIPIOS} y {REGLAS}")
+    return {CONSTITUCION: (f"<!-- {aviso} -->\n" + "\n\n".join(partes) + "\n").encode()}
+
 
 def es_repositorio_del_kit() -> bool:
     """True en el repositorio del kit (tiene el instalador y MANTENER-KIT.md, y no es un proyecto con el kit instalado)."""
@@ -488,6 +638,8 @@ def archivos_actuales() -> dict[str, bytes]:
             p = RAIZ / f
             if p.exists():
                 actuales[f] = p.read_bytes()
+    if (RAIZ / PRINCIPIOS).exists() and (RAIZ / CONSTITUCION).exists():
+        actuales[CONSTITUCION] = (RAIZ / CONSTITUCION).read_bytes()
     return actuales
 
 
@@ -512,6 +664,15 @@ def main() -> int:
             print(f"Error: {e}", file=sys.stderr)
         return 1
 
+    perfil, errores = leer_perfil()
+    for e in errores:
+        print(f"Aviso: {e}", file=sys.stderr)
+    if errores:
+        print("Aviso: con el perfil así, los roles se generan sin los datos del proyecto. Corrígelo (make profile) "
+              "y ejecuta `make sync`.", file=sys.stderr)
+    for a in agentes:
+        aplicar_perfil(a, perfil, bool(errores))
+
     if "--modelos" in args:
         return informe_modelos(agentes, config, activas)
 
@@ -528,7 +689,7 @@ def main() -> int:
             print("Aviso: opencode.json existente movido a equipo/adaptadores/opencode/opencode.json "
                   "(edítalo ahí; los modelos se toman de equipo/config.json).")
 
-    esperado: dict[str, bytes] = {}
+    esperado: dict[str, bytes] = generar_constitucion()
     for h in activas:
         esperado.update(GENERADORES[h](agentes, comandos, config))
 
@@ -541,7 +702,7 @@ def main() -> int:
             for titulo, lista in (("Faltan", faltan), ("Sobran", sobran), ("Desactualizados", distintos)):
                 for k in lista:
                     print(f"  {titulo}: {k}", file=sys.stderr)
-            print("Los archivos generados no están al día. Ejecuta `make sincronizar`.", file=sys.stderr)
+            print("Los archivos generados no están al día. Ejecuta `make sync`.", file=sys.stderr)
             return 1
         print(f"OK: {len(esperado)} archivos generados al día ({', '.join(activas)}).")
         return 0
@@ -567,7 +728,7 @@ def main() -> int:
     for h in activas:
         n = sum(1 for k in esperado if k.startswith(PREFIJOS[h]))
         print(f"  {h}: {n} archivos")
-    print("Revisa qué modelo usa cada agente con: make modelos")
+    print("Revisa qué modelo usa cada agente con: make models")
     return 0
 
 

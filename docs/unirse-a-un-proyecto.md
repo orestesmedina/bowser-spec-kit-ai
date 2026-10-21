@@ -23,15 +23,15 @@ Pídelos a quien lidera el proyecto antes de empezar:
 
 ## Clonar y preparar el proyecto
 
-Con tu máquina lista según la página de [Instalación](instalacion.md):
+Con las herramientas base instaladas según la página de [Instalación](instalacion.md) (las del proyecto te las pedirá `make doctor`):
 
 ```bash
 git clone --recursive git@github.com:<organizacion>/<proyecto>.git
 cd <proyecto>
 
-make instalar-hooks          # activa los controles de git (obligatorio)
+make install-hooks          # activa los controles de git (obligatorio)
 cp .env.example .env         # y completa los valores que te entregaron
-make up                      # levanta PostgreSQL
+make up                      # levanta los servicios del proyecto (su base de datos, por ejemplo)
 make doctor                  # verifica que todo esté listo
 ```
 
@@ -40,29 +40,22 @@ Qué hace cada paso:
 | Comando | Por qué hace falta |
 |---|---|
 | `git clone --recursive` | El kit vive en un submódulo (`.bowser-spec-kit-ai/`). Sin `--recursive` esa carpeta queda vacía. Si ya clonaste sin esa opción: `git submodule update --init` |
-| `make instalar-hooks` | La activación de los [hooks de git](hooks-de-git.md) no viaja con el repositorio: cada persona la hace una vez por clon. Sin ella, tus commits no pasan por ningún control local |
+| `make install-hooks` | La activación de los [hooks de git](hooks-de-git.md) no viaja con el repositorio: cada persona la hace una vez por clon. Sin ella, tus commits no pasan por ningún control local |
 | `cp .env.example .env` | `.env` tiene los valores reales (contraseñas, direcciones) y nunca se sube a git |
-| `make up` | Levanta PostgreSQL con Docker |
-| `make doctor` | Comprueba todo lo anterior. Debe terminar con "Todo listo para trabajar" |
+| `make up` | Levanta con Docker los servicios que el proyecto definió en su archivo de Docker Compose. Si responde "todavía no tiene entorno local", el proyecto aún no lo creó: sáltate este paso |
+| `make doctor` | Comprueba todo lo anterior y las herramientas que el proyecto declara en su perfil (su lenguaje, su base de datos): si falta alguna, dice cuál y cómo instalarla. Debe terminar con "Todo listo para trabajar" |
 
 > [!WARNING]
-> Ajusta la contraseña en `.env` **antes** del primer `make up`. PostgreSQL solo la toma al crear la base; si la cambias después, hay que recrearla con `docker compose down -v && make up`, que borra los datos locales.
+> Ajusta las contraseñas en `.env` **antes** del primer `make up`. Los motores de base de datos (PostgreSQL y MySQL, entre otros) solo las toman al crear la base; si las cambias después, hay que recrearla con `docker compose down -v && make up`, que borra los datos locales.
 
 ## Conectarte a la base de datos local
 
-Con un cliente como DBeaver o pgAdmin 4:
+Qué base de datos hay, en qué puerto y con qué usuario lo define cada proyecto: los valores están en tu `.env` y el servicio, en el archivo de Docker Compose de la raíz. Con ellos te conectas desde un cliente como DBeaver, a `localhost`.
 
-| Campo | Valor |
-|---|---|
-| Host | `localhost` |
-| Puerto | `POSTGRES_PORT` de tu `.env` (por defecto `5432`) |
-| Base de datos | `POSTGRES_DB` (por defecto `app`) |
-| Usuario y contraseña | `POSTGRES_USER` y `POSTGRES_PASSWORD` de tu `.env` |
-
-Para comprobarlo desde la terminal:
+Para ver qué servicios están arriba:
 
 ```bash
-docker compose exec db psql -U app -d app -c "select version();"
+docker compose ps
 ```
 
 ## Qué leer primero
@@ -74,7 +67,7 @@ En este orden:
 3. `docs/producto/roadmap.md`: qué funcionalidades tiene el producto y en qué estado está cada una.
 4. La carpeta `specs/`, empezando por la funcionalidad más reciente, para ver cómo se ha trabajado.
 
-Después ejecuta `make estado`: muestra qué está en curso y cuál es el próximo paso.
+Después ejecuta `make status`: muestra qué está en curso y cuál es el próximo paso.
 
 > [!NOTE]
 > No edites la carpeta `.bowser-spec-kit-ai/` ni los archivos que vienen del kit (están listados en `.kit-manifest.json`). El hook de git y la integración continua lo detectan. Si algo del kit debería cambiar, propónlo a quien mantiene el kit en tu equipo.
@@ -90,7 +83,7 @@ Después ejecuta `make estado`: muestra qué está en curso y cuál es el próxi
 **Día 2**
 
 - [ ] Leer las especificaciones y los planes de dos funcionalidades ya terminadas, con su `estado.md`.
-- [ ] Ejecutar `make estado` y entender el roadmap del proyecto.
+- [ ] Ejecutar `make status` y entender el roadmap del proyecto.
 - [ ] Leer la página de [Roles](roles.md).
 - [ ] Hacer un [cambio pequeño](cambios-pequenos.md) y abrir un Pull Request acompañado de alguien con experiencia.
 
